@@ -1,0 +1,188 @@
+{
+  "version": 2,
+  "class": {
+    "classId": "learning-dynamics",
+    "revision": "1",
+    "unitId": "factorized-step"
+  },
+  "operationId": "factorized-19",
+  "world": {
+    "id": "factorized-scalar-step",
+    "revision": "1",
+    "subject": "Equal present products can have different next learning steps",
+    "instructions": "The scalar model is f=a*b*x. Its loss is (f-target)^2/2. A step updates a and b simultaneously by gradient descent at the supplied rate, using both derivatives at the original a,b. For a product task return a*b; for a step task return the new effective coefficient a_next*b_next. Return one exact reduced fraction n/d, or an integer when its denominator is 1. No explanation."
+  },
+  "learner": {
+    "id": "local-learner",
+    "model": {
+      "provider": "custom",
+      "id": "REPLACE_WITH_CONFIGURED_LOCAL_MODEL_ID",
+      "thinkingLevel": "off"
+    }
+  },
+  "teacher": {
+    "id": "teacher",
+    "model": {
+      "provider": "anthropic",
+      "id": "REPLACE_WITH_CONFIGURED_TEACHER_MODEL_ID"
+    }
+  },
+  "teaching": [
+    {
+      "id": "factor-19-teach-a",
+      "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"step\",\"a\":\"2\",\"b\":\"3\",\"x\":\"1\",\"target\":\"0\",\"rate\":\"1/10\"}"
+        }
+      ],
+      "expected": "9/25"
+    },
+    {
+      "id": "factor-19-teach-b",
+      "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"step\",\"a\":\"6\",\"b\":\"1\",\"x\":\"1\",\"target\":\"0\",\"rate\":\"1/10\"}"
+        }
+      ],
+      "expected": "-351/25"
+    },
+    {
+      "id": "factor-19-teach-product",
+      "question": "What is the current effective coefficient a*b?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"product\",\"a\":\"2\",\"b\":\"3\",\"x\":\"1\",\"target\":\"0\",\"rate\":\"1/10\"}"
+        }
+      ],
+      "expected": "6"
+    }
+  ],
+  "evaluation": [
+    {
+      "id": "factor-19-diagnostic-1",
+      "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"step\",\"a\":\"4\",\"b\":\"8\",\"x\":\"3\",\"target\":\"-12\",\"rate\":\"1/19\"}"
+        }
+      ],
+      "expected": "2878304/361",
+      "split": "target"
+    },
+    {
+      "id": "factor-19-diagnostic-2",
+      "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"step\",\"a\":\"2\",\"b\":\"9\",\"x\":\"1\",\"target\":\"6\",\"rate\":\"1/21\"}"
+        }
+      ],
+      "expected": "-1210/49",
+      "split": "target"
+    },
+    {
+      "id": "factor-19-diagnostic-3",
+      "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"step\",\"a\":\"9\",\"b\":\"2\",\"x\":\"3\",\"target\":\"-6\",\"rate\":\"1/10\"}"
+        }
+      ],
+      "expected": "4320",
+      "split": "target"
+    },
+    {
+      "id": "factor-19-diagnostic-4",
+      "question": "What is the current effective coefficient a*b?",
+      "observations": [
+        {
+          "id": "parameters",
+          "status": "SUFFICIENT",
+          "content": "{\"operation\":\"product\",\"a\":\"4\",\"b\":\"8\",\"x\":\"1\",\"target\":\"0\",\"rate\":\"1/30\"}"
+        }
+      ],
+      "expected": "32",
+      "split": "retention"
+    }
+  ],
+  "limits": {
+    "maxOutputTokens": 512,
+    "callTimeoutMs": 30000,
+    "episodeTimeoutMs": 600000
+  },
+  "experiment": {
+    "version": 1,
+    "family": "factorized-scalar-step-v1",
+    "seed": 19,
+    "cold": true,
+    "transfer": [
+      {
+        "id": "factor-19-transfer-1",
+        "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+        "observations": [
+          {
+            "id": "parameters",
+            "status": "SUFFICIENT",
+            "content": "{\"operation\":\"step\",\"a\":\"6\",\"b\":\"8\",\"x\":\"1\",\"target\":\"-11\",\"rate\":\"1/11\"}"
+          }
+        ],
+        "expected": "107996/121",
+        "split": "target"
+      },
+      {
+        "id": "factor-19-transfer-2",
+        "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+        "observations": [
+          {
+            "id": "parameters",
+            "status": "SUFFICIENT",
+            "content": "{\"operation\":\"step\",\"a\":\"8\",\"b\":\"7\",\"x\":\"1\",\"target\":\"-12\",\"rate\":\"1/11\"}"
+          }
+        ],
+        "expected": "181196/121",
+        "split": "target"
+      },
+      {
+        "id": "factor-19-transfer-3",
+        "question": "What is the effective coefficient a_next*b_next after one simultaneous gradient step?",
+        "observations": [
+          {
+            "id": "parameters",
+            "status": "SUFFICIENT",
+            "content": "{\"operation\":\"step\",\"a\":\"7\",\"b\":\"8\",\"x\":\"2\",\"target\":\"11\",\"rate\":\"1/12\"}"
+          }
+        ],
+        "expected": "252397/18",
+        "split": "target"
+      },
+      {
+        "id": "factor-19-transfer-4",
+        "question": "What is the current effective coefficient a*b?",
+        "observations": [
+          {
+            "id": "parameters",
+            "status": "SUFFICIENT",
+            "content": "{\"operation\":\"product\",\"a\":\"1\",\"b\":\"8\",\"x\":\"3\",\"target\":\"-11\",\"rate\":\"1/13\"}"
+          }
+        ],
+        "expected": "8",
+        "split": "retention"
+      }
+    ],
+    "disclosure": "after-completion"
+  }
+}

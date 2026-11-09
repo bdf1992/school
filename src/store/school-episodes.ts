@@ -5,6 +5,7 @@ import path from "node:path";
 import { schoolOperationId, SchoolEpisodeError, type SchoolEpisodeManifest, type SchoolEpisodeRecord } from "../core/school-episode.ts";
 import { admitSchoolClassEpisode } from "../core/school-class.ts";
 import { schoolClassSha256 } from "./school-classes.ts";
+import { validateSchoolExperimentEvidence } from "../core/school-experiment.ts";
 
 function canonical(value: unknown): string {
 	if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
@@ -14,6 +15,31 @@ function canonical(value: unknown): string {
 	return encoded;
 }
 export function schoolManifestSha256(manifest: SchoolEpisodeManifest): string { return createHash("sha256").update(canonical(manifest)).digest("hex"); }
+
+function validParticipantEvidence(record: SchoolEpisodeRecord): void {
+	for (const role of ["learner", "teacher"] as const) {
+		const participant = record.manifest[role], binding = record.bindings?.[role];
+		if (Boolean(participant.stateRef) !== Boolean(binding)) throw new Error("Missing participant binding");
+		if (!binding) continue;
+		if (binding.participantId !== participant.id || binding.stateRef.revision !== participant.stateRef!.revision || binding.modelIdentity !== "OWNER_DECLARED" || [binding.participantSha256, binding.stateSha256, binding.connectionSha256, binding.memorySha256].some((hash) => !/^[a-f0-9]{64}$/.test(hash))) throw new Error("Invalid participant binding");
+	}
+	for (const call of record.calls) {
+		if (call.runtime && (canonical(call.runtime.participant) !== canonical(record.bindings?.[call.role] ?? null) || call.runtime.loadedArtifact !== "NOT_ATTESTED" || !/^[a-f0-9]{64}$/.test(call.runtime.configurationSha256))) throw new Error("Runtime binding changed");
+		if (record.bindings?.[call.role] && call.state !== "REQUESTED" && call.completion !== "NO_CALL_ADMITTED" && !call.runtime) throw new Error("Admitted participant has no runtime receipt");
+	}
+	if (record.manifest.experiment) {
+		const checks = validateSchoolExperimentEvidence(record);
+		for (const check of checks.memoryChecks) if (createHash("sha256").update(canonical(check.memory)).digest("hex") !== check.expectedSha256) throw new Error("Saved memory differs from its admitted state");
+		if (!Array.isArray(record.exposures) || record.exposures.length !== record.calls.length) throw new Error("Missing exposure receipts");
+		const hash = (value: unknown) => createHash("sha256").update(canonical(value)).digest("hex");
+		for (const [index, call] of record.calls.entries()) {
+			const receipt = record.exposures[index]!, view = call.view as Record<string, unknown>;
+			const condition = call.phase === "lesson" ? "teaching" : call.phase === "retry" ? "assisted" : call.phase;
+			if (receipt.sequence !== index || receipt.callId !== call.id || receipt.participantId !== call.participant.id || receipt.role !== call.role || receipt.condition !== condition || receipt.caseId !== call.caseId || receipt.viewSha256 !== hash(call.view) || receipt.scope !== "SCHOOL_SUPPLIED_VIEW" || receipt.delivery !== "NOT_ATTESTED") throw new Error("Exposure receipt does not match its retained view");
+			for (const [field, value] of [["problemSha256", view.problem], ["lessonSha256", view.lesson], ["memorySha256", view.savedMemory ?? view.memory]] as const) if (receipt[field] !== (value === undefined ? undefined : hash(value))) throw new Error("Exposure content changed");
+		}
+	} else if (record.exposures !== undefined) throw new Error("Undeclared exposure protocol");
+}
 
 function validClassContext(record: SchoolEpisodeRecord): void {
 	if (record.version === 1) {
@@ -39,6 +65,7 @@ export class SchoolEpisodeStore {
 			const record = JSON.parse(readFileSync(path.join(directory, "record.json"), "utf8")) as SchoolEpisodeRecord;
 			if (![1, 2].includes(record.version) || record.operationId !== id || record.manifest.operationId !== id || schoolManifestSha256(record.manifest) !== record.manifestSha256 || !["RUNNING", "COMPLETED", "FAILED"].includes(record.status) || !Array.isArray(record.calls) || !Array.isArray(record.events)) throw new Error("Invalid record identity");
 			validClassContext(record);
+			validParticipantEvidence(record);
 			return record;
 		} catch { throw new SchoolEpisodeError("INCOMPLETE_OR_CORRUPT_RECORD", "The operation exists but its record is incomplete or corrupt. Do not automatically replay provider calls.", 409); }
 	}
@@ -58,6 +85,7 @@ export class SchoolEpisodeStore {
 	}
 	claim(initial: SchoolEpisodeRecord): { replayed: boolean; record: SchoolEpisodeRecord } {
 		validClassContext(initial);
+		validParticipantEvidence(initial);
 		mkdirSync(this.root, { recursive: true, mode: 0o700 });
 		try { mkdirSync(this.directory(initial.operationId), { mode: 0o700 }); }
 		catch (error) {
@@ -71,6 +99,8 @@ export class SchoolEpisodeStore {
 		if (record.manifest.operationId !== record.operationId || schoolManifestSha256(record.manifest) !== record.manifestSha256) throw new SchoolEpisodeError("MANIFEST_DRIFT", "An admitted episode's manifest cannot change", 409);
 		try { validClassContext(record); }
 		catch { throw new SchoolEpisodeError("CLASS_CONTEXT_DRIFT", "An admitted episode's class context is invalid or changed", 409); }
+		try { validParticipantEvidence(record); }
+		catch { throw new SchoolEpisodeError("PARTICIPANT_EVIDENCE_DRIFT", "An admitted episode's participant or exposure evidence is invalid or changed", 409); }
 		const directory = this.directory(record.operationId);
 		const target = path.join(directory, "record.json");
 		if (existsSync(target)) {
@@ -78,6 +108,9 @@ export class SchoolEpisodeStore {
 			if (prior.status !== "RUNNING") throw new SchoolEpisodeError("IMMUTABLE_RESULT", "A completed or failed episode cannot be rewritten", 409);
 			if (prior.manifestSha256 !== record.manifestSha256) throw new SchoolEpisodeError("MANIFEST_DRIFT", "An admitted episode's manifest cannot change", 409);
 			if (canonical(prior.classContext ?? null) !== canonical(record.classContext ?? null)) throw new SchoolEpisodeError("CLASS_CONTEXT_DRIFT", "An admitted episode's class snapshot cannot change", 409);
+			if (canonical(prior.bindings ?? null) !== canonical(record.bindings ?? null)) throw new SchoolEpisodeError("PARTICIPANT_BINDING_DRIFT", "An admitted episode's participant bindings cannot change", 409);
+			if (prior.exposures && canonical(prior.exposures) !== canonical(record.exposures?.slice(0, prior.exposures.length))) throw new SchoolEpisodeError("EXPOSURE_DRIFT", "Retained exposure receipts cannot change", 409);
+			for (const call of prior.calls) if (call.runtime && canonical(call.runtime) !== canonical(record.calls.find((item) => item.id === call.id)?.runtime ?? null)) throw new SchoolEpisodeError("RUNTIME_BINDING_DRIFT", "An admitted call's runtime receipt cannot change", 409);
 		}
 		const temporary = path.join(directory, `record-${randomUUID()}.tmp`);
 		writeFileSync(temporary, JSON.stringify(record, null, 2) + "\n", { mode: 0o600, flag: "wx" });

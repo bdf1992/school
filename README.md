@@ -6,7 +6,7 @@ School organizes continuing classes with a roster, curriculum, schedule, peers, 
 
 We are remodeling [LearnHarness](https://github.com/amosblomqvist/learnharness) into this workbench while retaining its human teaching and practice application. The initial fork base is `da08cb5f7d098598ba963c6689b22054c9f2a5a3`. Upstream authorship and the AGPL-3.0-only license remain intact.
 
-[Intent and boundaries](docs/school-intent.md) · [Classes](docs/school-classes.md) · [Model episodes](docs/school-episodes.md) · [Remodeling issue](https://github.com/bdf1992/school/issues/1) · [All documentation](docs/README.md)
+[Intent and boundaries](docs/school-intent.md) · [Classroom](docs/school-classroom.md) · [Participants and connections](docs/school-participants.md) · [Experiments](docs/school-experiments.md) · [Queued work](docs/school-runs.md) · [All documentation](docs/README.md)
 
 ## The learning loop
 
@@ -23,6 +23,23 @@ The first model episode runs **baseline → lesson → retry → comparison**. T
 
 This episode measures **contextual assistance**. It does not train weights or adopt a successor model. School owns curriculum and episode interaction; [AUM](https://github.com/bdf1992/aum-foundation) owns the proposed model-training, edition, adoption, and continuing-world-work boundary. An integration with that boundary remains planned.
 
+An optional generated experiment adds **cold**, explicitly selected **saved-memory**, and **lesson-assisted transfer** conditions. Its factorized scalar task checks authored answer keys with an independent exact-arithmetic oracle. Each condition records its own supplied context and coverage; missing answers remain missing. Continuing participants select immutable state and connection revisions, so a later memory snapshot cannot rewrite an earlier episode.
+
+## Open the classroom
+
+Run `npm run dev` and choose **Classroom** in the sidebar, or open `/school`. Import a class revision, register participants and named connections, and prepare a model episode from a manifest. **Queue episode** saves work; **Run due work** explicitly starts a bounded pass. The console shows each learner's grades, assistance conditions, state receipts and retained evidence. Opening or refreshing the page makes no model calls.
+
+Run the independently checked experiment without a model server:
+
+```sh
+npm run school:experiment -- check examples/school/factorized-step.json
+npm run school:experiment -- run examples/school/factorized-step.json --fixture helpful --class examples/school/factorized-class.json --school /tmp/school-experiment --operation factor-helpful
+npm run school:experiment -- run examples/school/factorized-step.json --fixture harmful --school /tmp/school-experiment --operation factor-harmful
+npm run school:experiment -- run examples/school/factorized-step.json --fixture memorizing --school /tmp/school-experiment --operation factor-memorizing
+```
+
+Each default experiment retains 17 scripted calls. The controls demonstrate contextual gain, harmful regression, and a memorizer failing on fresh parameters. They qualify the experiment machinery; actual local/hosted model qualification remains a separate run. See [Experiments](docs/school-experiments.md) for generating new seeds and the additional saved-memory condition.
+
 ## Run a class with two learners
 
 Use Node 26, matching CI, and the checked-in lockfile:
@@ -37,7 +54,7 @@ npm run school:class -- grades generative-structures 1 --school /tmp/school-demo
 
 The fixture uses scripted participants, makes no provider requests, and labels its results `SCRIPTED_FIXTURE`. The two learners share the class curriculum while retaining separate attempts and grades. Each episode pins the admitted class revision. Repeating an operation returns its original evidence without more calls. Use a suitable absolute School directory on Windows.
 
-For a configured run, set up connections in the app, register a class with the intended participant IDs, assign actual learner and teacher models in the episode manifest, give the operation a new identity, and omit `--fixture`. See [Classes](docs/school-classes.md) and [Model episodes](docs/school-episodes.md) for admission, schedules, APIs and replay. These interfaces currently live in the CLI and API; the existing lesson UI still serves human learners.
+For a configured run, set up existing providers or [named connections](docs/school-participants.md), register a class with the intended participant IDs, assign actual learner and teacher models in the episode manifest, give the operation a new identity, and omit `--fixture`. Use the classroom, CLI or API. See [Classes](docs/school-classes.md) and [Model episodes](docs/school-episodes.md) for admission, schedules and replay.
 
 ## Inspect a saved session for a learner
 
@@ -56,7 +73,7 @@ npm run desktop:dev    # development desktop host
 
 Choose **Teach** to probe your starting point, plan a lesson, and work through explanations and checks. Choose **Practice** for varied problems. Sessions retain answers, plans, usage, and source material. The knowledge graph carries propositions and reasoning chains across sessions; graph presence is not evidence of learner mastery.
 
-Available connections include provider API keys, supported desktop/web subscription connections, an installed [Claude Code CLI](docs/claude-code.md), and one [custom OpenAI-compatible endpoint](docs/custom-providers.md) with multiple model IDs. A local inference server must already exist; School does not install, train, or download its models. Subscription, API, and CLI routes keep their existing admission and billing semantics.
+Available connections include provider API keys, supported desktop/web subscription connections and an installed [Claude Code CLI](docs/claude-code.md). The inherited human flow has one [custom OpenAI-compatible endpoint](docs/custom-providers.md); registered School participants can use multiple independent [named endpoints](docs/school-participants.md), including servers advertising the same model ID. A local inference server must already exist; School does not install, train, or download its models. Subscription, API, and CLI routes keep their existing admission and billing semantics.
 
 Model-driven work sends the permitted context to the selected provider. Chats, graphs, settings, and episode records are local files. Local storage does not imply offline inference. Keys and subscription credentials must remain private.
 
@@ -64,9 +81,12 @@ Model-driven work sends the permitted context to the selected provider. Chats, g
 
 - Human teaching/practice, persistent sessions, graph extraction, and provider connections inherited from LearnHarness.
 - Explicit learner/teacher manifests, bounded model-call orchestration, independent exact-answer evaluation, and inspectable episode records.
-- Immutable class revisions, roster/role checks, curriculum dependencies, self-paced or dated session admission, private peer work, and an evidence-derived owner gradebook. A schedule does not automatically run a model; peer messaging and a class UI remain planned.
+- Immutable class revisions, roster/role checks, curriculum dependencies, self-paced or dated session admission, private peer work, and an evidence-derived owner classroom and gradebook.
+- Continuing participant/state records, explicit saved memory, named endpoint revisions, dedicated credentials and dispatch-time drift checks. Declared artifact hashes remain owner declarations; loaded model weights are not attested.
+- A durable queue with bounded sequential work, explicit due times, cancellation, dead-worker recovery and evidence reconciliation. An explicitly started CLI worker can watch for due work; opening the UI does not start one.
+- Generated factorized tasks with independently checked keys, sealed transfer inputs, exposure receipts and separate baseline, assisted, cold, saved-memory and transfer reports.
 - Separate School desktop identity and default update feed. Existing `LH_*` environment variables and data formats remain compatible.
-- No qualified School installer or live local-model training result is supplied by this foundation change. Native installation, signing, update delivery, role-selection UI, multiple local endpoints, and the AUM training bridge are tracked in [the remodeling issue](https://github.com/bdf1992/school/issues/1).
+- Actual local/hosted model qualification, broader task artifacts, peer interaction, fleet resource limits, automatic learning-memory updates, the AUM training bridge and native release qualification remain in [the remodeling issue](https://github.com/bdf1992/school/issues/1).
 
 ## Development and support
 

@@ -8,6 +8,11 @@
 - [Intent and boundaries](school-intent.md) — roles, evidence, AUM ownership, and the remodeling direction.
 - [Classes](school-classes.md) — rosters, curriculum, schedules, peer boundaries, gradebooks, and class-bound episodes.
 - [Model episodes](school-episodes.md) — run the bounded learner/teacher loop, inspect records, and use the API.
+- [Classroom console](school-classroom.md) — import classes and states, queue work, compare conditions and inspect evidence.
+- [Participants and connections](school-participants.md) — continuing identities, immutable state, explicit memory and independent local endpoints.
+- [Controlled experiments](school-experiments.md) — generated factorized tasks, independent key checking and separate assistance conditions.
+- [Queued execution](school-runs.md) — due times, bounded workers, cancellation, recovery and unresolved completion.
+- [Workbench verification](evidence/school-workbench-2026-11-09.json) — test totals, controlled outcomes, production HTTP checks, independent arithmetic verification and qualification limits.
 - [Remodeling issue](https://github.com/bdf1992/school/issues/1) — implemented foundation and remaining qualification gates.
 
 ## User guides

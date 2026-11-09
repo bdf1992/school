@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "evidence": "INDEPENDENT_OFFLINE_ORACLE_CHECK",
+  "checked_at": "2026-11-09T15:39:11.332996+00:00",
+  "status": "PASSED",
+  "generator_seeds": {
+    "first": 1,
+    "last": 128,
+    "count": 128
+  },
+  "checked_in_fixture": "examples/school/factorized-step.json",
+  "batches": 129,
+  "counts": {
+    "checked_cases": 1419,
+    "step_cases": 1032,
+    "generated_cases": 1408,
+    "matching_keys": 1419,
+    "mutated_wrong_keys_rejected": 1419,
+    "product_cases": 387,
+    "checked-in-manifest_cases": 11
+  },
+  "method": "Python fractions.Fraction; exact symmetric finite differences of the loss separately in a and b, then simultaneous parameter updates. The loss is quadratic in each factor separately, so the finite difference has no approximation error.",
+  "known_equal_product_counterexample": [
+    {
+      "a": "2",
+      "b": "3",
+      "current_coefficient": "6",
+      "next_coefficient": "9/25",
+      "expected": "9/25",
+      "passed": true
+    },
+    {
+      "a": "6",
+      "b": "1",
+      "current_coefficient": "6",
+      "next_coefficient": "-351/25",
+      "expected": "-351/25",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "commands": [
+    "node --import tsx docs/evidence/school-oracle-input.mjs /tmp/school-workbench-independent-cases.json",
+    "python3 docs/evidence/school-oracle-check.py /tmp/school-workbench-independent-cases.json /tmp/school-workbench-independent-summary.json"
+  ],
+  "working_directory": "repository root",
+  "input_sha256": "f69837aebf52adae67e3ed813c85039a80749e5ef34a891fcaabbe508d8cfc4b",
+  "source_sha256": {
+    "src/core/school-experiment.ts": "aa183cd0d85c6cdf5d9b816a4ad49fcfaaf2c86531e57dee2928d86309dae340",
+    "examples/school/factorized-step.json": "dacc1c9fedba1ed952340328b744687f22e03ed158cd8f8bbe5d563b03771c17"
+  },
+  "checker_sha256": "c78838aca4f77db6e37d2728685e320eb3fe5ec5099776238df3d8226a95a987",
+  "limitations": [
+    "Finite bounded seed/sample check, not an exhaustive proof over all rational parameters.",
+    "The arithmetic checker is independent of TypeScript, but the checked generated inputs were emitted by the production TypeScript generator.",
+    "The seed19 checked-in fixture is checked separately and overlaps the generated seed19 inventory.",
+    "This verifies authored task keys and normalized input separation only; it measures no model capability, training, persistence, server artifact identity or pretraining novelty."
+  ]
+}

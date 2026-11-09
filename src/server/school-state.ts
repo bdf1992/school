@@ -6,3 +6,4 @@ import { SchoolEpisodeStore } from "../store/school-episodes.ts";
 
 export const schoolClasses = new SchoolClassStore(path.join(PATHS.data, "school", "classes"));
 export const schoolEpisodes = new SchoolEpisodeStore(path.join(PATHS.data, "school", "episodes"));
+export { schoolParticipants } from "./school-participants.ts";

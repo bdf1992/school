@@ -10,6 +10,10 @@ import { compareSchoolGrades, gradeSchoolReply, parseSchoolEpisode, schoolLearne
 import { SchoolEpisodeStore, schoolManifestSha256 } from "../store/school-episodes.ts";
 import { admitSchoolClassEpisode, SchoolClassError } from "../core/school-class.ts";
 import { SchoolClassStore, schoolClassSha256 } from "../store/school-classes.ts";
+import { SchoolParticipantError, type SchoolRuntimeReceipt } from "../core/school-participants.ts";
+import { SchoolExperimentError, schoolExposureForCall, summarizeSchoolExperiment } from "../core/school-experiment.ts";
+import type { SchoolParticipantStore } from "../store/school-participants.ts";
+import { pinSchoolParticipant, schoolParticipantEngine } from "./school-participants.ts";
 import { schoolClasses, schoolEpisodes } from "./school-state.ts";
 export { schoolEpisodes } from "./school-state.ts";
 import { desktopAPIAuthorized } from "./desktop-access.ts";
@@ -19,6 +23,7 @@ import { CustomBodyLimitError, readBoundedJson } from "./custom-provider-body.ts
 export interface SchoolEpisodeOptions {
 	store?: SchoolEpisodeStore;
 	classStore?: SchoolClassStore;
+	registry?: SchoolParticipantStore;
 	signal?: AbortSignal;
 	/** Test clock for class admission only; execution deadlines remain monotonic. */
 	now?: () => Date;
@@ -68,7 +73,10 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 	const now = (options.now?.() ?? new Date()).toISOString();
 	const admission = admitSchoolClassEpisode(definition, manifest.class, { learnerId: manifest.learner.id, teacherId: manifest.teacher.id, world: manifest.world, now });
 	const classContext = { ...admission, definitionSha256: schoolClassSha256(definition) };
-	const record: SchoolEpisodeRecord = { version: 2, operationId: manifest.operationId, manifestSha256: schoolManifestSha256(manifest), manifest, classContext, evidence, status: "RUNNING", createdAt: now, updatedAt: now, calls: [], events: [] };
+	const pinned = { learner: pinSchoolParticipant(manifest.learner, options.registry), teacher: pinSchoolParticipant(manifest.teacher, options.registry) };
+	if (manifest.experiment?.memory && !pinned.learner?.state.memory?.text.trim()) throw new SchoolEpisodeError("MEMORY_STATE_REQUIRED", "A memory condition requires an explicitly registered learner state with nonempty saved memory");
+	const bindings = { ...(pinned.learner ? { learner: pinned.learner.receipt } : {}), ...(pinned.teacher ? { teacher: pinned.teacher.receipt } : {}) };
+	const record: SchoolEpisodeRecord = { version: 2, operationId: manifest.operationId, manifestSha256: schoolManifestSha256(manifest), manifest, classContext, evidence, status: "RUNNING", createdAt: now, updatedAt: now, calls: [], events: [], ...(Object.keys(bindings).length ? { bindings } : {}), ...(manifest.experiment ? { exposures: [] } : {}) };
 	const claimed = store.claim(record);
 	if (claimed.replayed) return claimed;
 	const deadline = new AbortController();
@@ -76,6 +84,7 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 	const timer = setTimeout(() => deadline.abort(new Error("Episode time limit exceeded")), manifest.limits.episodeTimeoutMs);
 	const episodeSignal = options.signal ? AbortSignal.any([options.signal, deadline.signal]) : deadline.signal;
 	const engineFor = options.engineFor ?? configuredEngine;
+	const runtimes: { learner?: SchoolRuntimeReceipt; teacher?: SchoolRuntimeReceipt } = {};
 	let current: SchoolCallRecord | undefined;
 	function checkEpisodeDeadline() {
 		if (performance.now() >= episodeEndsAt && !deadline.signal.aborted) deadline.abort(new Error("Episode time limit exceeded"));
@@ -88,10 +97,14 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 	}
 	async function invoke(phase: SchoolPhase, view: unknown, item?: SchoolEvaluationCase): Promise<string> {
 		checkEpisodeDeadline();
-		const participant = phase === "lesson" ? manifest.teacher : manifest.learner;
-		const call: SchoolCallRecord = { id: `${manifest.operationId}-${record.calls.length + 1}`, phase, role: phase === "lesson" ? "teacher" : "learner", ...(item ? { caseId: item.id } : {}), participant, systemPrompt: phase === "lesson" ? SCHOOL_TEACHER_PROMPT : SCHOOL_LEARNER_PROMPT, view, state: "REQUESTED" };
+		const role = phase === "lesson" ? "teacher" : "learner";
+		const participant = manifest[role], binding = pinned[role];
+		const savedMemory = !manifest.experiment || phase === "memory" ? binding?.state.memory : undefined;
+		const suppliedView = savedMemory ? { ...(view as object), savedMemory: { text: savedMemory.text, sourceIds: [...savedMemory.sourceIds] } } : view;
+		const call: SchoolCallRecord = { id: `${manifest.operationId}-${record.calls.length + 1}`, phase, role, ...(item ? { caseId: item.id } : {}), participant, systemPrompt: phase === "lesson" ? SCHOOL_TEACHER_PROMPT : SCHOOL_LEARNER_PROMPT, view: suppliedView, state: "REQUESTED" };
 		current = call;
 		record.calls.push(call);
+		if (record.exposures) record.exposures.push(await schoolExposureForCall(call, record.exposures.length));
 		checkpoint("CALL_REQUESTED", call);
 		const deadline = new AbortController();
 		const callEndsAt = performance.now() + manifest.limits.callTimeoutMs;
@@ -103,7 +116,9 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 			signal.throwIfAborted();
 		}
 		try {
-			const engine = await abortable(Promise.resolve().then(() => engineFor(participant, call)), signal);
+			const prepared = await abortable(Promise.resolve().then(async () => binding ? schoolParticipantEngine(participant, binding, { registry: options.registry, configuredEngine: (selected) => engineFor(selected, call), expectedRuntime: runtimes[role] }) : { engine: await engineFor(participant, call), receipt: undefined }), signal);
+			const engine = prepared.engine;
+			if (prepared.receipt) { call.runtime = prepared.receipt; runtimes[role] ??= prepared.receipt; }
 			checkDeadline();
 			call.resolvedModel = { provider: engine.model.provider, id: engine.model.id, api: engine.model.api, ...(engine.level ? { thinkingLevel: engine.level } : {}) };
 			call.state = "ADMITTED";
@@ -112,7 +127,7 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 			// unknown; a restart never repeats that call automatically.
 			checkpoint("CALL_ADMITTED", call);
 			checkDeadline();
-			const result = await runSchoolParticipant(engine, { systemPrompt: call.systemPrompt, view, callId: call.id, maxOutputTokens: manifest.limits.maxOutputTokens, timeoutMs: manifest.limits.callTimeoutMs, signal });
+			const result = await runSchoolParticipant(engine, { systemPrompt: call.systemPrompt, view: suppliedView, callId: call.id, maxOutputTokens: manifest.limits.maxOutputTokens, timeoutMs: manifest.limits.callTimeoutMs, signal });
 			call.reply = result.reply;
 			call.text = result.text;
 			call.state = "REPLY_RETAINED";
@@ -138,6 +153,12 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 		const baseline = grades("baseline");
 		const lesson = await invoke("lesson", inClass(schoolTeacherView(manifest, baseline)));
 		for (const item of manifest.evaluation) await invoke("retry", inClass(schoolLearnerView(manifest, item, lesson)), item);
+		if (manifest.experiment) {
+			for (const item of manifest.evaluation) await invoke("cold", inClass(schoolLearnerView(manifest, item)), item);
+			if (manifest.experiment.memory) for (const item of manifest.evaluation) await invoke("memory", inClass(schoolLearnerView(manifest, item)), item);
+			for (const item of manifest.experiment.transfer) await invoke("transfer", inClass(schoolLearnerView(manifest, item, lesson)), item);
+			record.experiment = summarizeSchoolExperiment(manifest, record.calls);
+		}
 		checkEpisodeDeadline();
 		record.comparison = compareSchoolGrades(baseline, grades("retry"));
 		record.status = "COMPLETED";
@@ -151,6 +172,7 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 		}
 		record.status = "FAILED";
 		record.error = message(error);
+		if (manifest.experiment) record.experiment = summarizeSchoolExperiment(manifest, record.calls);
 		checkpoint("EPISODE_FAILED", current);
 	} finally { clearTimeout(timer); }
 	return { replayed: false, record };
@@ -164,7 +186,7 @@ function authorized(request: Request, mutation: boolean): boolean {
 }
 function response(body: unknown, status = 200): Response { return Response.json(body, { status, headers: { "Cache-Control": "no-store" } }); }
 function failedResponse(error: unknown): Response {
-	if (error instanceof SchoolEpisodeError) return response({ error: error.message, code: error.code }, error.status);
+	if (error instanceof SchoolEpisodeError || error instanceof SchoolParticipantError || error instanceof SchoolExperimentError) return response({ error: error.message, code: error.code }, error.status);
 	if (error instanceof SchoolClassError) return response({ error: error.message, code: error.code }, error.status);
 	if (error instanceof CustomBodyLimitError) return response({ error: "Episode manifest exceeds 64 KiB" }, 413);
 	if (error instanceof SyntaxError) return response({ error: "Invalid JSON body" }, 400);

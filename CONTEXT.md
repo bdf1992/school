@@ -49,6 +49,12 @@ The material, concern, or capability an episode investigates or teaches.
 An identified person, model, or agent taking a role in an episode.
 _Avoid_: Using provider, model name, and role as interchangeable identities.
 
+**Participant state**:
+An immutable revision selecting a continuing participant's model, connection, optional parent, explicit saved-memory snapshot and declared artifacts. An episode pins one revision; later revisions do not rewrite its evidence.
+
+**Named connection**:
+An immutable revision identifying an existing configured provider or an explicit endpoint and its dedicated credential reference. It specifies routing, not proof of the weights loaded by the server.
+
 **Learner**:
 A participant whose understanding, behavior, or capability is being investigated or developed.
 
@@ -83,6 +89,12 @@ Teacher-supplied information or choices that may affect an attempt, including ex
 
 **Evidence**:
 A retained observation or checked result used to support or challenge a claim within its stated scope.
+
+**Exposure receipt**:
+A record of the exact view prepared for a participant under a declared condition. It does not attest provider consumption or unknown pretraining exposure.
+
+**Experiment condition**:
+A declared combination of task cases and available assistance, such as baseline, lesson-assisted, cold, saved-memory or lesson-assisted transfer. Scores belong to their conditions and retain missing coverage.
 
 **Qualification**:
 An assessment of what a claim or candidate is supported to do under declared conditions.
@@ -122,3 +134,6 @@ The accounted-for continuation of identities, meanings, consequences, relationsh
 **Record**:
 A retained account that connects sources, participants, observations, attempts, effects, decisions, and their order.
 _Avoid_: Treating a record of a claim as proof that the claim is true.
+
+**Queued run**:
+An immutable request for a bounded episode with a due time and call budget, plus its execution and recovery history. Queue admission and model dispatch remain separate recorded events.

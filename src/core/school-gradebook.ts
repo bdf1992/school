@@ -1,7 +1,9 @@
 /** Owner-side gradebook projection. Records stay authoritative; this view neither
  * fills missing grades nor exposes participant prompts, replies or private work. */
 import { admitSchoolClassEpisode, parseSchoolClass, SchoolClassError, type SchoolClassDefinition, type SchoolClassRef } from "./school-class.ts";
-import { compareSchoolGrades, type SchoolCallRecord, type SchoolComparison, type SchoolEpisodeRecord, type SchoolEvaluationCase, type SchoolGrade, type SchoolModelSpec } from "./school-episode.ts";
+import { compareSchoolGrades, type SchoolCallRecord, type SchoolComparison, type SchoolEpisodeRecord, type SchoolEvaluationCase, type SchoolGrade, type SchoolModelSpec, type SchoolPhase } from "./school-episode.ts";
+import { summarizeSchoolExperiment, validateSchoolExperimentEvidence, type SchoolExperimentReport } from "./school-experiment.ts";
+import type { SchoolStateRef } from "./school-participants.ts";
 
 export interface SchoolGradeCount { expected: number; graded: number; correct: number | null }
 export interface SchoolGradebookCase {
@@ -19,7 +21,7 @@ export interface SchoolGradebookPhase {
 export interface SchoolGradebookEpisode {
 	operationId: string;
 	class: SchoolClassRef;
-	learner: { id: string; model: SchoolModelSpec; edition: string | null };
+	learner: { id: string; model: SchoolModelSpec; edition: string | null; stateRef?: SchoolStateRef };
 	teacherId: string;
 	evidence: SchoolEpisodeRecord["evidence"];
 	status: SchoolEpisodeRecord["status"];
@@ -28,6 +30,7 @@ export interface SchoolGradebookEpisode {
 	baseline: SchoolGradebookPhase;
 	retry: SchoolGradebookPhase;
 	comparison: SchoolComparison | null;
+	experiment?: SchoolExperimentReport;
 }
 export interface SchoolGradebook {
 	class: { id: string; revision: string; title: string };
@@ -57,18 +60,19 @@ function verifyRetainedGrade(record: SchoolEpisodeRecord, call: SchoolCallRecord
 	if (!rawText.trim() || rawText !== call.text || call.grade.correct !== (rawText.trim() === expected.expected.trim())) corrupt(`Episode ${record.operationId} has conflicting retained grade evidence`);
 }
 
-function phaseGrades(record: SchoolEpisodeRecord, phase: "baseline" | "retry"): SchoolGradebookPhase {
+function phaseGrades(record: SchoolEpisodeRecord, phase: Exclude<SchoolPhase, "lesson">): SchoolGradebookPhase {
 	const byCase = new Map<string, SchoolCallRecord>();
+	const evaluation = phase === "transfer" ? record.manifest.experiment?.transfer ?? [] : record.manifest.evaluation;
 	for (const call of record.calls) {
 		if (call.phase !== phase) continue;
 		if (!["REQUESTED", "ADMITTED", "REPLY_RETAINED", "FAILED"].includes(call.state) || (call.completion !== undefined && !["REPLY_RETAINED", "TERMINAL_REPLY_REJECTED", "NO_CALL_ADMITTED", "UNKNOWN"].includes(call.completion))) corrupt(`Episode ${record.operationId} has an invalid attempt state`);
-		const expected = record.manifest.evaluation.find((item) => item.id === call.caseId);
+		const expected = evaluation.find((item) => item.id === call.caseId);
 		if (!expected || byCase.has(expected.id) || call.role !== "learner" || canonical(call.participant) !== canonical(record.manifest.learner)) corrupt(`Episode ${record.operationId} has conflicting ${phase} case ownership`);
 		if (call.grade && (call.completion !== "REPLY_RETAINED" || call.grade.caseId !== expected.id || call.grade.split !== expected.split || call.grade.evaluator !== "trimmed-exact-v1" || typeof call.grade.correct !== "boolean")) corrupt(`Episode ${record.operationId} has an invalid retained grade`);
 		verifyRetainedGrade(record, call, expected);
 		byCase.set(expected.id, call);
 	}
-	const cases = record.manifest.evaluation.map((item): SchoolGradebookCase => {
+	const cases = evaluation.map((item): SchoolGradebookCase => {
 		const call = byCase.get(item.id);
 		return {
 			caseId: item.id, split: item.split, callId: call?.id ?? null,
@@ -104,6 +108,15 @@ export function schoolGradebook(rawDefinition: SchoolClassDefinition, records: r
 		if (canonical(admission.view) !== canonical(context.view)) corrupt(`Episode ${record.operationId} has conflicting class context`);
 		const learner = learners.find((member) => member.participantId === record.manifest.learner.id)!;
 		const baseline = phaseGrades(record, "baseline"), retry = phaseGrades(record, "retry");
+		let experiment: SchoolExperimentReport | undefined;
+		if (record.manifest.experiment) {
+			try { validateSchoolExperimentEvidence(record); }
+			catch { corrupt(`Episode ${record.operationId} has conflicting experiment conditions`); }
+			for (const phase of ["cold", "transfer", ...(record.manifest.experiment.memory ? ["memory"] : [])] as Exclude<SchoolPhase, "lesson">[]) phaseGrades(record, phase);
+			if (!record.manifest.experiment.memory && record.calls.some((call) => call.phase === "memory")) corrupt(`Episode ${record.operationId} contains an undeclared memory condition`);
+			experiment = summarizeSchoolExperiment(record.manifest, record.calls);
+			if (record.experiment && canonical(record.experiment) !== canonical(experiment)) corrupt(`Episode ${record.operationId} has conflicting experiment evidence`);
+		} else if (record.experiment || record.calls.some((call) => ["cold", "memory", "transfer"].includes(call.phase))) corrupt(`Episode ${record.operationId} contains undeclared experiment work`);
 		let comparison: SchoolComparison | null = null;
 		if (record.comparison) {
 			if ([...baseline.cases, ...retry.cases].some((item) => item.grade === null)) corrupt(`Episode ${record.operationId} compares incomplete grades`);
@@ -116,9 +129,9 @@ export function schoolGradebook(rawDefinition: SchoolClassDefinition, records: r
 		learner.episodes.push({
 			operationId: record.operationId,
 			class: { classId: reference.classId, revision: reference.revision, unitId: reference.unitId, ...(reference.sessionId === undefined ? {} : { sessionId: reference.sessionId }) },
-			learner: { id: participant.id, model: { provider: participant.model.provider, id: participant.model.id, ...(participant.model.thinkingLevel === undefined ? {} : { thinkingLevel: participant.model.thinkingLevel }) }, edition: participant.edition ?? null },
+			learner: { id: participant.id, model: { provider: participant.model.provider, id: participant.model.id, ...(participant.model.thinkingLevel === undefined ? {} : { thinkingLevel: participant.model.thinkingLevel }) }, edition: participant.edition ?? null, ...(participant.stateRef ? { stateRef: { ...participant.stateRef } } : {}) },
 			teacherId: record.manifest.teacher.id, evidence: record.evidence, status: record.status, createdAt: record.createdAt, updatedAt: record.updatedAt,
-			baseline, retry, comparison,
+			baseline, retry, comparison, ...(experiment ? { experiment } : {}),
 		});
 	}
 	for (const learner of learners) learner.episodes.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.operationId.localeCompare(b.operationId));

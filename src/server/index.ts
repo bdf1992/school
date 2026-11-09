@@ -58,3 +58,5 @@ export { customProviderGet, customProviderMutation } from "./custom-provider-htt
 
 export * from "./school-episodes.ts";
 export * from "./school-classes.ts";
+export * from "./school-participants.ts";
+export * from "./school-runs.ts";

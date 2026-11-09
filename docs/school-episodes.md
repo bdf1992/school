@@ -1,6 +1,6 @@
 # Model episodes
 
-School's machine-learner interface runs a finite, authored task through a baseline, one teacher lesson, a learner retry, and exact-answer comparison. Each new episode belongs to a registered [class](school-classes.md), curriculum unit and, for scheduled work, class session. It is available as a CLI and API. The existing human Teach/Practice UI does not yet launch these episodes.
+School's machine-learner interface runs a finite task through a baseline, one teacher lesson, a learner retry, and exact-answer comparison. Each new episode belongs to a registered [class](school-classes.md), curriculum unit and, for scheduled work, class session. It is available through the [Classroom console](school-classroom.md), CLI and API. The inherited human Teach/Practice flow remains separate. The optional [experiment protocol](school-experiments.md) adds independently checked generated cases, cold, saved-memory and fresh transfer conditions.
 
 ## Run without a model
 
@@ -14,7 +14,7 @@ Run the same command again to retrieve the terminal record without repeating cal
 
 ## Configure actual participants
 
-1. Run School and configure the required connections under **Settings → Providers**. A [custom endpoint](custom-providers.md) can host the local learner. School currently supports one such endpoint with multiple model IDs.
+1. Run School and configure the required connections under **Settings → Providers**, or register [named participant connections](school-participants.md). The inherited global [custom endpoint](custom-providers.md) supports multiple model IDs; named connections add separate endpoints and exact state bindings for School participants.
 2. Copy [`examples/school/byte-parity.json`](../examples/school/byte-parity.json) and replace both model ID placeholders. Keep `provider: "custom"` for that local endpoint. Use the exact configured provider/model identifiers for the teacher; the example selects the Anthropic API, while `openai` or an enabled `claude-code` connection are other routes. Inspect the app's available model catalog instead of guessing an ID.
 3. Register the referenced class revision with matching learner/teacher roster IDs, unit/world revision and schedule. Give the operation a distinct identity. Optionally supply each participant's `edition` label; it is a declaration, not proof of which weights were loaded.
 4. Run the copied manifest without `--fixture` using the same `LH_DATA_DIR` and `LH_AUTH_FILE` profile as the configured application.
@@ -65,7 +65,7 @@ The comparison records target and retention totals, both scores, and every previ
 }
 ```
 
-The same evaluation cases are used before and after the lesson, with fresh participant contexts. They are withheld from the teacher except for aggregate scores. There is no cold/no-lesson follow-up, model update, or separate generalization trial yet. A retention split here means checking previously correct responses under assistance, not demonstrated long-term memory.
+The basic loop uses the same evaluation cases before and after the lesson, with fresh participant contexts. They are withheld from the teacher except for aggregate scores. The [optional generated experiment](school-experiments.md) adds a cold/no-lesson follow-up, an explicitly requested saved-memory condition, and lesson-assisted transfer to fresh parameters. These remain separate reports. A retention split here checks previously correct responses; it does not establish long-term memory, generalization or weight change.
 
 Records live at `<LH_DATA_DIR>/school/episodes/<operationId>/record.json`, under `<--school>/episodes/`, or beneath the CLI's legacy `--output` root. They include the full manifest, admitted class snapshot and digest, evaluation answers, allowed views, raw replies, returned usage metadata, grades, errors, and ordered checkpoint events. Treat these as private evaluator records, not learner-facing API responses. They are unsigned local files; the digests bind payload identities but do not make the entire archive tamper-proof.
 
@@ -100,4 +100,4 @@ curl 'http://localhost:3000/api/school/episodes?operationId=local-parity-001'
 
 A successful or replayed terminal operation returns `{ "replayed": ..., "record": ... }`. A recorded execution failure returns HTTP 502 with the record. Validation and operation collisions return specific 4xx responses. `GET` retrieves the full private record for the given operation ID. HTTP JSON cannot inject an engine or request fixture mode. For a browser disconnect, inspect the record before retrying; request cancellation and remote completion are separate facts.
 
-See [School's intent](school-intent.md) and [issue #1](https://github.com/bdf1992/school/issues/1) for the role UI, actual local/hosted qualification, additional evaluators, and AUM training bridge.
+See [School's intent](school-intent.md) and [issue #1](https://github.com/bdf1992/school/issues/1) for actual local/hosted qualification, broader evaluators and artifacts, and the AUM training bridge.

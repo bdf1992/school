@@ -21,6 +21,9 @@
 		"typecheck": "tsc --noEmit",
 		"school:episode": "node --import tsx scripts/school-episode.ts",
 		"school:class": "node --import tsx scripts/school-class.ts",
+		"school:participant": "node --import tsx scripts/school-participant.ts",
+		"school:experiment": "node --import tsx scripts/school-experiment.ts",
+		"school:worker": "node --import tsx scripts/school-worker.ts",
 		"desktop:dev": "concurrently -k \"next dev\" \"LH_DEV_URL=http://localhost:3000 electron .\"",
 		"dev:fresh": "bash scripts/dev-fresh.sh",
 		"desktop:dist": "rm -rf dist .next/standalone && next build && node scripts/smoke-provider-runtime.mjs && node scripts/build-server.mjs && node scripts/smoke-server.mjs && electron-builder --mac --arm64 --publish never"

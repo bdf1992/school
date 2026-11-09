@@ -14,7 +14,7 @@ export function scriptedParityEngine(_participant: SchoolParticipant, call: Scho
 		answer = [...bits].filter((bit) => bit === "1").length % 2 ? "ODD" : "EVEN";
 		if (!view.lesson && bits === "10110001") answer = "ODD"; // Deliberately scripted defect.
 	}
-	const faux = createFauxCore({ provider: "school-fixture", models: [{ id: "scripted-parity-v1" }], tokenSize: { min: 512, max: 512 }, tokensPerSecond: 100000 });
+	const faux = createFauxCore({ api: "school-scripted-parity-v1", provider: "school-fixture", models: [{ id: "scripted-parity-v1" }], tokenSize: { min: 512, max: 512 }, tokensPerSecond: 100000 });
 	faux.setResponses([fauxAssistantMessage(answer)]);
 	return { model: faux.getModel(), streamFn: faux.streamSimple, level: "off" };
 }

@@ -2,9 +2,11 @@
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { parseSchoolClassRef, type SchoolClassAdmission, type SchoolClassRef } from "./school-class.ts";
+import { parseSchoolStateRef, type SchoolStateRef, type SchoolParticipantBindingReceipt, type SchoolRuntimeReceipt } from "./school-participants.ts";
+import { parseSchoolExperiment, type SchoolExperimentProtocol, type SchoolExperimentReport, type SchoolExposureReceipt } from "./school-experiment.ts";
 
 export interface SchoolModelSpec { provider: string; id: string; thinkingLevel?: ThinkingLevel }
-export interface SchoolParticipant { id: string; model: SchoolModelSpec; edition?: string }
+export interface SchoolParticipant { id: string; model: SchoolModelSpec; edition?: string; stateRef?: SchoolStateRef }
 export interface SchoolObservation {
 	id: string;
 	status: "ABSENT" | "INSUFFICIENT" | "SUFFICIENT";
@@ -28,10 +30,10 @@ interface SchoolEpisodeFields {
 }
 /** Version 1 is retained for historical evidence/replay. New work uses version 2. */
 export type SchoolEpisodeManifest = SchoolEpisodeFields & (
-	{ version: 1; class?: never } | { version: 2; class: SchoolClassRef }
+	{ version: 1; class?: never; experiment?: never } | { version: 2; class: SchoolClassRef; experiment?: SchoolExperimentProtocol }
 );
 export interface SchoolEpisodeClassContext extends SchoolClassAdmission { definitionSha256: string }
-export type SchoolPhase = "baseline" | "lesson" | "retry";
+export type SchoolPhase = "baseline" | "lesson" | "retry" | "cold" | "memory" | "transfer";
 export interface SchoolGrade { caseId: string; split: "target" | "retention"; correct: boolean; evaluator: "trimmed-exact-v1" }
 export interface SchoolComparison {
 	baseline: { target: number; retention: number };
@@ -53,6 +55,7 @@ export interface SchoolCallRecord {
 	view: unknown;
 	state: "REQUESTED" | "ADMITTED" | "REPLY_RETAINED" | "FAILED";
 	resolvedModel?: { provider: string; id: string; api: string; thinkingLevel?: ThinkingLevel };
+	runtime?: SchoolRuntimeReceipt;
 	reply?: AssistantMessage;
 	rejectedReply?: { bytes: number; sha256: string; provider: string; model: string; stopReason: string };
 	text?: string;
@@ -71,6 +74,9 @@ interface SchoolEpisodeRecordFields {
 	calls: SchoolCallRecord[];
 	events: { sequence: number; kind: string; at: string; callId?: string }[];
 	comparison?: SchoolComparison;
+	bindings?: { learner?: SchoolParticipantBindingReceipt; teacher?: SchoolParticipantBindingReceipt };
+	exposures?: SchoolExposureReceipt[];
+	experiment?: SchoolExperimentReport;
 	error?: string;
 }
 export type SchoolEpisodeRecord = SchoolEpisodeRecordFields & (
@@ -102,11 +108,11 @@ export function schoolOperationId(value: unknown): string {
 	return id;
 }
 function participant(value: unknown, where: string): SchoolParticipant {
-	const row = object(value, ["id", "model", "edition"], where);
+	const row = object(value, ["id", "model", "edition", "stateRef"], where);
 	const model = object(row.model, ["provider", "id", "thinkingLevel"], `${where}.model`);
 	const thinking = model.thinkingLevel;
 	if (thinking !== undefined && !["off", "minimal", "low", "medium", "high", "xhigh", "max"].includes(String(thinking))) throw new SchoolEpisodeError("INVALID_MANIFEST", `${where}.model.thinkingLevel is invalid`);
-	return { id: text(row.id, `${where}.id`, 128), model: { provider: text(model.provider, `${where}.model.provider`, 128), id: text(model.id, `${where}.model.id`, 256), ...(thinking === undefined ? {} : { thinkingLevel: thinking as ThinkingLevel }) }, ...(row.edition === undefined ? {} : { edition: text(row.edition, `${where}.edition`, 256) }) };
+	return { id: text(row.id, `${where}.id`, 128), model: { provider: text(model.provider, `${where}.model.provider`, 128), id: text(model.id, `${where}.model.id`, 256), ...(thinking === undefined ? {} : { thinkingLevel: thinking as ThinkingLevel }) }, ...(row.edition === undefined ? {} : { edition: text(row.edition, `${where}.edition`, 256) }), ...(row.stateRef === undefined ? {} : { stateRef: parseSchoolStateRef(row.stateRef) }) };
 }
 function caseOf(value: unknown, where: string, evaluation: boolean): SchoolCase | SchoolEvaluationCase {
 	const row = object(value, ["id", "question", "observations", "expected", ...(evaluation ? ["split"] : [])], where);
@@ -125,9 +131,10 @@ function caseOf(value: unknown, where: string, evaluation: boolean): SchoolCase 
 }
 
 export function parseSchoolEpisode(value: unknown): SchoolEpisodeManifest {
-	const row = object(value, ["version", "operationId", "class", "world", "learner", "teacher", "teaching", "evaluation", "limits"], "episode");
+	const row = object(value, ["version", "operationId", "class", "world", "learner", "teacher", "teaching", "evaluation", "limits", "experiment"], "episode");
 	if (row.version !== 1 && row.version !== 2) throw new SchoolEpisodeError("INVALID_MANIFEST", "Unsupported episode version");
 	if (row.version === 1 && "class" in row) throw new SchoolEpisodeError("INVALID_MANIFEST", "A class reference requires episode version 2");
+	if (row.version === 1 && "experiment" in row) throw new SchoolEpisodeError("INVALID_MANIFEST", "An experiment requires episode version 2");
 	const world = object(row.world, ["id", "revision", "subject", "instructions"], "world");
 	if (!Array.isArray(row.teaching) || row.teaching.length < 1 || row.teaching.length > 8) throw new SchoolEpisodeError("INVALID_MANIFEST", "Provide 1–8 teaching examples");
 	if (!Array.isArray(row.evaluation) || row.evaluation.length < 2 || row.evaluation.length > 16) throw new SchoolEpisodeError("INVALID_MANIFEST", "Provide 2–16 evaluation cases");
@@ -147,7 +154,7 @@ export function parseSchoolEpisode(value: unknown): SchoolEpisodeManifest {
 		learner: participant(row.learner, "learner"), teacher: participant(row.teacher, "teacher"), teaching, evaluation,
 		limits: { maxOutputTokens: bounded(limits.maxOutputTokens, 512, 1, 4096, "maxOutputTokens"), callTimeoutMs: bounded(limits.callTimeoutMs, 30000, 10, 120000, "callTimeoutMs"), episodeTimeoutMs: bounded(limits.episodeTimeoutMs, 180000, 10, 600000, "episodeTimeoutMs") },
 	};
-	return row.version === 2 ? { version: 2, class: parseSchoolClassRef(row.class), ...fields } : { version: 1, ...fields };
+	return row.version === 2 ? { version: 2, class: parseSchoolClassRef(row.class), ...fields, ...(row.experiment === undefined ? {} : { experiment: parseSchoolExperiment(row.experiment, teaching, evaluation, fields.world) }) } : { version: 1, ...fields };
 }
 
 /** Construct projections from named fields; never serialize a stored lesson transcript. */

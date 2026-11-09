@@ -2,7 +2,7 @@
 
 School is a workbench for arranging classes and running and inspecting their teaching and learning episodes across people, local models, and hosted agents. It should make clear what a learner could observe, what it attempted, how the teacher helped, what an evaluator checked, and what actually changed.
 
-A class continues across episodes with its own roster, curriculum, schedule, peer relationships and assessment policy. Shared study material does not imply shared private learning state or capability. The first [class interface](school-classes.md) persists class revisions and checks membership, curriculum/world consistency and session timing before starting an episode. It derives a gradebook from individual records. Automatic schedules, peer communication, durable learner memory and richer assessment procedures remain later work.
+A class continues across episodes with its own roster, curriculum, schedule, peer relationships and assessment policy. Shared study material does not imply shared private learning state or capability. The [class interface](school-classes.md) persists class revisions and checks membership, curriculum/world consistency and session timing before starting an episode. The [classroom](school-classroom.md) presents its gradebook. [Participants](school-participants.md) select immutable states and explicit saved memory; [queued work](school-runs.md) supplies due times and an owner-started worker. Recurring timetables, peer communication, automatic memory updates and richer assessment procedures remain later work.
 
 The implementation roadmap is [issue #1](https://github.com/bdf1992/school/issues/1). This document states the intended direction and distinguishes it from the [current episode interface](school-episodes.md).
 
@@ -41,6 +41,8 @@ An authored manifest separates teaching examples from evaluation cases. The lear
 
 The server saves each raw reply before grading it. The exact checker compares the extracted text with the authored expected answer. A comparison can report a target gain, no measured gain, or a regression on a previously correct case. This measures assistance on the declared cases; it does not establish generalization or prove the answer key is correct.
 
+The optional [factorized experiment](school-experiments.md) generates teaching, diagnostic and fresh transfer cases from a declared seed. A separate direct-update arithmetic checker verifies its keys against the generator's expanded formula. It reports baseline, lesson-assisted, cold, optional saved-memory and lesson-assisted transfer conditions separately. Retained views must match the condition: an attempt containing a lesson cannot be relabeled as cold. The complete protocol still establishes neither weight learning nor generalization beyond its task family and seed.
+
 Operation identity binds the normalized manifest and execution mode. A completed identical request can return its record without inference. A changed request under the same identity is refused. An interrupted operation is inspectable; it is not automatically replayed when provider completion may be unknown. These are persistence and replay rules, not an exactly-once billing guarantee.
 
 ## School and AUM
@@ -53,7 +55,7 @@ Operation identity binds the normalized manifest and execution mode. A completed
 
 The bridge should exchange explicit manifests and receipts. It must distinguish context changes, saved knowledge, program changes, policies, adapters, and weights. A grade supplies a judgment; a gradient requires a differentiable objective and an optimizer. A future accepted successor should continue the pending task and make the next consequential choice before the episode is called complete.
 
-The intended first qualified AUM experiment concerns factorized adapters: two representations can implement the same present function yet take different future learning steps. That experiment needs a real configured learner, a held-out evaluator, retention tasks, an actual update path, and a harmful candidate that is rejected. The small byte-parity fixture only establishes the School execution boundary.
+The intended first qualified AUM experiment concerns factorized adapters: two representations can implement the same present function yet take different future learning steps. School now supplies a generated scalar task and helpful, harmful and memorizing controls for this distinction. Qualifying the actual learning loop still needs a real configured learner, independent evaluation, retention tasks, an actual update path and a harmful update candidate that is rejected. Scripted controls establish measurement behavior, not an observed LLM or weight-learning result.
 
 ## Learning to generate structures
 
@@ -66,7 +68,7 @@ Graphs can record dependencies and alternative interpretations. Tensors can eval
 ## Next evidence gates
 
 1. Qualify the current CLI/API with actual local and hosted participants, including failure, cancellation, and cost records.
-2. Add role selection and episode comparison to the UI without exposing answer keys through archived human-session transcripts.
-3. Add a cold/no-lesson condition, independent case generation, and task-specific evaluators before claiming retention or transfer.
+2. Use the classroom, named connections and separate participant states for a real two-learner qualification while preserving isolated work and per-condition evidence.
+3. Extend the generated task family into independently checkable artifacts and broader qualification sets; cold and transfer controls are now available without making generalization claims.
 4. Connect AUM's edition and training receipts, then demonstrate update, independent evaluation, adopt/reject, and task continuation.
 5. Qualify School's own native installers, provider authentication ownership, and update delivery.
