@@ -64,7 +64,7 @@ for (const revokedAfterQueue of [false, true]) {
 			if (input.type === "steers") stores.chatStore.saveMessages(chatId, [...stores.chatStore.getChat(chatId)!.messages, ...input.steers]);
 			return 200;
 		});
-		assert(beginTurn(chat.id));
+		const lease = beginTurn(chat.id); assert(lease);
 		registerLiveAgent(chat.id, agent);
 		const delivered = deliverJobResult(marker);
 		const learner = { id: "scratch-live-learner", role: "user", content: "Please continue my learning", timestamp: 3 } as never;
@@ -80,7 +80,7 @@ for (const revokedAfterQueue of [false, true]) {
 		ipc({ channel: "lh:chatgpt", id: "ordinary-reply-with-no-pending-call", value: { accessToken: "scratch-only" } });
 		assert(!agent.hasQueuedMessages());
 		const persisted = persistTurn(stores.chatStore, chat.id, 0, agent.state.messages, false);
-		unregisterLiveAgent(chat.id); endTurn(chat.id); settleSteers(chat.id, persisted);
+		unregisterLiveAgent(chat.id, agent); endTurn(chat.id, lease); settleSteers(chat.id, persisted);
 		await new Promise((resolve) => setImmediate(resolve));
 		assert.equal(wakes, 0, "no background spin or spend while consent is absent");
 		assert.equal(stores.jobStore.getJob(job.id)!.delivery?.status, "pending", "delivery ownership must not be finalized or failed by deferral");

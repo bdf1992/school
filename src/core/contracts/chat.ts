@@ -145,8 +145,9 @@ export interface TurnUsage {
 	 *  response message id (the SDK coalesces them); keying on messageId
 	 *  would swallow their usage. */
 	id: string;
-	/** The assistant message the turn produced — provenance, keys this
-	 *  entry to the transcript (the block this turn "belongs" to). */
+	/** The assistant message or compaction marker the call produced.
+	 *  A discarded compaction retains its attempt ID here without inserting
+	 *  a marker; inspect `compaction.outcome` before treating it as a checkpoint. */
 	messageId: string;
 	at: string;
 	/** The model that ran the turn, provider-qualified ("provider:id")
@@ -154,6 +155,13 @@ export interface TurnUsage {
 	model: string;
 	/** One entry per agent step (model call) in this turn. */
 	steps: CallUsage[];
+	/** Completed summaries still cost usage when their snapshot became stale
+	 *  or their output was empty. Only committed outcomes have a transcript
+	 *  checkpoint. Absent on ordinary turns and historical records. */
+	compaction?: { outcome: "committed" } | {
+		outcome: "discarded";
+		reason: "empty-summary" | "history-changed" | "source-changed" | "checkpoint-changed" | "plan-changed";
+	};
 }
 
 // ─── Plan blocks (the plan lives in the chat) ────────────────────────────────

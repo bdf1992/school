@@ -823,8 +823,16 @@ function isDismissedResult(m: LhMessage): boolean {
  *  the wake pipeline holds job deliveries in the steer queue until the
  *  next send. Derived from the tail — no latch to persist or clear; any
  *  user message flips it off by changing the record. */
+/** A context checkpoint changes representation, not whether the learner
+ *  authorized another interaction. It must not clear a stop/recovery pause. */
+function lastMessageBeforeCompaction(messages: readonly LhMessage[]): LhMessage | undefined {
+	let i = messages.length - 1;
+	while (i >= 0 && messages[i]!.role === "custom" && (messages[i] as LhMarkerMessage).customType === "compaction") i--;
+	return messages[i];
+}
+
 export function endsInDismissal(messages: readonly LhMessage[]): boolean {
-	const last = messages[messages.length - 1];
+	const last = lastMessageBeforeCompaction(messages);
 	return last !== undefined && isDismissedResult(last);
 }
 
@@ -832,7 +840,7 @@ export function endsInDismissal(messages: readonly LhMessage[]): boolean {
  * automatic restart if only the write-ahead error results survived. No new
  * stored latch: explicit input or replacement output changes this tail. */
 export function endsInQuestionRecovery(messages: readonly LhMessage[]): boolean {
-	const last = messages[messages.length - 1];
+	const last = lastMessageBeforeCompaction(messages);
 	return last?.role === "toolResult" && last.isError &&
 		(last.details as { questionRecovery?: unknown } | null)?.questionRecovery === true;
 }

@@ -15,39 +15,41 @@
  *
  * Still ephemeral BY DESIGN: a process restart clears it, so there are no
  * stale flags to clean up — a crashed turn recovers via the write-ahead
- * record + mount continuation on the next visit. The TTL is a leak guard for
- * the pathological case where onFinish never fires (it runs even on aborts);
- * chat turns are minutes at most, so 30 minutes is far on the safe side.
+ * record + mount continuation on the next visit. Elapsed time cannot prove
+ * the executor stopped. Only the execution that acquired the lease may
+ * release it after settlement; abort requests retain it until then.
  */
 
 import { emit } from "../core/events.ts";
 import { clearTurnFailure } from "./turn-runs.ts";
 
+export type TurnLease = symbol;
+
 interface LhGlobal {
-	__lhTurnRegistry?: Map<string, number>;
+	__lhTurnRegistry?: Map<string, TurnLease>;
 }
 
-function registry(): Map<string, number> {
+function registry(): Map<string, TurnLease> {
 	const g = globalThis as typeof globalThis & LhGlobal;
-	return (g.__lhTurnRegistry ??= new Map<string, number>());
+	return (g.__lhTurnRegistry ??= new Map<string, TurnLease>());
 }
 
 const inFlight = registry();
-const MAX_TURN_MS = 30 * 60_000;
 
 /**
- * Mark a turn as starting. Returns false if one is already running for the
+ * Acquire a turn's opaque lease. Returns false if one is already running for the
  * chat — the caller rejects the request (only one turn may own a chat).
  * Announces "turn-started" AFTER the registry write: a listener that reads
  * isTurnRunning or fetches the record sees consistent truth. The rejected
  * double-begin (the 409 path) stays silent — no turn began.
  */
-export function beginTurn(chatId: string): boolean {
+export function beginTurn(chatId: string): TurnLease | false {
 	if (isTurnRunning(chatId)) return false;
 	clearTurnFailure(chatId);
-	inFlight.set(chatId, Date.now());
+	const lease = Symbol(chatId);
+	inFlight.set(chatId, lease);
 	emit("turn-started", { chatId });
-	return true;
+	return lease;
 }
 
 /**
@@ -57,21 +59,19 @@ export function beginTurn(chatId: string): boolean {
  * Emits only when an entry was actually present: a
  * defensive no-op endTurn must not fire a spurious settle.
  */
-export function endTurn(chatId: string): void {
-	if (inFlight.delete(chatId)) emit("turn-settled", { chatId });
+export function endTurn(chatId: string, lease: TurnLease): boolean {
+	if (!isTurnCurrent(chatId, lease)) return false;
+	inFlight.delete(chatId);
+	emit("turn-settled", { chatId });
+	return true;
 }
 
-/** True while the chat's turn is in flight; lazily evicts stale entries.
- * The eviction path is DELIBERATELY event-free: it is a leak guard for a
- * turn whose onFinish never fired (itself pathological), it runs lazily
- * from a read, and emitting from a read is a side-effect smell. Silence
- * here is a choice, not an oversight. */
+/** Whether this exact execution still owns the chat's state. */
+export function isTurnCurrent(chatId: string, lease: TurnLease): boolean {
+	return typeof lease === "symbol" && inFlight.get(chatId) === lease;
+}
+
+/** A read never expires ownership or starts recovery. */
 export function isTurnRunning(chatId: string): boolean {
-	const since = inFlight.get(chatId);
-	if (since === undefined) return false;
-	if (Date.now() - since > MAX_TURN_MS) {
-		inFlight.delete(chatId);
-		return false;
-	}
-	return true;
+	return inFlight.has(chatId);
 }

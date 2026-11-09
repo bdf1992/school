@@ -34,6 +34,7 @@ import { deliverJobResult, registerLiveAgent, setTurnRunner, steerLiveChat, unre
 import { SessionModel } from "../components/session-core.ts";
 import { buildSubagentSteer } from "../src/core/contracts.ts";
 import { abortTurn, runningTurn, settledTurnResponse } from "../src/server/turn-runs.ts";
+import { deleteChatSession } from "../src/server/chats.ts";
 import { chatStore } from "../src/store/chats.ts";
 import { jobStore } from "../src/store/jobs.ts";
 import { buildAnswer, dismissedAnswer, normalizeOptions, resolveCorrect, type QuestionData } from "../src/core/question-core.ts";
@@ -849,6 +850,38 @@ describe("chat store", () => {
 });
 
 describe("canonical persistence failures", () => {
+	it("releases ownership when agent construction fails before a stream exists", async () => {
+		const chat = createConfiguredChat("Test: failed construction");
+		createdChats.push(chat.id);
+		const response = await handleChatRequest(post(chat.id, { type: "text", text: "Start" }), () => { throw new Error("synthetic constructor failure"); });
+		assert.equal(response.status, 500);
+		assert.equal(isTurnRunning(chat.id), false);
+		assert.equal(runningTurn(chat.id), undefined);
+		assert.equal(chatStore.getChat(chat.id)!.messages.at(-1)?.role, "user", "accepted input stays durable");
+		const { engine } = scriptedTeacher(() => [() => fauxAssistantMessage("Recovered")]);
+		await drainTurn(post(chat.id, { type: "continue" }), agentFactory(engine));
+		assert.equal(isTurnRunning(chat.id), false);
+	});
+
+	it("releases ownership even when settlement cleanup cannot reread the record", async () => {
+		let release!: () => void;
+		const gate = new Promise<void>((resolve) => { release = resolve; });
+		const chat = createConfiguredChat("Test: settlement read failure");
+		createdChats.push(chat.id);
+		const response = await handleChatRequest(post(chat.id, { type: "text", text: "Start" }), agentFactory(gatedTeacher(gate)));
+		assert.equal(response.status, 200);
+		const view = drainRunning(chat.id);
+		const get = chatStore.getChat;
+		chatStore.getChat = (id) => { if (id === chat.id) throw new Error("synthetic settlement read failure"); return get(id); };
+		try {
+			release();
+			const body = await view;
+			assert.ok(eventsOf(body).some((event) => event.type === "error"));
+			assert.equal(isTurnRunning(chat.id), false);
+			assert.equal(runningTurn(chat.id), undefined);
+		} finally { chatStore.getChat = get; release(); }
+	});
+
 	it("refuses a failed input save without building an agent or leaving a live turn", async () => {
 		const { engine } = scriptedTeacher(defaultLesson);
 		const chat = createConfiguredChat("Test: failed answer write-ahead");
@@ -922,6 +955,7 @@ describe("canonical persistence failures", () => {
 		const chat = createConfiguredChat("Test: post-save bookkeeping failure");
 		createdChats.push(chat.id);
 		const steer = newUserMessage("Synthetic learner steer");
+		let next: Parameters<typeof registerLiveAgent>[1] | undefined;
 		const appendUsage = chatStore.appendTurnUsage;
 		chatStore.appendTurnUsage = () => { throw new Error("synthetic usage write failure"); };
 		try {
@@ -935,17 +969,44 @@ describe("canonical persistence failures", () => {
 			assert.equal(eventsOf(body).find(e => e.type === "error")?.errorText, "An error occurred.");
 			assert.ok(chatStore.getChat(chat.id)!.messages.some(m => m.id === steer.id), "the steer was saved before bookkeeping failed");
 			const delivered: LhMessage[] = [];
-			const next = { steer: (message: LhMessage) => delivered.push(message), state: { model: { provider: "faux" } } } as unknown as Parameters<typeof registerLiveAgent>[1];
+			next = { steer: (message: LhMessage) => delivered.push(message), state: { model: { provider: "faux" } } } as unknown as Parameters<typeof registerLiveAgent>[1];
 			registerLiveAgent(chat.id, next);
 			assert.deepEqual(delivered, [], "an already-saved learner steer must not reach another agent");
 		} finally {
 			chatStore.appendTurnUsage = appendUsage;
-			unregisterLiveAgent(chat.id);
+			if (next) unregisterLiveAgent(chat.id, next);
 		}
 	});
 });
 
 describe("mid-turn navigation (turn liveness + write-ahead)", () => {
+	it("a long-running aborted turn still excludes new work and deletion until its executor settles", async () => {
+		let release!: () => void;
+		const gate = new Promise<void>((resolve) => { release = resolve; });
+		const chat = createConfiguredChat("Test: long-running abort ownership");
+		createdChats.push(chat.id);
+		const response = await handleChatRequest(post(chat.id, { type: "text", text: "Wait" }), agentFactory(gatedTeacher(gate)));
+		assert.equal(response.status, 200);
+		const view = drainRunning(chat.id);
+		const originalNow = Date.now;
+		const later = originalNow() + 31 * 60_000;
+		Date.now = () => later;
+		try {
+			assert.equal(isTurnRunning(chat.id), true);
+			const concurrent = await handleChatRequest(post(chat.id, { type: "text", text: "Must wait" }), () => { throw new Error("must not construct overlapping agent"); });
+			assert.equal(concurrent.status, 409);
+			assert.deepEqual(abortTurn(chat.id), { ok: true });
+			await new Promise<void>((resolve) => setImmediate(resolve));
+			assert.equal(isTurnRunning(chat.id), true, "abort request does not prove the provider stopped");
+			const deletion = await deleteChatSession(chat.id, "preserve-graph");
+			assert.ok(!deletion.ok && deletion.code === "turn_in_flight");
+		} finally { Date.now = originalNow; release(); await view; }
+		assert.equal(isTurnRunning(chat.id), false);
+		assert.equal(runningTurn(chat.id), undefined);
+		const saved = chatStore.getChat(chat.id)!;
+		assert.equal(saved.messages.filter((message) => message.role === "user").length, 1, "rejected concurrent input never lands");
+	});
+
 	it("one turn per chat: a concurrent request is 409'd; the next one after finish is accepted", async () => {
 		const { engine } = scriptedTeacher(defaultLesson);
 		const chat = createConfiguredChat("Test: turn guard");

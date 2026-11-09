@@ -127,9 +127,9 @@ it("a swallowed session-unlink failure retains placement and folders, reports pa
 });
 it("preflights every selected session's running turn/jobs before deleting any selected imports", async () => {
 	const chat = stores.chatStore.createChat("Busy"); book("a");
-	beginTurn(chat.id);
+	const lease = beginTurn(chat.id); assert.ok(lease);
 	try { const response = await remove(["a", chat.id], [], true); assert.equal(response.status, 409); assert.equal((await response.json()).code, "turn_in_flight"); assert.equal(stores.graphStore.readSources().length, 1); }
-	finally { endTurn(chat.id); }
+	finally { endTurn(chat.id, lease); }
 	const job = stores.jobStore.createJob({ kind: "research", chatId: chat.id, toolCallId: "busy" });
 	try { const response = await remove(["a", chat.id], [], true); assert.equal(response.status, 409); assert.equal((await response.json()).code, "jobs_running"); assert.equal(stores.graphStore.readSources().length, 1); }
 	finally { stores.jobStore.deleteJobsForChat(chat.id); }

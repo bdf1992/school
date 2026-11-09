@@ -17,7 +17,7 @@ const { runSchoolEpisode } = await import("../src/server/school-episodes.ts");
 const { piModels } = await import("../src/agent/models.ts");
 const { chatGPTConnected } = await import("../src/agent/chatgpt-bridge.ts");
 const { nativeSubscriptionConnected } = await import("../src/agent/subscription-bridge.ts");
-const { configureWebSubscriptionRuntime } = await import("../src/agent/subscription-runtime.ts");
+const { configureWebSubscriptionRuntime, publishWebSubscriptionPacket } = await import("../src/agent/subscription-runtime.ts");
 after(() => { process.env = originalEnv; globalThis.fetch = originalFetch; rmSync(scratch, { recursive: true, force: true }); });
 
 const source = JSON.parse(readFileSync(new URL("../examples/school/byte-parity.json", import.meta.url), "utf8"));
@@ -71,4 +71,61 @@ test("a cold native subscription refresh still refuses background work before ad
 	assert.equal(result.record.calls[0]?.completion, "NO_CALL_ADMITTED");
 	assert.ok(!result.record.events.some((event) => event.kind === "CALL_ADMITTED"));
 	assert.equal(networkCalls, 0);
+});
+
+for (const backgroundAllowed of [true, false]) test(`concurrent cold ChatGPT episodes wait for readiness and preserve background permission (${backgroundAllowed})`, { timeout: 5000 }, async () => {
+	const model = piModels().getModels("openai").find((entry) => entry.api === "openai-responses");
+	assert.ok(model);
+	const epoch = backgroundAllowed ? 2 : 3;
+	const revision = epoch * 10;
+	const accountId = `synthetic-concurrent-${epoch}`;
+	const snapshot = {
+		epoch, authorityRevision: epoch, revision: revision + 2, accountId,
+		status: { available: true, pending: false, allowBackgroundUse: backgroundAllowed, activeId: accountId, accounts: [{ id: accountId, email: "synthetic@example.invalid", registration: "synthetic-registration", connected: true, planEnabled: true }], error: null },
+		models: [{ id: model.id, name: "Concurrent synthetic entry" }],
+	};
+	const operations: string[] = [];
+	const pending: Array<(value: typeof snapshot) => void> = [];
+	let bothRequested!: () => void;
+	const requested = new Promise<void>((resolve) => { bothRequested = resolve; });
+	configureWebSubscriptionRuntime(async <T>(channel: string, op: string) => {
+		assert.equal(channel, "lh:chatgpt");
+		operations.push(op);
+		if (op === "models") return new Promise<T>((resolve) => {
+			pending.push((value) => resolve(value as T));
+			if (pending.length === 2) bothRequested();
+		});
+		if (op === "status") return snapshot as T;
+		if (op === "lease") throw new Error("Synthetic owner declines credential issuance after local admission");
+		throw new Error(`Unexpected private operation: ${op}`);
+	});
+	publishWebSubscriptionPacket("lh:chatgpt", { channel: "lh:chatgpt", kind: "state", stamp: { epoch, authorityRevision: epoch, revision }, status: { ...snapshot.status, available: false }, invalidate: "all" });
+	assert.equal(chatGPTConnected(), false);
+	let firstFinished = false;
+	const evidence = new SchoolEpisodeStore(path.join(scratch, "episodes"));
+	const first = runSchoolEpisode(manifest(`concurrent-${epoch}-a`, "chatgpt", model.id), { store: evidence }).then((result) => { firstFinished = true; return result; });
+	const second = runSchoolEpisode(manifest(`concurrent-${epoch}-b`, "chatgpt", model.id), { store: evidence });
+	await requested;
+	try {
+		pending[0]!({ ...snapshot, revision: revision + 1 });
+		await new Promise((resolve) => setImmediate(resolve));
+		assert.equal(firstFinished, false, "the first episode must not reject while the accepted refresh is still pending");
+		assert.equal(operations.includes("lease"), false, "no credential work before usable readiness");
+	} finally {
+		pending[1]!(snapshot);
+		await Promise.all([first, second]);
+	}
+	for (const { record } of await Promise.all([first, second])) {
+		assert.equal(record.status, "FAILED", "the synthetic owner denies leases or background permission");
+		assert.equal(record.events.some((event) => event.kind === "CALL_ADMITTED"), backgroundAllowed);
+		assert.equal(record.calls[0]?.grade, undefined);
+		if (backgroundAllowed) assert.equal(record.calls[0]?.resolvedModel?.provider, "chatgpt");
+		else {
+			assert.match(record.error ?? "", /not authorized background model calls/);
+			assert.equal(record.calls[0]?.completion, "NO_CALL_ADMITTED");
+		}
+	}
+	assert.equal(operations.filter((op) => op === "models").length, 2, "waiting adds no catalog retry");
+	assert.equal(operations.filter((op) => op === "lease").length, backgroundAllowed ? 2 : 0);
+	assert.equal(networkCalls, 0, "no generation or fallback API request");
 });

@@ -11,21 +11,19 @@
  * process.
  *
  * Registration lifecycle: chat-handler registers the handle the moment
- * the turn starts (after the 409 guard) and its onFinish unregisters LAST
- * — after persist, usage, extraction, and endTurn — so anything that sees
- * "no running turn" sees durable record truth. Failed settlement also
+ * the turn starts (after the 409 guard) and its onFinish unregisters
+ * after persist, usage and extraction, before releasing its turn lease.
+ * Anything that sees "no running turn" sees durable record truth. Failed settlement also
  * retains its small notice before unregistering, so late attachments do
  * not mistake an unsaved reply for success. The per-chat
- * 409 guard means a chatId can hold at most one handle, and beginTurn's
- * 30-minute TTL bounds the pathological never-settling case the same way
- * it does for the liveness map: if onFinish never fires, the stale entry
- * is overwritten by the next turn's registration (Map.set) and garbage
- * collected — no unbounded leak beyond the same pathology turn-liveness
- * already accepts.
+ * 409 guard means a chatId can hold at most one handle. Cleanup compares
+ * the captured handle, so a delayed callback cannot remove a successor.
+ * A never-settling executor keeps its ownership until settlement or process
+ * exit; elapsed time alone cannot establish that it stopped.
  *
  * App-quit mid-turn (the process dying with an un-persisted turn) is the
  * SAME residual as before the wave: the registry is memory-only, the
- * write-ahead record + liveness TTL recovery cover the next mount.
+ * write-ahead record and cleared process registry cover the next mount.
  */
 
 import type { PiTurnHandle } from "./pi/ui-stream.ts";
@@ -65,9 +63,10 @@ export function registerTurn(chatId: string, handle: PiTurnHandle): void {
 	runs().set(chatId, handle);
 }
 
-/** Unregister at settle — chat-handler's onFinish, LAST (after endTurn). */
-export function unregisterTurn(chatId: string): void {
-	runs().delete(chatId);
+/** Unregister the exact settled handle before releasing its turn lease. */
+export function unregisterTurn(chatId: string, handle: PiTurnHandle): boolean {
+	if (runs().get(chatId) !== handle) return false;
+	return runs().delete(chatId);
 }
 
 /** The live turn handle for a chat, or undefined — the subscribe endpoint's

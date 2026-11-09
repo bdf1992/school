@@ -891,15 +891,19 @@ export function createExtractionPipeline(deps: ExtractionPipelineDeps): Extracti
 	 *  check runs BEFORE any LLM is invoked or the graph read; the lock
 	 *  is FIFO, held through the merge, reacquired per batch, and
 	 *  abort-aware on both sides of the queue (a waiter that aborts
-	 *  leaves without auditing — its chain link still resolves, so
-	 *  successors never hang). */
+	 *  leaves without auditing, but its chain link still waits for the
+	 *  predecessor before releasing any successor). */
 	async function withAuditLock<T>(jobKey: string, kind: "chat" | "notes", label: string | undefined, critical: () => Promise<T>): Promise<T> {
 		setPhase(jobKey, "waiting", kind, label);
 		const g = globalThis as typeof globalThis & LhExtractionGlobal;
 		const lock = (g.__lhAuditLock ??= { tail: Promise.resolve() });
 		const prev = lock.tail;
 		let release!: () => void;
-		lock.tail = new Promise<void>((resolve) => (release = resolve));
+		const finished = new Promise<void>((resolve) => (release = resolve));
+		// Cancellation finishes this ticket, not the predecessor's audit.
+		// Keep both dependencies in the tail so a cancelled waiter cannot
+		// admit its successor before the current owner has merged.
+		lock.tail = prev.then(() => finished);
 		const signal = runningExtractions.get(jobKey)?.controller.signal;
 		let onAbort: (() => void) | undefined;
 		const aborted = new Promise<never>((_, reject) => {
