@@ -1,6 +1,8 @@
 # School's intent
 
-School is a workbench for arranging, running, and inspecting teaching and learning episodes across humans, local models, and hosted agents. It should make clear what a learner could observe, what it attempted, how the teacher helped, what an evaluator checked, and what actually changed.
+School is a workbench for arranging classes and running and inspecting their teaching and learning episodes across people, local models, and hosted agents. It should make clear what a learner could observe, what it attempted, how the teacher helped, what an evaluator checked, and what actually changed.
+
+A class continues across episodes with its own roster, curriculum, schedule, peer relationships and assessment policy. Shared study material does not imply shared private learning state or capability. The first [class interface](school-classes.md) persists class revisions and checks membership, curriculum/world consistency and session timing before starting an episode. It derives a gradebook from individual records. Automatic schedules, peer communication, durable learner memory and richer assessment procedures remain later work.
 
 The implementation roadmap is [issue #1](https://github.com/bdf1992/school/issues/1). This document states the intended direction and distinguishes it from the [current episode interface](school-episodes.md).
 
@@ -8,6 +10,10 @@ The implementation roadmap is [issue #1](https://github.com/bdf1992/school/issue
 
 | Term | Meaning and authority |
 | --- | --- |
+| Class | The continuing educational context for every new manifest-based model episode, including roster, curriculum, schedule, peers and assessment policy. |
+| Curriculum | Versioned units, objectives and dependencies. A dependency is not evidence that a learner mastered the prerequisite. |
+| Class session | One scheduled period of class work; it may contain several participants' separate episodes. |
+| Gradebook | Learner-specific grades with supporting episode evidence and assistance conditions. Missing work receives no invented score. |
 | World | The task environment and its declared revision. World truth can exceed the observations supplied to a participant. The first implementation uses finite authored cases. |
 | Subject | The distinction, method, structure, or capability being taught. It is independent of the provider. |
 | Learner | The human or model whose response is being measured. A model participant has an explicit provider/model reference and may declare an edition. A declared edition is not an attestation of loaded weights. |
@@ -17,7 +23,7 @@ The implementation roadmap is [issue #1](https://github.com/bdf1992/school/issue
 | Attempt | A learner response preserved before the evaluator attaches a judgment. Failed and interrupted calls remain evidence of an attempted operation. |
 | Evidence | The allowed view, raw response, assistance, evaluator, outcome, and execution mode needed to assess a claim. A fixture is identified as a fixture. |
 | Edition | A reference to a particular learner configuration or artifact. Verified artifact identity, training lineage, and adoption belong to the future AUM bridge. |
-| Episode | An operation binding a manifest, participant roles, task cases, limits, calls, and comparison into an inspectable record. |
+| Episode | Bounded work within a class and curriculum unit, binding participant roles, task cases, limits, calls, and comparison into an inspectable record. |
 
 School must preserve distinctions among missing information, insufficient information, sufficient information, incorrect answers, refused operations, and execution failures. The first manifest permits explicit observation statuses; these statuses are author declarations. Their truth is not automatically verified.
 
@@ -31,7 +37,7 @@ The inherited [teaching theory](teaching-methodology.md) remains an attributed d
 
 ## The first operational boundary
 
-An authored manifest separates teaching examples from evaluation cases. The learner receives only the current problem, permitted observations, world instructions, and, on retry, the teacher's lesson. The teacher receives teaching examples and aggregate baseline counts. Neither participant receives evaluation answer fields from the manifest.
+An authored manifest separates teaching examples from evaluation cases. The learner receives the current problem, permitted observations, world instructions, and, on retry, the teacher's lesson. The teacher receives teaching examples and aggregate baseline counts. Both receive the admitted class view, including the selected unit's objectives, schedule and assessment policy. Neither participant receives the roster, peer work or evaluation answer fields from the manifest.
 
 The server saves each raw reply before grading it. The exact checker compares the extracted text with the authored expected answer. A comparison can report a target gain, no measured gain, or a regression on a previously correct case. This measures assistance on the declared cases; it does not establish generalization or prove the answer key is correct.
 

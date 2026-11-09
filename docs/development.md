@@ -23,7 +23,7 @@ npm start              # serve the production build with Next
 
 ## Model episodes
 
-`npm run school:episode -- examples/school/byte-parity.json --fixture --output /tmp/school-episodes` runs the deterministic demonstration without provider calls. Use a platform-appropriate absolute output path. Omit `--fixture` only with an explicitly configured manifest. See [Model episodes](school-episodes.md) for participant settings, budgets, results, and replay rules.
+`npm run school:episode -- examples/school/byte-parity.json --fixture --class examples/school/byte-parity-class.json --school /tmp/school-demo` explicitly registers the example class and runs the deterministic demonstration without provider calls. Use a platform-appropriate absolute School directory. Omit `--fixture` only with an explicitly configured manifest. See [Classes](school-classes.md) and [Model episodes](school-episodes.md) for rosters, schedules, grades, participant settings, budgets, and replay rules.
 
 ## Configuration
 

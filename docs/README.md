@@ -6,6 +6,7 @@
 - [Staged remodeling plan](school.md) — retained foundation roadmap and restricted session projection.
 
 - [Intent and boundaries](school-intent.md) — roles, evidence, AUM ownership, and the remodeling direction.
+- [Classes](school-classes.md) — rosters, curriculum, schedules, peer boundaries, gradebooks, and class-bound episodes.
 - [Model episodes](school-episodes.md) — run the bounded learner/teacher loop, inspect records, and use the API.
 - [Remodeling issue](https://github.com/bdf1992/school/issues/1) — implemented foundation and remaining qualification gates.
 

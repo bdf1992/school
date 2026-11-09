@@ -7,6 +7,8 @@ import { createFauxCore, fauxAssistantMessage, fauxToolCall, type AssistantMessa
 import type { PiEngine } from "../src/agent/models.ts";
 import { parseSchoolEpisode, SchoolEpisodeError, type SchoolEpisodeRecord } from "../src/core/school-episode.ts";
 import { SchoolEpisodeStore, schoolManifestSha256 } from "../src/store/school-episodes.ts";
+import { admitSchoolClassEpisode } from "../src/core/school-class.ts";
+import { schoolClassSha256 } from "../src/store/school-classes.ts";
 import { scriptedParityEngine } from "../examples/school/scripted-parity.ts";
 
 // No account credentials, real home, configured endpoints, or external fetches.
@@ -15,6 +17,8 @@ const originalEnv = process.env, originalFetch = globalThis.fetch;
 process.env = { ...(originalEnv.NODE_TEST_CONTEXT ? { NODE_TEST_CONTEXT: originalEnv.NODE_TEST_CONTEXT } : {}), NODE_ENV: "test", HOME: scratch, LH_DATA_DIR: scratch, LH_AUTH_FILE: path.join(scratch, "auth.json"), LH_IGNORE_ENV_KEYS: "1" };
 globalThis.fetch = async () => { throw new Error("CLOSED: no network in School episode unit tests"); };
 const { runSchoolEpisode, schoolEpisodePost, schoolEpisodeGet } = await import("../src/server/school-episodes.ts");
+const { schoolClasses } = await import("../src/server/school-state.ts");
+schoolClasses.create(JSON.parse(readFileSync(new URL("../examples/school/byte-parity-class.json", import.meta.url), "utf8")));
 after(() => { process.env = originalEnv; globalThis.fetch = originalFetch; rmSync(scratch, { recursive: true, force: true }); });
 const source = JSON.parse(readFileSync(new URL("../examples/school/byte-parity.json", import.meta.url), "utf8"));
 let serial = 0;
@@ -244,9 +248,13 @@ test("HTTP entry requires a trusted JSON mutation, bounds bytes, and returns sto
 
 test("manifest fingerprints ignore key insertion order and reject mutation after admission", () => {
 	const input = manifest();
+	assert.equal(input.version, 2);
+	if (input.version !== 2) throw new Error("Expected a class-bound fixture");
 	assert.equal(schoolManifestSha256(input), schoolManifestSha256({ ...input, world: { instructions: input.world.instructions, subject: input.world.subject, revision: input.world.revision, id: input.world.id } }));
 	const evidence = store(), now = new Date().toISOString();
-	const initial: SchoolEpisodeRecord = { version: 1, operationId: input.operationId, manifest: input, manifestSha256: schoolManifestSha256(input), evidence: "SCRIPTED_FIXTURE", status: "RUNNING", createdAt: now, updatedAt: now, calls: [], events: [] };
+	const definition = schoolClasses.get(input.class.classId, input.class.revision)!;
+	const classContext = { ...admitSchoolClassEpisode(definition, input.class, { learnerId: input.learner.id, teacherId: input.teacher.id, world: input.world, now }), definitionSha256: schoolClassSha256(definition) };
+	const initial: SchoolEpisodeRecord = { version: 2, operationId: input.operationId, manifest: input, classContext, manifestSha256: schoolManifestSha256(input), evidence: "SCRIPTED_FIXTURE", status: "RUNNING", createdAt: now, updatedAt: now, calls: [], events: [] };
 	evidence.claim(initial);
 	input.world.revision = "changed";
 	assert.throws(() => evidence.write(initial), /manifest cannot change/);

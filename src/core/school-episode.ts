@@ -1,6 +1,7 @@
 /** A bounded contextual teaching episode. This contract does not authorize training. */
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
+import { parseSchoolClassRef, type SchoolClassAdmission, type SchoolClassRef } from "./school-class.ts";
 
 export interface SchoolModelSpec { provider: string; id: string; thinkingLevel?: ThinkingLevel }
 export interface SchoolParticipant { id: string; model: SchoolModelSpec; edition?: string }
@@ -16,8 +17,7 @@ export interface SchoolCase {
 	expected: string;
 }
 export interface SchoolEvaluationCase extends SchoolCase { split: "target" | "retention" }
-export interface SchoolEpisodeManifest {
-	version: 1;
+interface SchoolEpisodeFields {
 	operationId: string;
 	world: { id: string; revision: string; subject: string; instructions: string };
 	learner: SchoolParticipant;
@@ -26,6 +26,11 @@ export interface SchoolEpisodeManifest {
 	evaluation: SchoolEvaluationCase[];
 	limits: { maxOutputTokens: number; callTimeoutMs: number; episodeTimeoutMs: number };
 }
+/** Version 1 is retained for historical evidence/replay. New work uses version 2. */
+export type SchoolEpisodeManifest = SchoolEpisodeFields & (
+	{ version: 1; class?: never } | { version: 2; class: SchoolClassRef }
+);
+export interface SchoolEpisodeClassContext extends SchoolClassAdmission { definitionSha256: string }
 export type SchoolPhase = "baseline" | "lesson" | "retry";
 export interface SchoolGrade { caseId: string; split: "target" | "retention"; correct: boolean; evaluator: "trimmed-exact-v1" }
 export interface SchoolComparison {
@@ -56,11 +61,9 @@ export interface SchoolCallRecord {
 	/** No terminal reply means provider completion/billing is unknown. */
 	completion?: "REPLY_RETAINED" | "TERMINAL_REPLY_REJECTED" | "NO_CALL_ADMITTED" | "UNKNOWN";
 }
-export interface SchoolEpisodeRecord {
-	version: 1;
+interface SchoolEpisodeRecordFields {
 	operationId: string;
 	manifestSha256: string;
-	manifest: SchoolEpisodeManifest;
 	evidence: "CONFIGURED_PROVIDER" | "SCRIPTED_FIXTURE";
 	status: "RUNNING" | "COMPLETED" | "FAILED";
 	createdAt: string;
@@ -70,6 +73,10 @@ export interface SchoolEpisodeRecord {
 	comparison?: SchoolComparison;
 	error?: string;
 }
+export type SchoolEpisodeRecord = SchoolEpisodeRecordFields & (
+	{ version: 1; manifest: Extract<SchoolEpisodeManifest, { version: 1 }>; classContext?: never } |
+	{ version: 2; manifest: Extract<SchoolEpisodeManifest, { version: 2 }>; classContext: SchoolEpisodeClassContext }
+);
 export class SchoolEpisodeError extends Error {
 	constructor(public code: string, message: string, public status = 400) { super(message); this.name = "SchoolEpisodeError"; }
 }
@@ -118,8 +125,9 @@ function caseOf(value: unknown, where: string, evaluation: boolean): SchoolCase 
 }
 
 export function parseSchoolEpisode(value: unknown): SchoolEpisodeManifest {
-	const row = object(value, ["version", "operationId", "world", "learner", "teacher", "teaching", "evaluation", "limits"], "episode");
-	if (row.version !== 1) throw new SchoolEpisodeError("INVALID_MANIFEST", "Unsupported episode version");
+	const row = object(value, ["version", "operationId", "class", "world", "learner", "teacher", "teaching", "evaluation", "limits"], "episode");
+	if (row.version !== 1 && row.version !== 2) throw new SchoolEpisodeError("INVALID_MANIFEST", "Unsupported episode version");
+	if (row.version === 1 && "class" in row) throw new SchoolEpisodeError("INVALID_MANIFEST", "A class reference requires episode version 2");
 	const world = object(row.world, ["id", "revision", "subject", "instructions"], "world");
 	if (!Array.isArray(row.teaching) || row.teaching.length < 1 || row.teaching.length > 8) throw new SchoolEpisodeError("INVALID_MANIFEST", "Provide 1–8 teaching examples");
 	if (!Array.isArray(row.evaluation) || row.evaluation.length < 2 || row.evaluation.length > 16) throw new SchoolEpisodeError("INVALID_MANIFEST", "Provide 2–16 evaluation cases");
@@ -133,12 +141,13 @@ export function parseSchoolEpisode(value: unknown): SchoolEpisodeManifest {
 	const problemKey = (item: SchoolCase) => JSON.stringify([item.question.trim(), item.observations.map((o) => JSON.stringify([o.status, o.content?.trim()])).sort()]);
 	if (teaching.some((example) => evaluation.some((item) => problemKey(example) === problemKey(item)))) throw new SchoolEpisodeError("INVALID_MANIFEST", "An evaluation problem cannot also be a teaching example");
 	const limits = object(row.limits ?? {}, ["maxOutputTokens", "callTimeoutMs", "episodeTimeoutMs"], "limits");
-	return {
-		version: 1, operationId: schoolOperationId(row.operationId),
+	const fields: SchoolEpisodeFields = {
+		operationId: schoolOperationId(row.operationId),
 		world: { id: text(world.id, "world.id", 128), revision: text(world.revision, "world.revision", 128), subject: text(world.subject, "world.subject", 512), instructions: text(world.instructions, "world.instructions") },
 		learner: participant(row.learner, "learner"), teacher: participant(row.teacher, "teacher"), teaching, evaluation,
 		limits: { maxOutputTokens: bounded(limits.maxOutputTokens, 512, 1, 4096, "maxOutputTokens"), callTimeoutMs: bounded(limits.callTimeoutMs, 30000, 10, 120000, "callTimeoutMs"), episodeTimeoutMs: bounded(limits.episodeTimeoutMs, 180000, 10, 600000, "episodeTimeoutMs") },
 	};
+	return row.version === 2 ? { version: 2, class: parseSchoolClassRef(row.class), ...fields } : { version: 1, ...fields };
 }
 
 /** Construct projections from named fields; never serialize a stored lesson transcript. */

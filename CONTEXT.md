@@ -1,6 +1,41 @@
 # School
 
-School is a setting for teaching, learning, and evaluating people, models, and agents through recorded episodes. Roles describe a participant's relationship to the work; they do not identify a permanent kind of participant.
+School is a setting for teaching, learning, and evaluating people, models, and agents in classes through recorded episodes. Roles describe a participant's relationship to the work; they do not identify a permanent kind of participant.
+
+## Classes and study
+
+**Class**:
+A continuing learning group with a purpose, roster, curriculum, schedule, peer relationships, and assessment policy. Every newly executed model episode belongs to a class. Historical evidence and inherited human sessions may remain unclassified.
+_Avoid_: Treating a class as one conversation, one model, or one lesson.
+
+**Roster**:
+The participants enrolled in a class and their roles in that class.
+
+**Peer**:
+A participant related to another through shared class membership and study. Being peers does not itself grant access to each other's private work or grades.
+
+**Curriculum**:
+A study plan connecting learning objectives, units, their dependencies, and intended assessments.
+
+**Curriculum unit**:
+A named part of a curriculum with objectives and the setting in which its work is meaningful.
+
+**Class schedule**:
+The timing and availability of a class's learning activities, including self-paced work and scheduled sessions.
+
+**Class session**:
+An occurrence of class activity within a declared period. It can contain separate episodes for several participants.
+_Avoid_: Using class, session, and episode interchangeably.
+
+**Cohort**:
+A named group of participants selected to study or be evaluated together under declared conditions.
+
+**Grade**:
+An assessment of a learner's recorded work under a stated criterion and assistance condition.
+_Avoid_: Treating attendance, another learner's result, or a grade as a weight update.
+
+**Gradebook**:
+The attributable record of grades and their supporting work within a class, including incomplete or failed work.
 
 ## Participants and material
 
@@ -73,7 +108,7 @@ An ability attributed to a learner edition on the basis of tasks and qualifying 
 _Avoid_: Inferring capability from lesson attendance, graph membership, or a single confident response.
 
 **Learning episode**:
-A bounded history connecting a starting learner, teaching and attempts, any intervention, evaluation, and continuing work.
+A bounded history within a class connecting a starting learner, teaching and attempts, any intervention, evaluation, and continuing work.
 
 **Learning change**:
 A declared change intended to affect later capability, including context, memory, program, parameter, or representation changes. Its mechanism and measured consequences remain separate.

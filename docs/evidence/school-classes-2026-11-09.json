@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-09",
+  "repository": "bdf1992/school",
+  "issues": [
+    4,
+    9
+  ],
+  "priorPublishedCommit": "e397fa622fdbecfb3b13fee80cfa034dd75e01d4",
+  "scope": "New class-bound manifest episodes, owner class/gradebook interfaces, and integrated verification including the concurrency contribution.",
+  "runtime": {
+    "node": "26.13.0",
+    "next": "16.4.3"
+  },
+  "newClassScenarios": {
+    "classContractAndStore": 15,
+    "gradebookAndOwnerInterfaces": 13,
+    "episodeAdmissionAndReplay": 5,
+    "total": 33
+  },
+  "verification": {
+    "typeScript": {
+      "status": "passed",
+      "command": "node node_modules/typescript/bin/tsc --noEmit"
+    },
+    "lint": {
+      "errors": 0,
+      "warnings": 1,
+      "preExistingWarning": "tests/source-name-ui.test.tsx: @next/next/no-head-element",
+      "command": "node node_modules/eslint/bin/eslint.js ."
+    },
+    "productionBuild": {
+      "status": "passed",
+      "command": "node node_modules/next/dist/bin/next build",
+      "routes": [
+        "/api/school/classes",
+        "/api/school/episodes"
+      ]
+    },
+    "fullSuite": {
+      "tests": 3673,
+      "passed": 3668,
+      "failed": 1,
+      "skipped": 4,
+      "cancelled": 0,
+      "durationMs": 69166.372228,
+      "command": "NODE_ENV=test node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+      "environment": "Isolated LH_DATA_DIR and LH_AUTH_FILE; Node 26.13.0.",
+      "remainingFailure": {
+        "test": "claude-code-tool-bridge: binds 127.0.0.1",
+        "error": "os.networkInterfaces() raises ERR_SYSTEM_ERROR: uv_interface_addresses errno 1",
+        "scope": "Existing unmodified test; the same host restriction was reproduced independently without repository code in the preceding foundation verification. This is not a clean full-suite pass."
+      }
+    },
+    "concurrencyFocused": {
+      "tests": 513,
+      "passed": 513,
+      "failed": 0,
+      "skipped": 0,
+      "record": "school-concurrency-2026-11-09.json"
+    },
+    "cliWitness": {
+      "status": "passed",
+      "class": {
+        "id": "generative-structures",
+        "revision": "1",
+        "title": "Generative Structures: Bits and States"
+      },
+      "classDefinitionSha256": "4cb68071d7a276d3ed8b68c40ef97eaeb80a4bdefa5f22fab29f14dfe1a5f101",
+      "learners": [
+        {
+          "learner": "local-learner",
+          "operationId": "class-witness-a",
+          "calls": 7,
+          "comparison": {
+            "baseline": {
+              "target": 1,
+              "retention": 1
+            },
+            "retry": {
+              "target": 2,
+              "retention": 1
+            },
+            "total": {
+              "target": 2,
+              "retention": 1
+            },
+            "regressedCases": [],
+            "outcome": "CONTEXTUAL_GAIN",
+            "weightLearning": "NOT_PERFORMED",
+            "adoption": "NOT_REQUESTED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "recordSha256": "8f70a46b6dbf656abc8dee4c05468c857cbdbac8cc10dc4db26bda2384ef7a0d"
+        },
+        {
+          "learner": "local-peer",
+          "operationId": "class-witness-b",
+          "calls": 7,
+          "comparison": {
+            "baseline": {
+              "target": 1,
+              "retention": 1
+            },
+            "retry": {
+              "target": 2,
+              "retention": 1
+            },
+            "total": {
+              "target": 2,
+              "retention": 1
+            },
+            "regressedCases": [],
+            "outcome": "CONTEXTUAL_GAIN",
+            "weightLearning": "NOT_PERFORMED",
+            "adoption": "NOT_REQUESTED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "recordSha256": "bd956a6d9df55cd3e8570c84d37da6baf93da02d71636108da2fbdb7a6c3d5b0"
+        }
+      ],
+      "recordedCalls": 14,
+      "configuredProviderCalls": 0,
+      "replayCreatedCalls": 0,
+      "independentParityAndGradeChecks": 22,
+      "peerBeforeEpisode": {
+        "participantId": "local-peer",
+        "status": "NO_EPISODES",
+        "episodes": []
+      },
+      "firstRecordUnchangedByPeer": true,
+      "allRecordsUnchangedByReplay": true,
+      "defaultStoresUntouched": true,
+      "classViewExcludesRosterAndPeerWork": true
+    },
+    "productionHttpWitness": {
+      "status": "passed",
+      "server": "Next production standalone output",
+      "checks": [
+        {
+          "name": "register-class",
+          "status": 201
+        },
+        {
+          "name": "register-identical-class",
+          "status": 200
+        },
+        {
+          "name": "list-class",
+          "status": 200
+        },
+        {
+          "name": "inspect-class",
+          "status": 200
+        },
+        {
+          "name": "gradebook-from-retained-cli-records",
+          "status": 200
+        },
+        {
+          "name": "immutable-revision-refusal",
+          "status": 409,
+          "code": "CLASS_REVISION_CONFLICT"
+        },
+        {
+          "name": "cross-origin-mutation-refusal",
+          "status": 403
+        },
+        {
+          "name": "cross-origin-read-refusal",
+          "status": 403
+        },
+        {
+          "name": "incomplete-query-refusal",
+          "status": 400,
+          "code": "INVALID_CLASS_QUERY"
+        },
+        {
+          "name": "new-classless-episode-refusal",
+          "status": 400,
+          "code": "CLASS_REQUIRED"
+        },
+        {
+          "name": "missing-class-episode-refusal",
+          "status": 404,
+          "code": "CLASS_NOT_FOUND"
+        },
+        {
+          "name": "unenrolled-episode-refusal",
+          "status": 403,
+          "code": "CLASS_PARTICIPANT_NOT_ENROLLED"
+        },
+        {
+          "name": "gradebook-unchanged-after-refusals",
+          "status": 200
+        }
+      ],
+      "checkCount": 13,
+      "retainedLearners": 2,
+      "refusedOperationsCreatedRecords": 0,
+      "configuredProviderCalls": 0
+    }
+  },
+  "witnessMethod": [
+    "Register the checked-in class fixture into a new explicit School root. Run learner A, inspect the gradebook before B starts, then run learner B and inspect both.",
+    "Run the public CLI with SCRIPTED_FIXTURE engines and a fetch guard. Hash retained record bytes; check that B and exact replay do not change A or create additional calls.",
+    "A separate Python standard-library checker computes authored parity keys using int(bits, 2).bit_count(), verifies raw reply text and every retained grade, and verifies RAW_REPLY_COMMITTED precedes EVALUATOR_GRADED.",
+    "Launch the compiled Next standalone server with an isolated profile. Copy the two retained fixture records into its explicit test profile, register the same class through HTTP, and compare the HTTP gradebook with the CLI output.",
+    "Check immutable revision conflicts, cross-origin refusals, invalid queries, classless new episodes, missing classes and unenrolled learners through the actual built routes. Confirm refusals leave records and grades unchanged."
+  ],
+  "review": [
+    {
+      "scope": "Class core/store",
+      "result": "Independent review found dangling symlink occupancy and non-round-trippable numeric/Date admission years. Both fixed; regressions and independent probes pass."
+    },
+    {
+      "scope": "Gradebook/API/CLI",
+      "result": "Independent review found retained grades could be accepted without complete matching raw replies. Grades now require complete evidence, exact answer/key agreement and matching participant/model/edition. Four targeted scenarios and independent rerun pass."
+    },
+    {
+      "scope": "Episode integration",
+      "result": "Independent review and CLI-root probe pass, including replay after class storage is removed. No blocking findings remained."
+    },
+    {
+      "scope": "Turn execution ownership",
+      "result": "Independent actual-handler probes pass for synchronous settlement with a successor and a startup/acknowledgment failure after execution begins."
+    },
+    {
+      "scope": "Documentation",
+      "result": "Read-only review corrected scope wording for admitted class views and newly executed model episodes. Commands and declared limits match the implementation."
+    }
+  ],
+  "behavioralChecks": [
+    "A peer without an episode is NO_EPISODES with no invented grade.",
+    "A harmful retry remains REGRESSION even when another target score improves.",
+    "Missing grades remain null; failed work with valid retained grades remains attributable.",
+    "Class revision, roles, unit/world binding and session window are checked before dispatch.",
+    "Scheduled admission is inclusive at start and exclusive at end. A session closing does not cancel an already-admitted episode.",
+    "Exact terminal replay uses the pinned historical snapshot and remains available after a session closes or the current class store is absent.",
+    "Historical v1 evidence stays byte-equivalent and is not retroactively assigned a class. New classless v1 execution is refused.",
+    "Changing an admitted class snapshot is refused even when a replacement digest is recomputed."
+  ],
+  "effects": {
+    "configuredModelCallsInThisContribution": 0,
+    "training": false,
+    "weightUpdates": false,
+    "modelAdoption": false,
+    "providerCredentialsCreated": false
+  },
+  "limits": [
+    "Class enforcement applies to newly executed manifest-based model episodes. The inherited human lesson UI is not yet class management.",
+    "Class schedules admit explicit starts; there is no automatic scheduler, recurrence worker, attendance ledger or admission audit.",
+    "Roster IDs and editions remain declarations, not a continuing identity registry or loaded-model attestations. Old revisions are selected explicitly; enrollment revocation is not implemented.",
+    "Peers share membership, curriculum and teacher declarations. Private work is excluded from participant views; peer messaging, tutoring, shared submissions and group projects are not implemented.",
+    "CLI and HTTP are owner interfaces using the existing shared-server/desktop trust boundary, not individually authenticated learner accounts.",
+    "Prerequisite links are checked for consistency and cycles, not for mastery. Curriculum reuse is by embedded snapshot, not a separate registry.",
+    "Grades use the authored trimmed-exact-v1 key. These cases do not establish transfer, long-term retention or real-model learning; live local, Claude and OpenAI qualification remains open.",
+    "Storage remains unsigned local files. Concurrency guards are process-local, not distributed fencing or fleet scheduling.",
+    "Resource budgets, persistent learner memory, independent sealed evaluation, constructive artifact checkers and AUM training/adoption receipts remain in issues 5 through 8."
+  ]
+}

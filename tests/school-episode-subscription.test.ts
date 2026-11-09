@@ -14,6 +14,8 @@ process.env = { NODE_ENV: "test", ...(originalEnv.NODE_TEST_CONTEXT ? { NODE_TES
 let networkCalls = 0;
 globalThis.fetch = async () => { networkCalls++; throw new Error("CLOSED: no network in subscription admission tests"); };
 const { runSchoolEpisode } = await import("../src/server/school-episodes.ts");
+const { schoolClasses } = await import("../src/server/school-state.ts");
+schoolClasses.create({ ...JSON.parse(readFileSync(new URL("../examples/school/byte-parity-class.json", import.meta.url), "utf8")), roster: [{ participantId: "learner", roles: ["learner"] }, { participantId: "teacher", roles: ["teacher"] }] });
 const { piModels } = await import("../src/agent/models.ts");
 const { chatGPTConnected } = await import("../src/agent/chatgpt-bridge.ts");
 const { nativeSubscriptionConnected } = await import("../src/agent/subscription-bridge.ts");

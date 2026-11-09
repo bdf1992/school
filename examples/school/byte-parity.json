@@ -1,6 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "operationId": "byte-parity-001",
+  "class": { "classId": "generative-structures", "revision": "1", "unitId": "byte-parity" },
   "world": {
     "id": "byte-parity",
     "revision": "1",

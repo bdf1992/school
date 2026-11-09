@@ -1,8 +1,6 @@
 /** School's first model-learner loop. Human lessons and the extracted graph are
  * deliberately not inputs to this evaluator or to either participant view. */
-import path from "node:path";
 import type { Model } from "@earendil-works/pi-ai";
-import { PATHS } from "../../config.ts";
 import { piEngineForSpec, piModels, type PiEngine } from "../agent/models.ts";
 import { refreshChatGPTModels } from "../agent/chatgpt-bridge.ts";
 import { refreshSubscriptionModels } from "../agent/subscription-bridge.ts";
@@ -10,14 +8,20 @@ import { connectionBackgroundAllowed, isSubscriptionProvider } from "../agent/su
 import { runSchoolParticipant, SchoolReplyLimitError, SCHOOL_LEARNER_PROMPT, SCHOOL_TEACHER_PROMPT } from "../agent/school-participant.ts";
 import { compareSchoolGrades, gradeSchoolReply, parseSchoolEpisode, schoolLearnerView, schoolTeacherView, SchoolEpisodeError, type SchoolCallRecord, type SchoolEpisodeRecord, type SchoolEvaluationCase, type SchoolGrade, type SchoolParticipant, type SchoolPhase } from "../core/school-episode.ts";
 import { SchoolEpisodeStore, schoolManifestSha256 } from "../store/school-episodes.ts";
+import { admitSchoolClassEpisode, SchoolClassError } from "../core/school-class.ts";
+import { SchoolClassStore, schoolClassSha256 } from "../store/school-classes.ts";
+import { schoolClasses, schoolEpisodes } from "./school-state.ts";
+export { schoolEpisodes } from "./school-state.ts";
 import { desktopAPIAuthorized } from "./desktop-access.ts";
 import { subscriptionRequestOrigin } from "./web-subscription-http.ts";
 import { CustomBodyLimitError, readBoundedJson } from "./custom-provider-body.ts";
 
-export const schoolEpisodes = new SchoolEpisodeStore(path.join(PATHS.data, "school", "episodes"));
 export interface SchoolEpisodeOptions {
 	store?: SchoolEpisodeStore;
+	classStore?: SchoolClassStore;
 	signal?: AbortSignal;
+	/** Test clock for class admission only; execution deadlines remain monotonic. */
+	now?: () => Date;
 	/** Internal dependency injection for tests/fixtures, never accepted in HTTP JSON. */
 	engineFor?: (participant: SchoolParticipant, call: SchoolCallRecord) => PiEngine | Promise<PiEngine>;
 	evidence?: "CONFIGURED_PROVIDER" | "SCRIPTED_FIXTURE";
@@ -55,8 +59,16 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 	if (new TextEncoder().encode(JSON.stringify(raw)).byteLength > 64 * 1024) throw new SchoolEpisodeError("MANIFEST_TOO_LARGE", "Episode manifest exceeds 64 KiB", 413);
 	const manifest = parseSchoolEpisode(raw);
 	const store = options.store ?? schoolEpisodes;
-	const now = new Date().toISOString();
-	const record: SchoolEpisodeRecord = { version: 1, operationId: manifest.operationId, manifestSha256: schoolManifestSha256(manifest), manifest, evidence: options.evidence ?? "CONFIGURED_PROVIDER", status: "RUNNING", createdAt: now, updatedAt: now, calls: [], events: [] };
+	const evidence = options.evidence ?? "CONFIGURED_PROVIDER";
+	const replay = store.replay(manifest, evidence);
+	if (replay) return replay;
+	if (manifest.version !== 2) throw new SchoolEpisodeError("CLASS_REQUIRED", "New episodes require version 2 and an explicit class/unit reference. Historical version 1 records remain readable and replayable.");
+	const definition = (options.classStore ?? schoolClasses).get(manifest.class.classId, manifest.class.revision);
+	if (!definition) throw new SchoolClassError("CLASS_NOT_FOUND", "Register the referenced class revision before starting an episode", 404);
+	const now = (options.now?.() ?? new Date()).toISOString();
+	const admission = admitSchoolClassEpisode(definition, manifest.class, { learnerId: manifest.learner.id, teacherId: manifest.teacher.id, world: manifest.world, now });
+	const classContext = { ...admission, definitionSha256: schoolClassSha256(definition) };
+	const record: SchoolEpisodeRecord = { version: 2, operationId: manifest.operationId, manifestSha256: schoolManifestSha256(manifest), manifest, classContext, evidence, status: "RUNNING", createdAt: now, updatedAt: now, calls: [], events: [] };
 	const claimed = store.claim(record);
 	if (claimed.replayed) return claimed;
 	const deadline = new AbortController();
@@ -120,11 +132,12 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 		} finally { clearTimeout(timer); }
 	}
 	try {
-		for (const item of manifest.evaluation) await invoke("baseline", schoolLearnerView(manifest, item), item);
+		const inClass = <T extends object>(view: T) => ({ ...classContext.view, ...view });
+		for (const item of manifest.evaluation) await invoke("baseline", inClass(schoolLearnerView(manifest, item)), item);
 		const grades = (phase: SchoolPhase) => record.calls.filter((c) => c.phase === phase).map((c) => c.grade).filter((g): g is SchoolGrade => g !== undefined);
 		const baseline = grades("baseline");
-		const lesson = await invoke("lesson", schoolTeacherView(manifest, baseline));
-		for (const item of manifest.evaluation) await invoke("retry", schoolLearnerView(manifest, item, lesson), item);
+		const lesson = await invoke("lesson", inClass(schoolTeacherView(manifest, baseline)));
+		for (const item of manifest.evaluation) await invoke("retry", inClass(schoolLearnerView(manifest, item, lesson)), item);
 		checkEpisodeDeadline();
 		record.comparison = compareSchoolGrades(baseline, grades("retry"));
 		record.status = "COMPLETED";
@@ -152,6 +165,7 @@ function authorized(request: Request, mutation: boolean): boolean {
 function response(body: unknown, status = 200): Response { return Response.json(body, { status, headers: { "Cache-Control": "no-store" } }); }
 function failedResponse(error: unknown): Response {
 	if (error instanceof SchoolEpisodeError) return response({ error: error.message, code: error.code }, error.status);
+	if (error instanceof SchoolClassError) return response({ error: error.message, code: error.code }, error.status);
 	if (error instanceof CustomBodyLimitError) return response({ error: "Episode manifest exceeds 64 KiB" }, 413);
 	if (error instanceof SyntaxError) return response({ error: "Invalid JSON body" }, 400);
 	return response({ error: "Episode storage or execution failed; inspect the operation record before retrying" }, 500);

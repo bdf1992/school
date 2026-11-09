@@ -14,6 +14,8 @@ const originalEnv = process.env, originalFetch = globalThis.fetch;
 process.env = { ...(originalEnv.NODE_TEST_CONTEXT ? { NODE_TEST_CONTEXT: originalEnv.NODE_TEST_CONTEXT } : {}), NODE_ENV: "test", HOME: scratch, LH_DATA_DIR: scratch, LH_AUTH_FILE: path.join(scratch, "auth.json"), LH_IGNORE_ENV_KEYS: "1", NO_PROXY: "localhost,127.0.0.1,::1" };
 globalThis.fetch = async () => { throw new Error("CLOSED: test endpoint is not ready"); };
 const { runSchoolEpisode } = await import("../src/server/school-episodes.ts");
+const { schoolClasses } = await import("../src/server/school-state.ts");
+schoolClasses.create({ ...JSON.parse(readFileSync(new URL("../examples/school/byte-parity-class.json", import.meta.url), "utf8")), roster: [{ participantId: "local-learner-fixture", roles: ["learner"] }, { participantId: "local-teacher-fixture", roles: ["teacher"] }] });
 const { writeSettings } = await import("../src/store/settings.ts");
 const { authorizeFixture } = await import("./helpers/custom-provider-auth.ts");
 after(() => { process.env = originalEnv; globalThis.fetch = originalFetch; rmSync(scratch, { recursive: true, force: true }); });

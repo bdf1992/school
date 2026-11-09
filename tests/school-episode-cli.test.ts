@@ -11,7 +11,7 @@ test("the fixture CLI preserves unrelated legacy graph files and replays its exa
 		const graph = path.join(scratch, "graph");
 		mkdirSync(graph);
 		for (const file of ["edges.jsonl", "events.jsonl"]) writeFileSync(path.join(graph, file), `sentinel ${file}\n`);
-		const args = ["--import", "tsx", "scripts/school-episode.ts", "--fixture", "--operation", "isolated-cli", "--output", path.join(scratch, "evidence")];
+		const args = ["--import", "tsx", "scripts/school-episode.ts", "--fixture", "--class", "examples/school/byte-parity-class.json", "--operation", "isolated-cli", "--output", path.join(scratch, "evidence")];
 		const env: NodeJS.ProcessEnv = { NODE_ENV: "test", HOME: scratch, LH_DATA_DIR: scratch, LH_AUTH_FILE: path.join(scratch, "auth.json"), LH_IGNORE_ENV_KEYS: "1" };
 		const first = spawnSync(process.execPath, args, { cwd: path.resolve(import.meta.dirname, ".."), env, encoding: "utf8", timeout: 5000 });
 		assert.equal(first.status, 0, `${first.stderr}\n${first.stdout}`);

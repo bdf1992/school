@@ -1,17 +1,18 @@
 # School
 
-**A harness for teaching and evaluating humans, local language models, and hosted agents.**
+**A school for teaching and evaluating people, local language models, and hosted agents.**
 
-School organizes a learning episode around a world, a subject, a learner, a teacher, an evaluator, and inspectable records. A local model can be the learner while Claude or an OpenAI model teaches it. Roles are assigned explicitly; the choice of provider does not determine who teaches or who learns.
+School organizes continuing classes with a roster, curriculum, schedule, peers, and a gradebook. Every new model episode belongs to a named class and curriculum unit. Within that setting, a learner and teacher work in an explicit world while an evaluator records what happened. A local model can learn while Claude or an OpenAI model teaches it; provider choice does not determine the role.
 
 We are remodeling [LearnHarness](https://github.com/amosblomqvist/learnharness) into this workbench while retaining its human teaching and practice application. The initial fork base is `da08cb5f7d098598ba963c6689b22054c9f2a5a3`. Upstream authorship and the AGPL-3.0-only license remain intact.
 
-[Intent and boundaries](docs/school-intent.md) · [Model episodes](docs/school-episodes.md) · [Remodeling issue](https://github.com/bdf1992/school/issues/1) · [All documentation](docs/README.md)
+[Intent and boundaries](docs/school-intent.md) · [Classes](docs/school-classes.md) · [Model episodes](docs/school-episodes.md) · [Remodeling issue](https://github.com/bdf1992/school/issues/1) · [All documentation](docs/README.md)
 
 ## The learning loop
 
 | Part | Responsibility |
 | --- | --- |
+| Class | Bind membership, curriculum, schedule and assessment policy across episodes. |
 | World and subject | Define the task, available observations, and what a valid response means. |
 | Learner | Attempt the task using its permitted view and declared model/edition. |
 | Teacher | Select explanations and examples from permitted teaching material. |
@@ -22,18 +23,21 @@ The first model episode runs **baseline → lesson → retry → comparison**. T
 
 This episode measures **contextual assistance**. It does not train weights or adopt a successor model. School owns curriculum and episode interaction; [AUM](https://github.com/bdf1992/aum-foundation) owns the proposed model-training, edition, adoption, and continuing-world-work boundary. An integration with that boundary remains planned.
 
-## Run the first episode
+## Run a class with two learners
 
 Use Node 26, matching CI, and the checked-in lockfile:
 
 ```sh
 npm ci
-npm run school:episode -- examples/school/byte-parity.json --fixture --output /tmp/school-episodes
+npm run school:class -- register examples/school/byte-parity-class.json --school /tmp/school-demo
+npm run school:episode -- examples/school/byte-parity.json --fixture --school /tmp/school-demo --operation parity-a
+npm run school:episode -- examples/school/byte-parity.json --fixture --school /tmp/school-demo --operation parity-b --learner local-peer
+npm run school:class -- grades generative-structures 1 --school /tmp/school-demo
 ```
 
-The fixture uses a scripted learner and teacher, makes no provider requests, and labels its result `SCRIPTED_FIXTURE`. It exercises the same episode orchestration, answer boundary, grading, and durable records used by configured participants. It demonstrates the harness, not a real model's ability. Use a suitable absolute output path on Windows.
+The fixture uses scripted participants, makes no provider requests, and labels its results `SCRIPTED_FIXTURE`. The two learners share the class curriculum while retaining separate attempts and grades. Each episode pins the admitted class revision. Repeating an operation returns its original evidence without more calls. Use a suitable absolute School directory on Windows.
 
-For a configured run, set up the connections in the app, copy the manifest, assign your actual learner and teacher model IDs, give the operation a new identity, and omit `--fixture`. See [Model episodes](docs/school-episodes.md) for the manifest, API, record locations, and retry behavior. The episode interface currently lives in the CLI and API; the existing lesson UI still serves human learners.
+For a configured run, set up connections in the app, register a class with the intended participant IDs, assign actual learner and teacher models in the episode manifest, give the operation a new identity, and omit `--fixture`. See [Classes](docs/school-classes.md) and [Model episodes](docs/school-episodes.md) for admission, schedules, APIs and replay. These interfaces currently live in the CLI and API; the existing lesson UI still serves human learners.
 
 ## Inspect a saved session for a learner
 
@@ -60,6 +64,7 @@ Model-driven work sends the permitted context to the selected provider. Chats, g
 
 - Human teaching/practice, persistent sessions, graph extraction, and provider connections inherited from LearnHarness.
 - Explicit learner/teacher manifests, bounded model-call orchestration, independent exact-answer evaluation, and inspectable episode records.
+- Immutable class revisions, roster/role checks, curriculum dependencies, self-paced or dated session admission, private peer work, and an evidence-derived owner gradebook. A schedule does not automatically run a model; peer messaging and a class UI remain planned.
 - Separate School desktop identity and default update feed. Existing `LH_*` environment variables and data formats remain compatible.
 - No qualified School installer or live local-model training result is supplied by this foundation change. Native installation, signing, update delivery, role-selection UI, multiple local endpoints, and the AUM training bridge are tracked in [the remodeling issue](https://github.com/bdf1992/school/issues/1).
 
