@@ -1,8 +1,8 @@
 /**
  * The final release gate (scripts/verify-release.ts) — pure-function tests
  * plus CLI end-to-end runs, all offline against fixtures. The expected asset
- * names asserted here are the ones verified against the INSTALLED
- * app-builder-lib 26.15.3 (see the script header for the derivation):
+ * names asserted here follow the inherited app-builder-lib 26.15.3
+ * naming rules with School's product name (see the script header):
  * 11 assets — 4 installers (dmg / NSIS exe / AppImage / deb), the mac
  * updater ZIP, its/exe/dmg blockmaps, and the three latest*.yml feeds.
  */
@@ -64,16 +64,16 @@ function healthyFeeds(version: string, release: ReleaseRecord): Record<string, s
 }
 
 describe("release gate — expected asset inventory", () => {
-	it("is exactly the 11 verified builder outputs for the version", () => {
+	it("is exactly the 11 expected builder outputs for the version", () => {
 		assert.deepEqual(expectedAssets(VERSION).files, [
-			"LearnHarness-0.2.0-arm64.dmg",
-			"LearnHarness-0.2.0-arm64-mac.zip",
-			"LearnHarness-0.2.0-x64-setup.exe",
-			"LearnHarness-0.2.0-x86_64.AppImage",
-			"LearnHarness-0.2.0-amd64.deb",
-			"LearnHarness-0.2.0-arm64.dmg.blockmap",
-			"LearnHarness-0.2.0-arm64-mac.zip.blockmap",
-			"LearnHarness-0.2.0-x64-setup.exe.blockmap",
+			"School-0.2.0-arm64.dmg",
+			"School-0.2.0-arm64-mac.zip",
+			"School-0.2.0-x64-setup.exe",
+			"School-0.2.0-x86_64.AppImage",
+			"School-0.2.0-amd64.deb",
+			"School-0.2.0-arm64.dmg.blockmap",
+			"School-0.2.0-arm64-mac.zip.blockmap",
+			"School-0.2.0-x64-setup.exe.blockmap",
 			"latest-mac.yml",
 			"latest.yml",
 			"latest-linux.yml",
@@ -162,7 +162,10 @@ describe("release gate — packaging-config drift guard", () => {
 		["win artifactName", (config) => { (config.win as Record<string, unknown>).artifactName = "${productName}-${version}-setup.${ext}"; }],
 		["mac artifactName", (config) => { (config.mac as Record<string, unknown>).artifactName = "${productName}-${version}.${ext}"; }],
 		["top-level artifactName", (config) => { config.artifactName = "${name}-${version}.${ext}"; }],
-		["productName", (config) => { config.productName = "learnharness"; }],
+		["productName", (config) => { config.productName = "school"; }],
+		["appId", (config) => { config.appId = "com.learnharness.LearnHarness"; }],
+		["publish owner", (config) => { (config.publish as Record<string, unknown>[])[0]!.owner = "amosblomqvist"; }],
+		["publish repo", (config) => { (config.publish as Record<string, unknown>[])[0]!.repo = "learnharness"; }],
 		["mac targets", (config) => { (config.mac as Record<string, unknown>).target = [{ target: "dmg", arch: ["arm64"] }]; }],
 		["win target", (config) => { (config.win as Record<string, unknown>).target = [{ target: "appx", arch: ["x64"] }]; }],
 		["linux targets", (config) => { (config.linux as Record<string, unknown>).target = [{ target: "AppImage", arch: ["x64"] }]; }],
@@ -176,7 +179,7 @@ describe("release gate — packaging-config drift guard", () => {
 			const pkg = label === "package name" ? { ...realPkg, name: "other" } : realPkg;
 			const verdict = verifyConfigAssumptions(config, pkg);
 			assert.ok(!verdict.ok);
-			assert.match(verdict.errors.join("\n"), /expected names no longer hold|would not land in the draft|no longer "learnharness"|productName is /);
+			assert.match(verdict.errors.join("\n"), /expected names no longer hold|would not land in the draft|no longer "school"|productName is |appId is |update feed must /);
 		});
 	}
 });
@@ -185,11 +188,11 @@ describe("release gate — asset inventory", () => {
 	it("passes a complete draft and names every deviation", () => {
 		assert.ok(verifyAssets(healthyRelease(VERSION), expectedAssets(VERSION)).ok);
 		const release = healthyRelease(VERSION);
-		release.assets = release.assets.filter((entry) => entry.name !== "LearnHarness-0.2.0-x64-setup.exe.blockmap");
-		release.assets.push(asset(9999, "LearnHarness-0.2.0-x64.AppImage"));
-		release.assets.push(asset(9998, "LearnHarness-0.1.0-x64-setup.exe"));
-		release.assets.push(asset(9997, "LearnHarness-0.2.0-arm64.dmg", { size: 0 }));
-		release.assets.push(asset(9996, "LearnHarness-0.2.0-arm64.dmg", { state: "starter" }));
+		release.assets = release.assets.filter((entry) => entry.name !== "School-0.2.0-x64-setup.exe.blockmap");
+		release.assets.push(asset(9999, "School-0.2.0-x64.AppImage"));
+		release.assets.push(asset(9998, "School-0.1.0-x64-setup.exe"));
+		release.assets.push(asset(9997, "School-0.2.0-arm64.dmg", { size: 0 }));
+		release.assets.push(asset(9996, "School-0.2.0-arm64.dmg", { state: "starter" }));
 		const verdict = verifyAssets(release, expectedAssets(VERSION));
 		assert.ok(!verdict.ok);
 		const joined = verdict.errors.join("\n");
@@ -204,8 +207,8 @@ describe("release gate — asset inventory", () => {
 
 describe("release gate — updater reference hygiene", () => {
 	it("accepts bare asset names only", () => {
-		assert.ok(isPlainAssetName("LearnHarness-0.2.0-arm64.dmg"));
-		for (const bad of ["", ".", "..", "../LearnHarness.zip", "dist/LearnHarness.zip", "https://evil.example/app.zip",
+		assert.ok(isPlainAssetName("School-0.2.0-arm64.dmg"));
+		for (const bad of ["", ".", "..", "../School.zip", "dist/School.zip", "https://evil.example/app.zip",
 			"http://evil.example/app.zip", "file:///etc/passwd", "C:\\app.zip", "~x/app.zip", "app.zip?q=1", "app.zip#x"]) {
 			assert.equal(isPlainAssetName(bad), false, bad);
 		}
@@ -256,8 +259,8 @@ describe("release gate — update feeds", () => {
 		}, /is not a bare asset name/],
 		["reference to an asset the release does not hold", (feeds) => {
 			const e = expectedAssets(VERSION);
-			feeds["latest.yml"] = feeds["latest.yml"]!.replace(`url: ${e.win.exe}`, "url: LearnHarness-0.1.0-x64-setup.exe");
-		}, /references "LearnHarness-0\.1\.0-x64-setup\.exe" which is not an asset/],
+			feeds["latest.yml"] = feeds["latest.yml"]!.replace(`url: ${e.win.exe}`, "url: School-0.1.0-x64-setup.exe");
+		}, /references "School-0\.1\.0-x64-setup\.exe" which is not an asset/],
 		["size disagreeing with the uploaded asset", (feeds) => {
 			const e = expectedAssets(VERSION);
 			feeds["latest.yml"] = feeds["latest.yml"]!.replace("size: 5000", "size: 4999");
@@ -275,7 +278,7 @@ describe("release gate — update feeds", () => {
 			feeds["latest-mac.yml"] = feeds["latest-mac.yml"]!.replace(`path: ${e.mac.zip}`, `path: ${e.mac.dmg}`);
 		}, /top-level path is/],
 		["mac legacy sha512 not matching files[0]", (feeds) => {
-			feeds["latest-mac.yml"] = feeds["latest-mac.yml"]!.replace(`sha512: ${sha512("LearnHarness-0.2.0-arm64-mac.zip")}\nreleaseDate`, `sha512: ${sha512("tampered")}\nreleaseDate`);
+			feeds["latest-mac.yml"] = feeds["latest-mac.yml"]!.replace(`sha512: ${sha512("School-0.2.0-arm64-mac.zip")}\nreleaseDate`, `sha512: ${sha512("tampered")}\nreleaseDate`);
 		}, /top-level sha512 does not match/],
 		["missing deb entry in latest-linux.yml", (feeds) => {
 			const e = expectedAssets(VERSION);
@@ -419,8 +422,8 @@ describe("release gate — CLI (offline, repo config)", () => {
 		const { root } = workspace();
 		try {
 			const release = healthyRelease(VERSION);
-			release.assets = release.assets.filter((entry) => entry.name !== `LearnHarness-${VERSION}-arm64.dmg.blockmap`);
-			release.assets.push(asset(9999, "LearnHarness-0.1.0-x64-setup.exe"));
+			release.assets = release.assets.filter((entry) => entry.name !== `School-${VERSION}-arm64.dmg.blockmap`);
+			release.assets.push(asset(9999, "School-0.1.0-x64-setup.exe"));
 			fs.writeFileSync(path.join(root, "releases.json"), JSON.stringify([release]));
 			const result = run(["verify", path.join(root, "releases.json"), path.join(root, "metadata"), "--tag", TAG]);
 			assert.equal(result.status, 1);

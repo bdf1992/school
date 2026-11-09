@@ -1,4 +1,12 @@
-# Documentation
+# School documentation
+
+## School's direction
+
+- [Remodeling LearnHarness into School](school.md) — purpose, current boundary, milestones, and the planned AUM relationship.
+- [Shared language](../CONTEXT.md) — world, learner, teacher, evaluator, evidence, editions, and continuation.
+- [Remodeling issue #1](https://github.com/bdf1992/school/issues/1) — implementation progress and acceptance criteria.
+
+The guides below describe the inherited application. School-specific changes are identified in the direction document; automated machine-learner participation and model training remain planned work.
 
 ## User guides
 
@@ -19,7 +27,7 @@
 
 ## Teaching method
 
-[The theory of learning and teaching](teaching-methodology.md) is the owner's theory underlying the teaching method. It is not a runtime specification or evidence of measured learning outcomes.
+[The theory of learning and teaching](teaching-methodology.md) records the upstream owner's theory underlying LearnHarness's teaching method. It is not a runtime specification or evidence of measured learning outcomes.
 
 ## History
 
@@ -28,3 +36,4 @@
 ## About these docs
 
 These guides follow the repository source. For a particular installed release, use the documentation at its Git tag and its release notes. Archived plans are historical; unmerged proposals are not documented as available features.
+

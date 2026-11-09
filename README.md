@@ -1,85 +1,92 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/lh_banner_dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/lh_banner_light.png">
-    <img src="docs/assets/lh_banner_light.png" alt="LearnHarness" width="640">
-  </picture>
-</p>
+# School
 
-<p align="center"><strong>An agent harness for learning.</strong></p>
+**A workbench for teaching, learning, and evaluating people, local language models, and agents.**
 
-<p align="center">
-  <a href="https://learnharness.ai">Download</a> ·
-  <a href="#how-it-works">How it works</a> ·
-  <a href="docs/README.md">Documentation</a> ·
-  <a href="https://github.com/amosblomqvist/learnharness/issues">Issues</a> ·
-  <a href="https://discord.gg/5tCHHQEB2e">Discord</a>
-</p>
+School starts with a world or subject, names the participants and their roles, and runs lessons whose attempts and outcomes can be inspected. The aim is to understand what a learner can do, help it develop a capability, and establish what changed through independent evidence.
 
-LearnHarness uses AI agents to plan and teach lessons from your current understanding to your goal. It builds a detailed picture of what you understand and how you reason. That picture is updated as you learn.
+A learner may be a person, a local LLM, Claude, or an OpenAI/ChatGPT agent reached through a supported interface. A teacher prepares observations, examples, explanations, and feedback. An evaluator checks the learner's work. These are roles in an episode, separate from the model provider or application running a participant.
 
-Instead of just giving you an explanation, it uses your answers and thinking to decide what you need next. Teaching builds understanding one reasoning step at a time. Practice makes it usable. A persistent knowledge graph carries it across sessions.
+School is a fork of [LearnHarness](https://github.com/amosblomqvist/learnharness), created to adapt its teaching interface and recorded workflows for machine learners and AUM experiments. The inherited human teaching experience remains the operating starting point.
 
-![LearnHarness teaching session](docs/assets/teaching-session.png)
+[Remodeling issue #1](https://github.com/bdf1992/school/issues/1) · [Direction and milestones](docs/school.md) · [Shared language](CONTEXT.md) · [Development](docs/development.md)
 
-## How it works
+## World, learner, teacher, evaluator
 
-1. **Measure.** Before teaching, the agent finds where your understanding ends on each part the lesson depends on. Your answers, confidence, and thinking show it where to start.
-2. **Plan.** It works out a dependency map from that starting point to your goal. You can see the plan, and the lesson adapts when your understanding turns out different.
-3. **Teach.** Each step builds on something you already understand. You predict, get an explanation, and check your understanding. Confusions are repaired before anything is built on them. The aim is for the goal to feel obviously true, not merely familiar.
-4. **Practice.** Separate sessions pose varied problems that require the right knowledge to come to mind without being named first. Problems and hints adapt to your reasoning.
+| Role | Responsibility |
+| --- | --- |
+| World | Supplies the task's state, rules, available observations and actions, and consequences. |
+| Learner | Receives permitted information and produces an attempt, prediction, or proposed change. |
+| Teacher | Diagnoses observed gaps and supplies lessons, examples, hints, and feedback. |
+| Evaluator | Checks an attempt against a declared criterion and retains the result and its limits. |
+| Records | Connect sources, participants, editions, observations, assistance, attempts, decisions, and unfinished work. |
 
-**Think out loud.** The thinking fields let you explain your reasoning, uncertainties, and reactions in your own words. This is how the agent gets a detailed picture rather than just a record of right and wrong answers. You can type or use dictation.
+The world may be a document, an exact mathematical task, a program, an interactive environment, or a model's own editable structure. Teacher agreement, a learner's confidence, and an independently checked result remain separate observations.
 
-**Bring your files.** In the desktop app, attach PDFs, photos, or any other file with the paperclip, or drag them in. The file stays where it is: the message carries its path, and the agent reads it from there.
+## What works in this first remodeling step
 
-The agent can also research questions in the background, create visual explanations, show your own images in the lesson and mark them up with arrows and labels, and build interactive demonstrations.
+- **Human lessons and practice:** the inherited prober, teacher, practice, plans, questions, provider connections, and local records.
+- **Local inference connections:** the inherited custom OpenAI-compatible endpoint can run teaching-side agents. This does not yet make a configured model the student or train it.
+- **Restricted learner view:** a standalone command projects pending questions and practice problems from a saved native session into a small machine-readable view. It copies permitted task fields only, refuses unsupported or ambiguous records, and leaves the source unchanged.
+- **Graph inference preservation:** merging proposition identities no longer removes a required or unresolved premise and silently strengthens the remaining argument. This correction does not make model-authored claims independently true.
 
-## Knowledge that carries forward
+Automatic machine-learner participation, server-side attempt submission and evaluation, model-training jobs, and the AUM episode bridge are the next milestones. No real neural training or useful weight improvement is claimed by this foundation change.
 
-What you are taught accumulates as propositions and reasoning chains: individual claims and the premises that lead to them. The graph shows this structure, with links back to the source sessions. You can also import notes.
+## Try the learner boundary
 
-Future teaching sessions can read the graph instead of starting from scratch. Practice sessions can draw their material from it. It stores the ideas and their connections, not ratings of your ability.
+Use Node 26, the version used by CI. The projection command uses Node's built-in TypeScript support and does not call a model, start the app, or read credentials.
 
-![LearnHarness knowledge graph](docs/assets/knowledge-graph.png)
-
-## Download and get started
-
-**[Download from learnharness.ai](https://learnharness.ai)** · [GitHub Releases](https://github.com/amosblomqvist/learnharness/releases)
-
-- **macOS (Apple Silicon):** signed and notarized DMG. Drag the app to Applications.
-- **Windows (x64):** run the installer. It is currently unsigned; Windows may show an “unknown publisher” or SmartScreen warning.
-- **Linux (x64):** make the AppImage executable and open it, or install the Debian/Ubuntu `.deb`.
-
-Choose your models, then start a session with what you want to understand. You can use provider API keys, supported subscription connections in the desktop app, an installed [Claude Code CLI](docs/claude-code.md), or a [custom OpenAI-compatible endpoint](docs/custom-providers.md), including a local model server. Optional dictation and web search use separate service keys. Web research can use a Tavily, Brave, Exa, Firecrawl, or Ollama key in Settings → Providers → Search. Ollama search uses its hosted service, not a local model server.
-
-See [Getting started](docs/getting-started.md) for model setup, dictation, files, and notes imports, and [context, caching, and costs](docs/compaction-accounting.md) for advanced cache preferences.
-
-All three platforms support in-app updates.
-
-## Your keys, your data
-
-- **Your keys and models.** No LearnHarness subscription or markup. Billing depends on your provider, CLI configuration, subscription, or local setup. The live cost meter estimates known API costs, not subscription, CLI, or custom-endpoint charges.
-- **Local storage.** Your chats, graph, settings, and API keys live on your machine. Learning records are plain files you can inspect.
-- **External services.** Models run through your configured providers. Model requests send the context needed for the task; web research and dictation also contact external services. Local storage does not mean offline processing.
-- **Inspectable behavior.** System prompts are visible and editable. The app is open source under the AGPL-3.0 license.
-
-## Development and support
-
-```bash
-npm ci
-npm run dev        # http://localhost:3000
-npm test           # fixtures and fake providers
+```sh
+node scripts/school-learner-view.ts /absolute/path/to/a-saved-chat.json
 ```
 
-See the [documentation index](docs/README.md) for all guides, [development](docs/development.md) for setup and checks, [architecture](docs/architecture.md) for the runtime, [keyboard shortcuts](docs/keyboard.md), and [desktop builds and releases](docs/desktop-release.md).
+After installing the app dependencies, the same command is available as:
 
-Questions, bug reports, and feature requests: [GitHub Issues](https://github.com/amosblomqvist/learnharness/issues).
+```sh
+npm run school:learner-view -- /absolute/path/to/a-saved-chat.json
+```
 
-Security vulnerabilities: report privately as described in [SECURITY.md](SECURITY.md), not in public issues.
+A saved conversation contains teacher answer keys and precommitted practice solutions. Give a machine learner the restricted view, not the raw record or archival reader output. This is a field-selection boundary: a teacher could still disclose an answer in the question itself, so evaluation material needs separate control.
 
-## License
+The command is read-only. It does not submit an attempt, grade a response, or establish a participant's identity. Those behaviors are tracked in [issue #1](https://github.com/bdf1992/school/issues/1).
 
-[AGPL-3.0](LICENSE)
+The first format is narrower than the human UI: it returns pending tasks only and omits lesson prose, prior answers, hints, and extra question details. It accepts native v1 records, including unstamped v1, but refuses reused identities, incomplete turns, missing non-question results, and raw arguments requiring the UI's legacy coercion. An `idle` result means this view has no pending task; it does not mean learning or the lesson is complete.
 
-The app is free and open forever. If we ever charge for anything, it will be for convenience — managed keys, hosting — never for features you can run locally.
+## What counts as learning
+
+An episode records its starting capability, permitted assistance, attempted intervention, and subsequent evidence. Distinguish:
+
+- improvement while a lesson remains in context;
+- use of external memory or retrieved material;
+- a changed program or policy;
+- a trained adapter or other parameter change;
+- a new representation that preserves current behavior but changes future updates.
+
+Changing an artifact is an observed operation. Useful learning requires an appropriate comparison, fresh tasks, retained-capability checks, and honest failures. A lesson plan's visited nodes and extracted propositions do not constitute a mastery score.
+
+## Relationship to AUM
+
+School owns lesson interaction, practice, participant views, and review surfaces. The intended AUM bridge delegates model editions, admitted training operations, evaluation/adoption receipts, and continuing commitments to AUM.
+
+The target loop is **inspect → propose → execute → evaluate → adopt or reject → continue**. A successor should finish work already in progress and make its next consequential choice. The bridge and actual local training qualification remain open work; the first change establishes the vocabulary and information boundary they need.
+
+## Run the inherited application
+
+```sh
+npm ci
+npm run dev
+npm test
+npm run typecheck
+npm run lint
+```
+
+Configure providers before model-driven use. Local servers, provider APIs, installed Claude Code, and supported subscription routes have different capabilities and authorization. Existing connections are teaching-agent infrastructure; a machine-learner adapter must be configured separately when implemented.
+
+See [custom and local models](docs/custom-providers.md), [Claude Code](docs/claude-code.md), and [development](docs/development.md). The current server is intended for trusted local use with one owner per data profile.
+
+## Upstream and license
+
+LearnHarness supplied the original application, teaching workflows, storage, provider integrations, and desktop foundation. Its original contributors retain their attribution. School's initial fork baseline is [`da08cb5`](https://github.com/amosblomqvist/learnharness/commit/da08cb5f7d098598ba963c6689b22054c9f2a5a3).
+
+The [AGPL-3.0-only license](LICENSE) is retained. School support and releases belong to [this repository](https://github.com/bdf1992/school); upstream LearnHarness downloads are upstream builds, not School distributions.
+
+For vulnerability reports, follow [School's private reporting instructions](SECURITY.md).

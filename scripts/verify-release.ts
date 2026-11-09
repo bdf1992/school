@@ -8,26 +8,27 @@
  * reads (release list via the workflow's read-only token, update feeds
  * downloaded by the workflow's own gh steps).
  *
- * Every expected file name below was verified against the INSTALLED
- * builder (app-builder-lib 26.15.3) — these are the artifacts it actually
- * emits for this repo's electron-builder.yml, not pattern guesses:
+ * These naming rules come from the upstream verification against
+ * app-builder-lib 26.15.3, with School's product name substituted below.
+ * Native packaging rehearsals must verify the fork's outputs before its
+ * first release; this source change does not claim a School build exists.
  *
  *   mac (dmg + zip, arm64; no user artifactName there):
- *     dmg    LearnHarness-<v>-arm64.dmg       + .blockmap (createBlockmap)
- *     zip    LearnHarness-<v>-arm64-mac.zip   + .blockmap (createBlockmap;
+ *     dmg    School-<v>-arm64.dmg       + .blockmap (createBlockmap)
+ *     zip    School-<v>-arm64-mac.zip   + .blockmap (createBlockmap;
  *            Squirrel.Mac updates from the ZIP — it IS the updater payload)
  *     feed   latest-mac.yml — files[0] is the ZIP (writeUpdateInfoFiles
  *            sorts zip first) and the legacy top-level path/sha512 point
  *            at it.
  *   win (nsis x64; artifactName "${productName}-${version}-${arch}-setup.${ext}"):
- *     exe    LearnHarness-<v>-x64-setup.exe   + .blockmap (createBlockmap)
+ *     exe    School-<v>-x64-setup.exe   + .blockmap (createBlockmap)
  *     feed   latest.yml — a single file entry, the exe.
  *   linux (AppImage + deb, x64; artifactName "${productName}-${version}-${arch}.${ext}"
  *            is user-forced at the linux level, so it overrides BOTH targets'
  *            default name formats, and ${arch} expands per target ext:
  *            x64→x86_64 for AppImage, x64→amd64 for deb):
- *     image  LearnHarness-<v>-x86_64.AppImage (no blockmap in 26.15.3)
- *     deb    LearnHarness-<v>-amd64.deb       (no blockmap)
+ *     image  School-<v>-x86_64.AppImage (no blockmap in 26.15.3)
+ *     deb    School-<v>-amd64.deb       (no blockmap)
  *     feed   latest-linux.yml — the AppImage and deb entries merged by
  *            writeUpdateInfoFiles (order not deterministic; checked as a set).
  *
@@ -104,8 +105,8 @@ type Issues = Issue[];
 // Version + expected assets
 // ---------------------------------------------------------------------------
 
-/** Verified product name spelled into every artifact (electron-builder.yml productName). */
-const PRODUCT_NAME = "LearnHarness";
+/** Product name used by electron-builder.yml and checked by this verifier. */
+const PRODUCT_NAME = "School";
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 
@@ -259,10 +260,11 @@ export function verifyConfigAssumptions(config: unknown, pkg: unknown): { ok: tr
 	const errors: Issues = [];
 	const bad = (message: string) => errors.push(message);
 	if (!isPlainObject(pkg) || typeof pkg.version !== "string") bad("package.json has no string version");
-	if (!isPlainObject(pkg) || pkg.name !== "learnharness") bad("package.json name is no longer \"learnharness\"");
+	if (!isPlainObject(pkg) || pkg.name !== "school") bad("package.json name is no longer \"school\"");
 	if (!isPlainObject(config)) {
 		return { ok: false, errors: ["electron-builder.yml did not parse to a mapping", ...errors] };
 	}
+	if (config.appId !== "io.github.bdf1992.school") bad(`appId is ${JSON.stringify(config.appId)}, expected "io.github.bdf1992.school"`);
 	if (config.productName !== PRODUCT_NAME) bad(`productName is ${JSON.stringify(config.productName)}, expected "${PRODUCT_NAME}"`);
 	if (config.artifactName != null) bad("a top-level artifactName now overrides target defaults — expected names no longer hold");
 	const sameTargets = (actual: unknown, expected: Array<Record<string, unknown>>) =>
@@ -295,6 +297,9 @@ export function verifyConfigAssumptions(config: unknown, pkg: unknown): { ok: tr
 	const publish = Array.isArray(config.publish) ? config.publish[0] : undefined;
 	if (!isPlainObject(publish) || publish.provider !== "github" || publish.releaseType !== "draft") {
 		bad(`publish[0] must be the github provider with releaseType "draft" (${JSON.stringify(config.publish)}) — uploads would not land in the draft`);
+	}
+	if (!isPlainObject(publish) || publish.owner !== "bdf1992" || publish.repo !== "school") {
+		bad(`update feed must use bdf1992/school (${JSON.stringify(publish)})`);
 	}
 	if (errors.length > 0) {
 		errors.push("packaging config drifted from the verified shapes — re-derive the expected assets in scripts/verify-release.ts");

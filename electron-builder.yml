@@ -1,4 +1,4 @@
-# electron-builder config — LearnHarness desktop (macOS arm64; Windows/Linux x64).
+# electron-builder config — School desktop (macOS arm64; Windows/Linux x64).
 #
 # Shape (fact-checked 2026-09-17):
 #   - the app's real server (.next/standalone, curated by
@@ -6,11 +6,11 @@
 #     because native .node/dylib can't dlopen from a read-only archive and
 #     server.js process.chdir()s into its own dir;
 #   - the asar holds only the shell (electron/main.cjs + package.json);
-#   - signed + notarized since 2026-10-08 (Developer ID Application cert in
-#     the login keychain; notary credentials in the LH_NOTARY keychain
-#     profile; the profile + team env vars are baked into desktop:dist).
-appId: com.learnharness.LearnHarness
-productName: LearnHarness
+#   - release signing/notarization requires the School maintainer's own
+#     certificate and credentials. Upstream release credentials are not
+#     inherited by this fork.
+appId: io.github.bdf1992.school
+productName: School
 directories:
   output: dist
 # Icons (owner ruling, 2026-10-13) — per-platform sources in build/:
@@ -125,14 +125,14 @@ mac:
   # Laid for the STT milestone (researcher-verified): the TCC mic prompt
   # reads this string; macOS asks regardless of Electron's own handlers.
   extendInfo:
-    NSMicrophoneUsageDescription: "LearnHarness uses the microphone only for speech-to-text input into your sessions."
+    NSMicrophoneUsageDescription: "School uses the microphone only for speech-to-text input into your sessions."
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist
-  # Signing + notarization (flipped 2026-10-08): identity auto-detects the
-  # Developer ID Application certificate from the login keychain;
-  # notarize: true makes electron-builder sign → submit to Apple's notary
-  # service → staple the ticket, all inside this one build (credentials
-  # via the LH_NOTARY keychain profile, env baked into desktop:dist).
+  # Signing + notarization: provide the School maintainer's Developer ID
+  # certificate and Apple credentials through the environment/keychain.
+  # notarize: true signs, submits to Apple, and staples the ticket.
+  # For an unsigned local rehearsal, use the release workflow's explicit
+  # no-publish/no-notarization settings.
   # Adds minutes per build (Apple's scan queue). Verification battery:
   # codesign --verify --deep / spctl --assess / stapler validate.
   notarize: true
@@ -181,14 +181,12 @@ linux:
   # Both targets update via electron-updater 6.8.9. AppImage replaces its
   # own file; deb uses dpkg/apt and may request administrator permission.
 publish:
-  # Update feed = GitHub Releases (decided 2026-10-08): latest-mac.yml +
-  # zip/blockmap live on releases; electron-updater reads them anonymously.
-  # REQUIRES THE REPO TO BE PUBLIC before 0.3.0 ships — anonymous downloads
-  # from a private repo are impossible, and a token baked into the app
-  # would be a leak. desktop:dist passes no --publish flag, so builds never
-  # upload; publishing happens at release time (GH_TOKEN + --publish).
+  # School releases only. No published School installer/update is assumed
+  # to exist yet. Until one is published, update checks can report no feed.
+  # The repository must stay public for anonymous desktop updates.
+  # desktop:dist passes --publish never; release uploads are separate.
   - provider: github
-    owner: amosblomqvist
-    repo: learnharness
+    owner: bdf1992
+    repo: school
     # All three CI jobs contribute assets; only the owner publishes it.
     releaseType: draft

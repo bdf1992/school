@@ -234,16 +234,22 @@ export function mergeFindings(
 		// endpoint resolves through the job-local map (this submit's
 		// propositions) OR passes through verbatim when it names an
 		// existing node (THE GRAPH SO FAR references, ids verbatim).
-		// Anything else is unresolvable — skip.
+		// Anything else is unresolvable — skip the whole chain.
 		const resolve = (endpoint: string): string | undefined =>
 			mapping.get(endpoint) ?? (existingIds.has(endpoint) ? endpoint : undefined);
 		const conclusion = resolve(chain.conclusion);
 		if (conclusion === undefined) return; // unresolvable endpoint — skip
-		// Duplicate local ids resolving to one node (two phrasings of one
-		// premise) collapse; a premise equal to the conclusion is dropped.
-		const premises = [...new Set(chain.premises.map(resolve))].filter(
-			(p): p is string => p !== undefined && p !== conclusion,
-		);
+		// Premises are jointly required: dropping an unresolved premise
+		// would assert a stronger implication. A premise resolving to the
+		// conclusion makes the whole argument tautological; omitting just
+		// that premise would likewise invent an implication.
+		const resolvedPremises = new Set<string>();
+		for (const endpoint of chain.premises) {
+			const premise = resolve(endpoint);
+			if (premise === undefined || premise === conclusion) return;
+			resolvedPremises.add(premise); // equivalent phrasings collapse
+		}
+		const premises = [...resolvedPremises];
 		if (premises.length === 0) return; // a chain IS an argument — bare propositions ride the node ledger alone
 		const key = chainKey(premises, conclusion);
 		if (assertedByChat.has(key)) return; // this chat already asserted this argument

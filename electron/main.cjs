@@ -1,5 +1,5 @@
 /**
- * LearnHarness — the Electron shell (wrapper milestone, 2026-09-17).
+ * School — the Electron shell, adapted from LearnHarness.
  *
  * What this process is and is not:
  *   IS:  a thin launcher + security guard around the app's real server —
@@ -43,14 +43,13 @@ const path = require("node:path");
 // renderer owns the number; this is the IPC widen target).
 const SIDEBAR_AUTOCLOSE = 928;
 
-const PRODUCT_NAME = "LearnHarness";
+const PRODUCT_NAME = "School";
 
-// APP NAME → userData (owner, 2026-10-10): the Application Support dir is
-// exactly "LearnHarness" in dev AND packaged. Packaged Electron would
-// otherwise derive it from package.json "name" (now lowercase
-// "learnharness"), and productName metadata alone doesn't reach app.name.
-// Must run before the LH_DEV_URL suffix below — dev becomes
-// "LearnHarness-dev".
+// Set the name before resolving userData: School owns a separate profile
+// from LearnHarness. Product metadata alone does not set Electron's app.name.
+// The LH_DEV_URL suffix below makes the development profile School-dev.
+// Existing LH_* configuration and IPC names remain compatible; no upstream
+// profile is read, copied, or migrated here.
 app.setName(PRODUCT_NAME);
 const AUTH_FILE = () => path.join(app.getPath("userData"), "auth.json");
 const DATA_DIR = () => path.join(app.getPath("userData"), "data");
