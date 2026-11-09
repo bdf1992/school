@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { MenuShell } from "@/components/menu-shell";
 import { DeleteSessionDialog } from "@/components/delete-session-dialog";
 import type { ChatDeleteMode } from "@/src/core";
-import { DumbbellIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon, SearchIcon, SettingsIcon } from "lucide-react";
+import { DumbbellIcon, GraduationCapIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, PlusIcon, SearchIcon, SettingsIcon } from "lucide-react";
 import { ActivitySection } from "@/components/activity-dock";
 import { CoverageMenuBlock } from "@/components/extraction-coverage";
 import { BrailleSpinner } from "@/components/braille-spinner";
@@ -712,6 +712,14 @@ function SessionsSidebar() {
 						Practice
 						<span className="sr-only">create a new practice session</span>
 					</button>
+					<Link
+						href="/school"
+						aria-current={pathname === "/school" ? "page" : undefined}
+						className={cn("flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs uppercase tracking-wider transition-colors hover:bg-accent hover:text-foreground", pathname === "/school" ? "bg-accent text-foreground" : "text-muted-foreground")}
+					>
+						<GraduationCapIcon className="size-3" />
+						Classroom
+					</Link>
 				</div>
 
 				<div className="mx-3 mb-2 flex items-center gap-2">

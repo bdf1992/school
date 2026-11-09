@@ -1,0 +1,352 @@
+{
+  "status": "PASSED",
+  "entrypoint": ".next/standalone/server.js",
+  "assertionCount": 95,
+  "assertions": [
+    "production child server becomes reachable in its own execution namespace",
+    "GET /school returns 200",
+    "production page contains the classroom heading and workbench copy",
+    "standalone classroom HTML references built browser assets",
+    "GET /_next/static/media/53897e768d329f66-s.p.3t6q91iet4nsy.woff2 returns 200",
+    "standalone browser asset has content: /_next/static/media/53897e768d329f66-s.p.3t6q91iet4nsy.woff2",
+    "GET /_next/static/media/6873f4f49904bdbd-s.p.2adce56gso3ku.woff2 returns 200",
+    "standalone browser asset has content: /_next/static/media/6873f4f49904bdbd-s.p.2adce56gso3ku.woff2",
+    "GET /_next/static/chunks/0a9b0n2fliep9.css returns 200",
+    "standalone browser asset has content: /_next/static/chunks/0a9b0n2fliep9.css",
+    "GET /_next/static/chunks/44le5hh-o4ip-.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/44le5hh-o4ip-.js",
+    "GET /_next/static/chunks/1veknn7le2f-j.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/1veknn7le2f-j.js",
+    "GET /_next/static/chunks/0f8uddcniwing.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/0f8uddcniwing.js",
+    "GET /_next/static/chunks/turbopack-2c3mg3r-05n1w.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+    "GET /_next/static/chunks/06kstc6g0s5u0.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/06kstc6g0s5u0.js",
+    "GET /_next/static/chunks/2-ba9kpys5ejy.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/2-ba9kpys5ejy.js",
+    "GET /_next/static/chunks/0je-dhckv311c.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/0je-dhckv311c.js",
+    "GET /_next/static/chunks/0wielerdtft3d.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/0wielerdtft3d.js",
+    "GET /_next/static/chunks/15c-fpxwni2fj.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/15c-fpxwni2fj.js",
+    "GET /_next/static/chunks/0cz1d0mv5g_q7.js returns 200",
+    "standalone browser asset has content: /_next/static/chunks/0cz1d0mv5g_q7.js",
+    "GET /api/school/classes returns 200",
+    "class listing includes the seeded immutable class revision",
+    "GET /api/school/classes?classId=learning-dynamics&revision=1 returns 200",
+    "class inspection retains the exact curriculum and roster",
+    "GET /api/school/classes?classId=learning-dynamics&revision=1&gradebook=true returns 200",
+    "gradebook includes all seeded teaching fixtures",
+    "all seeded episodes remain explicitly labelled scripted fixtures",
+    "gradebook excludes manifests, prompts and raw peer replies",
+    "workbench-helpful has the independently derived outcome",
+    "workbench-helpful reports evidence only for its generator and seed",
+    "workbench-harmful has the independently derived outcome",
+    "workbench-harmful reports evidence only for its generator and seed",
+    "workbench-memorizing has the independently derived outcome",
+    "workbench-memorizing reports evidence only for its generator and seed",
+    "helpful fixture succeeds on fresh lesson-assisted transfer targets",
+    "memorizing fixture fails the fresh transfer targets despite retry gains",
+    "GET /api/school/episodes?operationId=workbench-helpful returns 200",
+    "owner evidence retains the actual 17-call experiment",
+    "retained calls include answers and grades",
+    "GET /api/school/classes returns 403",
+    "GET /api/school/classes?classId=learning-dynamics&revision=1&gradebook=true returns 403",
+    "GET /api/school/episodes?operationId=workbench-helpful returns 403",
+    "GET /api/school/participants returns 403",
+    "GET /api/school/runs returns 403",
+    "GET /api/school/classes?classId=learning-dynamics&revision=1&participantId=local-learner returns 400",
+    "POST /api/school/classes returns 200",
+    "identical class import is an idempotent replay",
+    "POST /api/school/classes returns 409",
+    "POST /api/school/classes returns 403",
+    "POST /api/school/episodes returns 409",
+    "POST /api/school/participants returns 201",
+    "POST /api/school/participants returns 201",
+    "POST /api/school/participants returns 201",
+    "GET /api/school/participants returns 200",
+    "registry returns the saved state selector metadata",
+    "registry list omits saved memory text and source IDs",
+    "registry list includes a memory receipt",
+    "GET /api/school/participants?kind=state&id=local-learner&revision=http-r1 returns 200",
+    "explicit owner state inspection retains memory",
+    "POST /api/school/participants returns 200",
+    "identical state registration is idempotent",
+    "POST /api/school/participants returns 409",
+    "POST /api/school/participants returns 400",
+    "POST /api/school/runs returns 403",
+    "POST /api/school/runs returns 201",
+    "future work is queued without starting the episode",
+    "HTTP queue records configured-provider intent, not fixture evidence",
+    "run preview exposes the exact planned call count",
+    "work summary omits private manifests and memory",
+    "POST /api/school/runs returns 200",
+    "identical queued work reuses its original admission",
+    "POST /api/school/runs returns 409",
+    "GET /api/school/runs?operationId=http-future-placeholder returns 200",
+    "owner run inspection retains the exact saved-state binding",
+    "POST /api/school/runs returns 200",
+    "future work cancels before any provider admission",
+    "POST /api/school/runs returns 200",
+    "explicit empty drain makes no model calls",
+    "GET /api/school/runs returns 200",
+    "cancelled work remains inspectable after drain",
+    "POST /api/school/participants returns 200",
+    "GET /api/school/participants returns 200",
+    "registry reports the exact revoked connection revision",
+    "HTTP checks add no episode records or provider work",
+    "cancelled future operation has no episode record"
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "route": "/school",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/media/53897e768d329f66-s.p.3t6q91iet4nsy.woff2",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/media/6873f4f49904bdbd-s.p.2adce56gso3ku.woff2",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/0a9b0n2fliep9.css",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/44le5hh-o4ip-.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/1veknn7le2f-j.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/0f8uddcniwing.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/06kstc6g0s5u0.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/2-ba9kpys5ejy.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/0je-dhckv311c.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/0wielerdtft3d.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/15c-fpxwni2fj.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/classes",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/classes?classId=learning-dynamics&revision=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/classes?classId=learning-dynamics&revision=1&gradebook=true",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/episodes?operationId=workbench-helpful",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/classes",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/classes?classId=learning-dynamics&revision=1&gradebook=true",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/episodes?operationId=workbench-helpful",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/participants",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/runs",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/classes?classId=learning-dynamics&revision=1&participantId=local-learner",
+      "status": 400,
+      "code": "INVALID_CLASS_QUERY"
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/classes",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/classes",
+      "status": 409,
+      "code": "CLASS_REVISION_CONFLICT"
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/classes",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/episodes",
+      "status": 409,
+      "code": "OPERATION_COLLISION"
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/participants",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/participants?kind=state&id=local-learner&revision=http-r1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 409,
+      "code": "IMMUTABLE_REGISTRY_CONFLICT"
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 400,
+      "code": "INVALID_PARTICIPANT_DEFINITION"
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/runs",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/runs",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/runs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/runs",
+      "status": 409,
+      "code": "RUN_COLLISION"
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/runs?operationId=http-future-placeholder",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/runs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/runs",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/runs",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/api/school/participants",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/api/school/participants",
+      "status": 200
+    }
+  ],
+  "fixtureMode": "SCRIPTED_FIXTURE",
+  "configuredProviderCalls": 0,
+  "browserVisualCheck": "BLOCKED_BY_EXECUTOR_SOCKET_POLICY",
+  "serverExit": {
+    "code": 143,
+    "signal": null
+  },
+  "checked_at": "2026-11-09T15:42:25.025015+00:00",
+  "limits": [
+    "HTTP and built-asset verification; browser visual interaction was blocked by the executor socket policy.",
+    "Seeded scripted episodes and cancelled future work only; no live model qualification."
+  ]
+}

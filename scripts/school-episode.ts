@@ -4,6 +4,7 @@ import { parseSchoolEpisode } from "../src/core/school-episode.ts";
 import { runSchoolEpisode, schoolEpisodes } from "../src/server/school-episodes.ts";
 import { SchoolEpisodeStore } from "../src/store/school-episodes.ts";
 import { SchoolClassStore } from "../src/store/school-classes.ts";
+import { SchoolParticipantStore } from "../src/store/school-participants.ts";
 import { MAX_SCHOOL_CLASS_BYTES } from "../src/core/school-class.ts";
 import { schoolClasses } from "../src/server/school-state.ts";
 import { scriptedParityEngine } from "../examples/school/scripted-parity.ts";
@@ -44,6 +45,7 @@ async function main() {
 	}
 	const store = schoolRoot ? new SchoolEpisodeStore(path.resolve(schoolRoot, "episodes")) : output ? new SchoolEpisodeStore(path.resolve(output)) : schoolEpisodes;
 	const classStore = schoolRoot ? new SchoolClassStore(path.resolve(schoolRoot, "classes")) : schoolClasses;
+	const registry = schoolRoot ? new SchoolParticipantStore(path.resolve(schoolRoot, "registry")) : undefined;
 	if (classFile) {
 		const definition = readFileSync(path.resolve(classFile));
 		if (definition.byteLength > MAX_SCHOOL_CLASS_BYTES) throw new Error("Class definition exceeds 64 KiB");
@@ -53,7 +55,7 @@ async function main() {
 	const cancel = () => abort.abort(new Error("Episode cancelled by SIGINT"));
 	process.once("SIGINT", cancel);
 	try {
-		const result = await runSchoolEpisode(manifest, { store, classStore, signal: abort.signal, ...(fixture ? { evidence: "SCRIPTED_FIXTURE" as const, engineFor: scriptedParityEngine } : {}) });
+		const result = await runSchoolEpisode(manifest, { store, classStore, registry, signal: abort.signal, ...(fixture ? { evidence: "SCRIPTED_FIXTURE" as const, engineFor: scriptedParityEngine } : {}) });
 		console.log(JSON.stringify({ operationId: result.record.operationId, class: result.record.classContext?.reference, learner: result.record.manifest.learner.id, status: result.record.status, evidence: result.record.evidence, replayed: result.replayed, calls: result.record.calls.length, comparison: result.record.comparison, error: result.record.error, record: path.join(store.root, result.record.operationId, "record.json") }, null, 2));
 		if (result.record.status !== "COMPLETED") process.exitCode = 1;
 	} finally { process.removeListener("SIGINT", cancel); }

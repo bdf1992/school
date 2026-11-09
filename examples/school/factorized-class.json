@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "id": "learning-dynamics",
+  "revision": "1",
+  "title": "Learning Dynamics: Equal Products, Different Next Steps",
+  "roster": [
+    { "participantId": "local-learner", "roles": ["learner"] },
+    { "participantId": "local-peer", "roles": ["learner"] },
+    { "participantId": "teacher", "roles": ["teacher"] }
+  ],
+  "curriculum": {
+    "id": "factorized-learning",
+    "revision": "1",
+    "title": "Exact arithmetic over a factorized scalar model",
+    "units": [
+      {
+        "id": "factorized-step",
+        "title": "One simultaneous gradient step",
+        "objectives": [
+          "Distinguish an effective coefficient from its factorization.",
+          "Calculate both gradients at the original factors using exact rational arithmetic.",
+          "Compare diagnostic assistance, a cold repeat, and fresh-parameter lesson-assisted transfer.",
+          "Measure retained product arithmetic separately from the target gradient-step task."
+        ],
+        "prerequisites": [],
+        "world": { "id": "factorized-scalar-step", "revision": "1" }
+      }
+    ]
+  },
+  "schedule": { "mode": "self-paced" },
+  "assessment": { "evaluator": "trimmed-exact-v1", "scale": "case-count" },
+  "peerPolicy": { "work": "private" }
+}

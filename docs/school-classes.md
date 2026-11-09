@@ -2,7 +2,7 @@
 
 A class is the continuing setting for learning. It connects a roster, curriculum, schedule, peers and assessment policy across episodes. Every newly executed model episode belongs to a named class revision and curriculum unit. Historical version-1 records keep their original meaning.
 
-The initial interface is available through the CLI and owner API. It provides durable definitions, admission checks, private participant views and a gradebook. The existing human lesson UI has not yet been converted into class management.
+Classes are available through the [Classroom console](school-classroom.md), CLI and owner API. They provide durable definitions, admission checks, private participant views and a gradebook. The inherited human lesson flow remains separate.
 
 ## Run a class
 
@@ -107,6 +107,6 @@ Mutations require JSON and trusted same-origin or desktop authorization. These a
 
 Definitions live at `<school>/classes/<classId>/<revision>/definition.json`; episodes live at `<school>/episodes/<operationId>/record.json`. An incomplete or corrupt record causes an explicit refusal. These are unsigned local files, not a distributed database or a cryptographic attestation of model identity.
 
-The continuing class roadmap is [issue #9](https://github.com/bdf1992/school/issues/9): automatic schedules, enrollment changes, peer communication and review, group work, attendance, richer assessments and continuing learner state. Cohort resource scheduling is [#6](https://github.com/bdf1992/school/issues/6); independent evaluation and exposure tracking is [#7](https://github.com/bdf1992/school/issues/7).
+The [participant registry](school-participants.md) now supplies continuing state, and [queued execution](school-runs.md) supports explicit due times with an owner-started worker. The continuing class roadmap in [issue #9](https://github.com/bdf1992/school/issues/9) includes recurring timetables, enrollment changes, peer communication and review, group work, attendance and richer assessments. Fleet/cohort scheduling remains in [#6](https://github.com/bdf1992/school/issues/6); broader qualification remains in [#7](https://github.com/bdf1992/school/issues/7).
 
 The [implementation evidence](evidence/school-classes-2026-11-09.json) records the two-learner CLI run, independent parity and grade checks, production HTTP checks, regression coverage and current qualification limits.

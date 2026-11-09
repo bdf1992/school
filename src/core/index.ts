@@ -89,3 +89,11 @@ export * from "./coverage.ts";
 // ONE session→markdown formatter — the extractor's view and the user-facing
 // export share it. Pure, browser-safe.
 export * from "./session-markdown.ts";
+// School's owner classroom contracts are browser-safe. Stores and provider
+// construction remain behind the server surface.
+export * from "./school-class.ts";
+export * from "./school-episode.ts";
+export * from "./school-gradebook.ts";
+export * from "./school-participants.ts";
+export * from "./school-experiment.ts";
+export * from "./school-run.ts";

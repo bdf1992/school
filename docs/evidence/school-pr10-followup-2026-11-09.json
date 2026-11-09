@@ -1,0 +1,754 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-09T16:49:46.673731+00:00",
+  "pullRequest": "https://github.com/bdf1992/school/pull/10",
+  "status": "VERIFIED_WITH_RECORDED_ENVIRONMENT_LIMITS",
+  "testedImplementationCommit": "0c39e8d874cb0204c49a817325d0df1fb5677ac5",
+  "preFixImplementationCommit": "863f9fd166fc17fc9778ef5ad373b832ba33fc61",
+  "runtime": {
+    "node": "v26.13.0",
+    "platform": "linux"
+  },
+  "purpose": "Independently verify the publication and experiment-deadline follow-up and the replacement regression tests. This record supplements the original workbench evidence without changing its historical meaning.",
+  "followupChanges": [
+    "1c374a6c81626e536b5a7b289bc6d5926fc89bc3",
+    "0c39e8d874cb0204c49a817325d0df1fb5677ac5"
+  ],
+  "checkedInTestSemantics": {
+    "run_and_worker_tests": "Replace fs.writeFileSync and throw before the real matching write call; no partial file bytes are written by the injected call.",
+    "participant_test": "Replace fs.openSync and throw before the real matching open call; no definition file is opened or written by the injected call.",
+    "process_termination_in_new_regression_tests": false,
+    "suggested_description": "write/open fault injection at the publication boundary",
+    "regression_strength": "All four current tests pass on current implementation and fail for the intended reason when only the three relevant implementation files are restored to the pre-fix commit."
+  },
+  "regressionComparison": {
+    "command": "NODE_ENV=test node --import tsx --test tests/school-runs.test.ts tests/school-participants.test.ts tests/school-experiment.test.ts",
+    "current": {
+      "exit_code": 0,
+      "tests": 32,
+      "suites": 0,
+      "pass": 32,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1497.48448
+    },
+    "preFixImplementationWithCurrentTests": {
+      "exit_code": 1,
+      "tests": 32,
+      "suites": 0,
+      "pass": 28,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3954.750226
+    },
+    "changedForComparisonOnly": [
+      "src/store/school-runs.ts",
+      "src/store/school-participants.ts",
+      "src/core/school-experiment.ts"
+    ],
+    "expectedFailures": [
+      {
+        "name": "generated experiments fit every planned call inside the episode limit",
+        "code": "ERR_ASSERTION",
+        "cause": "The memory experiment plans 21 calls with a 30000 ms per-call timeout, exceeding the 600000 ms episode limit.",
+        "assertion": "21 calls x 30000 ms exceeds 600000 ms"
+      },
+      {
+        "name": "a crash while registering leaves no visible entry, so the registry still lists and the same entry registers",
+        "code": "INCOMPLETE_OR_CORRUPT_REGISTRY",
+        "cause": "The old implementation makes the participant directory visible before opening its definition file; an injected open exception leaves an incomplete published identity that breaks list()."
+      },
+      {
+        "name": "a crash while enqueueing leaves no visible run, so the queue still lists and the same run can be enqueued",
+        "code": "RUN_CORRUPT",
+        "cause": "The old implementation makes the run directory visible before writing the initial run record; an injected write exception leaves an incomplete published run that breaks list()."
+      },
+      {
+        "name": "a crash while taking the worker lock leaves no ownerless lock",
+        "code": "WORKER_INCOMPLETE",
+        "cause": "The old implementation creates the live worker directory before writing owner.json; an injected write exception leaves an ownerless lock that recoverDeadWorker() refuses."
+      }
+    ],
+    "testSourcesUnchanged": true
+  },
+  "processInterruptionWitness": {
+    "status": "PASSED",
+    "command": "node --import tsx docs/evidence/school-storage-interruption-witness.mjs --output /tmp/school-storage-interruption.json",
+    "processKillWitnesses": 8,
+    "results": [
+      {
+        "variant": "current",
+        "operation": "enqueue",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "after_partial_write_before_publication",
+          "file": "staging/00695632-9904-49ba-81c0-50cab94e1e22/run.json",
+          "fullBytes": 2847,
+          "writtenBytes": 1423
+        },
+        "publishedPath": "runs/process-crash-witness",
+        "publishedDirectoryExists": false,
+        "filesAfterCrash": [
+          {
+            "path": "staging/00695632-9904-49ba-81c0-50cab94e1e22/run.json",
+            "bytes": 1423,
+            "sha256": "1182f434980d2e7cf4554c4cd5eff543e20c6f6611e5d3829ac70fd0e6661e93",
+            "validJson": false
+          }
+        ],
+        "directoriesAfterCrash": [
+          "runs",
+          "staging",
+          "staging/00695632-9904-49ba-81c0-50cab94e1e22"
+        ],
+        "observations": {
+          "list": {
+            "ok": true,
+            "result": []
+          },
+          "read": {
+            "ok": true,
+            "result": null
+          },
+          "retry": {
+            "ok": true,
+            "result": true
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "current",
+        "operation": "acquire_worker",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "after_partial_write_before_publication",
+          "file": "staging/6f3e269a-c3c5-491f-8fd2-66e527047922/owner.json",
+          "fullBytes": 79,
+          "writtenBytes": 39
+        },
+        "publishedPath": "worker",
+        "publishedDirectoryExists": false,
+        "filesAfterCrash": [
+          {
+            "path": "staging/6f3e269a-c3c5-491f-8fd2-66e527047922/owner.json",
+            "bytes": 39,
+            "sha256": "d5b31593a9f69a90dd0f988a4eea8c24fd54ffec16d2ee7ac828a1c576022eff",
+            "validJson": false
+          }
+        ],
+        "directoriesAfterCrash": [
+          "staging",
+          "staging/6f3e269a-c3c5-491f-8fd2-66e527047922"
+        ],
+        "observations": {
+          "recovery": {
+            "ok": true,
+            "result": false
+          },
+          "acquire": {
+            "ok": true,
+            "result": "acquired_and_released"
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "current",
+        "operation": "register",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "after_partial_write_before_publication",
+          "file": "staging/e9eafb12-366f-4e7c-a9a0-832039c51f22/definition.json",
+          "fullBytes": 165,
+          "writtenBytes": 82
+        },
+        "publishedPath": "participants/learner",
+        "publishedDirectoryExists": false,
+        "filesAfterCrash": [
+          {
+            "path": "staging/e9eafb12-366f-4e7c-a9a0-832039c51f22/definition.json",
+            "bytes": 82,
+            "sha256": "0ec0d250df519856c74440af9179a85ab96e1e4d227ceb752a5ec75339ec67f5",
+            "validJson": false
+          }
+        ],
+        "directoriesAfterCrash": [
+          "participants",
+          "staging",
+          "staging/e9eafb12-366f-4e7c-a9a0-832039c51f22"
+        ],
+        "observations": {
+          "list": {
+            "ok": true,
+            "result": {
+              "participants": [],
+              "states": [],
+              "connections": []
+            }
+          },
+          "read": {
+            "ok": true,
+            "result": null
+          },
+          "retry": {
+            "ok": true,
+            "result": true
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "current",
+        "operation": "release_worker",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "during_worker_recursive_removal_after_owner_unlink",
+          "target": "staging/released-9f686e5b-755f-47d2-ae76-79a96284c320"
+        },
+        "publishedPath": "worker",
+        "publishedDirectoryExists": false,
+        "filesAfterCrash": [],
+        "directoriesAfterCrash": [
+          "staging",
+          "staging/released-9f686e5b-755f-47d2-ae76-79a96284c320"
+        ],
+        "observations": {
+          "recovery": {
+            "ok": true,
+            "result": false
+          },
+          "acquire": {
+            "ok": true,
+            "result": "acquired_and_released"
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "pre_fix",
+        "operation": "enqueue",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "after_partial_write_before_publication",
+          "file": "runs/process-crash-witness/run.json-1b153403-ae50-4964-b5a4-d88cf15e680a.tmp",
+          "fullBytes": 2847,
+          "writtenBytes": 1423
+        },
+        "publishedPath": "runs/process-crash-witness",
+        "publishedDirectoryExists": true,
+        "filesAfterCrash": [
+          {
+            "path": "runs/process-crash-witness/run.json-1b153403-ae50-4964-b5a4-d88cf15e680a.tmp",
+            "bytes": 1423,
+            "sha256": "1182f434980d2e7cf4554c4cd5eff543e20c6f6611e5d3829ac70fd0e6661e93",
+            "validJson": false
+          }
+        ],
+        "directoriesAfterCrash": [
+          "runs",
+          "runs/process-crash-witness"
+        ],
+        "observations": {
+          "list": {
+            "ok": false,
+            "code": "RUN_CORRUPT",
+            "message": "Queued work is incomplete or corrupt; inspect it before continuing"
+          },
+          "read": {
+            "ok": false,
+            "code": "RUN_CORRUPT",
+            "message": "Queued work is incomplete or corrupt; inspect it before continuing"
+          },
+          "retry": {
+            "ok": false,
+            "code": "RUN_CORRUPT",
+            "message": "Queued work is incomplete or corrupt; inspect it before continuing"
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "pre_fix",
+        "operation": "acquire_worker",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "after_partial_write_before_publication",
+          "file": "worker/owner.json",
+          "fullBytes": 80,
+          "writtenBytes": 40
+        },
+        "publishedPath": "worker",
+        "publishedDirectoryExists": true,
+        "filesAfterCrash": [
+          {
+            "path": "worker/owner.json",
+            "bytes": 40,
+            "sha256": "3f76ee5c9118af2392ec82d555d760084ad222ad6455cc1b5d700856b53a1f73",
+            "validJson": false
+          }
+        ],
+        "directoriesAfterCrash": [
+          "worker"
+        ],
+        "observations": {
+          "recovery": {
+            "ok": false,
+            "code": "WORKER_INCOMPLETE",
+            "message": "Worker ownership is incomplete; inspect it manually"
+          },
+          "acquire": {
+            "ok": false,
+            "code": "WORKER_BUSY",
+            "message": "A worker owns this queue. Recover a verified dead worker explicitly before continuing."
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "pre_fix",
+        "operation": "register",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "after_partial_write_before_publication",
+          "file": "participants/learner/definition-6b98ced2-c6e6-4954-971c-9e507cf5f4ca.tmp",
+          "fullBytes": 165,
+          "writtenBytes": 82
+        },
+        "publishedPath": "participants/learner",
+        "publishedDirectoryExists": true,
+        "filesAfterCrash": [
+          {
+            "path": "participants/learner/definition-6b98ced2-c6e6-4954-971c-9e507cf5f4ca.tmp",
+            "bytes": 82,
+            "sha256": "0ec0d250df519856c74440af9179a85ab96e1e4d227ceb752a5ec75339ec67f5",
+            "validJson": false
+          }
+        ],
+        "directoriesAfterCrash": [
+          "participants",
+          "participants/learner"
+        ],
+        "observations": {
+          "list": {
+            "ok": false,
+            "code": "INCOMPLETE_OR_CORRUPT_REGISTRY",
+            "message": "Registry participants/learner is incomplete or corrupt; inspect it before registering a new revision"
+          },
+          "read": {
+            "ok": false,
+            "code": "INCOMPLETE_OR_CORRUPT_REGISTRY",
+            "message": "Registry participants/learner is incomplete or corrupt; inspect it before registering a new revision"
+          },
+          "retry": {
+            "ok": false,
+            "code": "INCOMPLETE_OR_CORRUPT_REGISTRY",
+            "message": "Registry participants/learner is incomplete or corrupt; inspect it before registering a new revision"
+          }
+        },
+        "expectedBehaviorObserved": true
+      },
+      {
+        "variant": "pre_fix",
+        "operation": "release_worker",
+        "childExit": {
+          "status": null,
+          "signal": "SIGKILL"
+        },
+        "trace": {
+          "cut": "during_worker_recursive_removal_after_owner_unlink",
+          "target": "worker"
+        },
+        "publishedPath": "worker",
+        "publishedDirectoryExists": true,
+        "filesAfterCrash": [],
+        "directoriesAfterCrash": [
+          "worker"
+        ],
+        "observations": {
+          "recovery": {
+            "ok": false,
+            "code": "WORKER_INCOMPLETE",
+            "message": "Worker ownership is incomplete; inspect it manually"
+          },
+          "acquire": {
+            "ok": false,
+            "code": "WORKER_BUSY",
+            "message": "A worker owns this queue. Recover a verified dead worker explicitly before continuing."
+          }
+        },
+        "expectedBehaviorObserved": true
+      }
+    ],
+    "limits": [
+      "Deterministic SIGKILL process interruptions after real partial writes or a real owner-file unlink; not power-loss or filesystem-recovery tests.",
+      "All store operations use fresh synthetic local roots. No model, credential, or external endpoint is used.",
+      "These eight witnesses are separate from the checked-in regression tests, which inject exceptions before selected write/open calls.",
+      "The pre-fix comparison changes only the three listed implementation files; every other tracked file retains its current working-tree bytes."
+    ],
+    "checkedAt": "2026-11-09T16:51:08.217Z",
+    "testedPlatform": {
+      "platform": "linux",
+      "release": "6.18.57",
+      "arch": "x64"
+    },
+    "scriptSha256": "45a3e5873f0abbacd592fa26263222e8ad0642f050a6f6b1d157d58e7c3125fe",
+    "tsxVersion": "4.23.12",
+    "sourceProvenance": [
+      {
+        "path": "src/core/school-experiment.ts",
+        "currentSha256": "989ca1f2d0482e6937c44d3fddc37b6f37d55bd8eb5ec6c3c6121d63e0af19ce",
+        "preFixSha256": "aa183cd0d85c6cdf5d9b816a4ad49fcfaaf2c86531e57dee2928d86309dae340"
+      },
+      {
+        "path": "src/store/school-participants.ts",
+        "currentSha256": "a206f06d2579ff0cf3c86f10c02f47eee599b2733a2e9fcbc4503c6e175af3bd",
+        "preFixSha256": "fbeb456104f21c866b5b7810793d8a3f4a73f52eadc17a4cf3951f3f863c0777"
+      },
+      {
+        "path": "src/store/school-runs.ts",
+        "currentSha256": "ce7ad99417bc47faffa37adf5b8b996fd8132418dd4c0a989c2c6b401d60b0db",
+        "preFixSha256": "58f26c50787ce93f3350251db07ea08227f259636f84dc4fe6ee43eff7e4b9ad"
+      }
+    ],
+    "temporaryFilesRemoved": true
+  },
+  "independentStorageReview": {
+    "status": "PASSED",
+    "head": "0c39e8d874cb0204c49a817325d0df1fb5677ac5",
+    "checks": [
+      "partial run.json bytes remain invisible and same operation can publish",
+      "partial owner.json bytes leave no visible ownerless worker",
+      "partial definition.json bytes remain invisible and identity can publish",
+      "release interruption after rename cannot retain or release a successor worker",
+      "four synchronized publishers preserve exactly one immutable winner in each of four scenarios"
+    ],
+    "scenarios": [
+      {
+        "mode": "run-identical",
+        "participants": 4,
+        "results": [
+          "CREATED",
+          "REPLAYED",
+          "REPLAYED",
+          "REPLAYED"
+        ]
+      },
+      {
+        "mode": "registry-identical",
+        "participants": 4,
+        "results": [
+          "CREATED",
+          "REPLAYED",
+          "REPLAYED",
+          "REPLAYED"
+        ]
+      },
+      {
+        "mode": "registry-conflict",
+        "participants": 4,
+        "results": [
+          "CREATED",
+          "IMMUTABLE_REGISTRY_CONFLICT",
+          "IMMUTABLE_REGISTRY_CONFLICT",
+          "IMMUTABLE_REGISTRY_CONFLICT"
+        ]
+      },
+      {
+        "mode": "worker",
+        "participants": 4,
+        "results": [
+          "ACQUIRED",
+          "WORKER_BUSY",
+          "WORKER_BUSY",
+          "WORKER_BUSY"
+        ]
+      }
+    ],
+    "existingLimitations": [
+      {
+        "case": "Process exits after recovery/ mkdir",
+        "observed": [
+          "RECOVERY_BUSY",
+          "WORKER_BUSY"
+        ],
+        "impact": "Manual inspection/removal of orphan recovery lock needed before dead worker can be recovered",
+        "introducedByLatestFix": false
+      }
+    ],
+    "powerLoss": "Not tested; metadata directory/fsync protocol is not present for queue publication"
+  },
+  "verification": {
+    "fullSuite": {
+      "command": "NODE_ENV=test node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+      "tests": 3734,
+      "suites": 576,
+      "pass": 3729,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 4,
+      "todo": 0,
+      "duration_ms": 80094.026486,
+      "exitCode": 1,
+      "onlyFailure": {
+        "name": "binds 127.0.0.1",
+        "file": "tests/claude-code-tool-bridge.test.ts",
+        "line": 85,
+        "error": "os.networkInterfaces() returns ERR_SYSTEM_ERROR / uv_interface_addresses error 1",
+        "baselineComparison": {
+          "commit": "0d9c9f66cc39f92ad0834435d6bc706745b2e7a3",
+          "unchangedFiles": {
+            "tests/claude-code-tool-bridge.test.ts": true,
+            "src/agent/claude-code/tool-bridge.ts": true
+          }
+        },
+        "independentHostProbe": {
+          "ok": false,
+          "code": "ERR_SYSTEM_ERROR",
+          "syscall": "uv_interface_addresses",
+          "info": {
+            "errno": 1,
+            "code": "Unknown system error 1",
+            "message": "Unknown system error 1",
+            "syscall": "uv_interface_addresses"
+          }
+        }
+      }
+    },
+    "lint": {
+      "command": "node node_modules/eslint/bin/eslint.js .",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 1,
+      "onlyWarning": "Unchanged tests/source-name-ui.test.tsx:26 @next/next/no-head-element"
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0
+    },
+    "productionBuild": {
+      "command": "node node_modules/next/dist/bin/next build",
+      "exitCode": 0,
+      "warnings": "Four dynamic-filesystem tracing warnings in unchanged upstream paths; no build errors."
+    },
+    "standaloneHttp": {
+      "status": "PASSED",
+      "entrypoint": ".next/standalone/server.js",
+      "assertions": 95,
+      "requests": 46,
+      "browserAssets": 13,
+      "coverage": [
+        "production child server becomes reachable in its own execution namespace",
+        "GET /school returns 200",
+        "production page contains the classroom heading and workbench copy",
+        "standalone classroom HTML references built browser assets",
+        "GET /_next/static/media/53897e768d329f66-s.p.3t6q91iet4nsy.woff2 returns 200",
+        "standalone browser asset has content: /_next/static/media/53897e768d329f66-s.p.3t6q91iet4nsy.woff2",
+        "GET /_next/static/media/6873f4f49904bdbd-s.p.2adce56gso3ku.woff2 returns 200",
+        "standalone browser asset has content: /_next/static/media/6873f4f49904bdbd-s.p.2adce56gso3ku.woff2",
+        "GET /_next/static/chunks/0a9b0n2fliep9.css returns 200",
+        "standalone browser asset has content: /_next/static/chunks/0a9b0n2fliep9.css",
+        "GET /_next/static/chunks/44le5hh-o4ip-.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/44le5hh-o4ip-.js",
+        "GET /_next/static/chunks/1veknn7le2f-j.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/1veknn7le2f-j.js",
+        "GET /_next/static/chunks/0f8uddcniwing.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/0f8uddcniwing.js",
+        "GET /_next/static/chunks/turbopack-2c3mg3r-05n1w.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "GET /_next/static/chunks/06kstc6g0s5u0.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/06kstc6g0s5u0.js",
+        "GET /_next/static/chunks/2-ba9kpys5ejy.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/2-ba9kpys5ejy.js",
+        "GET /_next/static/chunks/0je-dhckv311c.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/0je-dhckv311c.js",
+        "GET /_next/static/chunks/0wielerdtft3d.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/0wielerdtft3d.js",
+        "GET /_next/static/chunks/15c-fpxwni2fj.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/15c-fpxwni2fj.js",
+        "GET /_next/static/chunks/0cz1d0mv5g_q7.js returns 200",
+        "standalone browser asset has content: /_next/static/chunks/0cz1d0mv5g_q7.js",
+        "GET /api/school/classes returns 200",
+        "class listing includes the seeded immutable class revision",
+        "GET /api/school/classes?classId=learning-dynamics&revision=1 returns 200",
+        "class inspection retains the exact curriculum and roster",
+        "GET /api/school/classes?classId=learning-dynamics&revision=1&gradebook=true returns 200",
+        "gradebook includes all seeded teaching fixtures",
+        "all seeded episodes remain explicitly labelled scripted fixtures",
+        "gradebook excludes manifests, prompts and raw peer replies",
+        "workbench-helpful has the independently derived outcome",
+        "workbench-helpful reports evidence only for its generator and seed",
+        "workbench-harmful has the independently derived outcome",
+        "workbench-harmful reports evidence only for its generator and seed",
+        "workbench-memorizing has the independently derived outcome",
+        "workbench-memorizing reports evidence only for its generator and seed",
+        "helpful fixture succeeds on fresh lesson-assisted transfer targets",
+        "memorizing fixture fails the fresh transfer targets despite retry gains",
+        "GET /api/school/episodes?operationId=workbench-helpful returns 200",
+        "owner evidence retains the actual 17-call experiment",
+        "retained calls include answers and grades",
+        "GET /api/school/classes returns 403",
+        "GET /api/school/classes?classId=learning-dynamics&revision=1&gradebook=true returns 403",
+        "GET /api/school/episodes?operationId=workbench-helpful returns 403",
+        "GET /api/school/participants returns 403",
+        "GET /api/school/runs returns 403",
+        "GET /api/school/classes?classId=learning-dynamics&revision=1&participantId=local-learner returns 400",
+        "POST /api/school/classes returns 200",
+        "identical class import is an idempotent replay",
+        "POST /api/school/classes returns 409",
+        "POST /api/school/classes returns 403",
+        "POST /api/school/episodes returns 409",
+        "POST /api/school/participants returns 201",
+        "POST /api/school/participants returns 201",
+        "POST /api/school/participants returns 201",
+        "GET /api/school/participants returns 200",
+        "registry returns the saved state selector metadata",
+        "registry list omits saved memory text and source IDs",
+        "registry list includes a memory receipt",
+        "GET /api/school/participants?kind=state&id=local-learner&revision=http-r1 returns 200",
+        "explicit owner state inspection retains memory",
+        "POST /api/school/participants returns 200",
+        "identical state registration is idempotent",
+        "POST /api/school/participants returns 409",
+        "POST /api/school/participants returns 400",
+        "POST /api/school/runs returns 403",
+        "POST /api/school/runs returns 201",
+        "future work is queued without starting the episode",
+        "HTTP queue records configured-provider intent, not fixture evidence",
+        "run preview exposes the exact planned call count",
+        "work summary omits private manifests and memory",
+        "POST /api/school/runs returns 200",
+        "identical queued work reuses its original admission",
+        "POST /api/school/runs returns 409",
+        "GET /api/school/runs?operationId=http-future-placeholder returns 200",
+        "owner run inspection retains the exact saved-state binding",
+        "POST /api/school/runs returns 200",
+        "future work cancels before any provider admission",
+        "POST /api/school/runs returns 200",
+        "explicit empty drain makes no model calls",
+        "GET /api/school/runs returns 200",
+        "cancelled work remains inspectable after drain",
+        "POST /api/school/participants returns 200",
+        "GET /api/school/participants returns 200",
+        "registry reports the exact revoked connection revision",
+        "HTTP checks add no episode records or provider work",
+        "cancelled future operation has no episode record"
+      ],
+      "requestOutcomes": {
+        "200": 29,
+        "201": 4,
+        "400": 2,
+        "403": 7,
+        "409": 4
+      },
+      "fixtureMode": "SCRIPTED_FIXTURE",
+      "configuredProviderCalls": 0
+    },
+    "githubChecksObserved": {
+      "checkRuns": 0,
+      "workflowRuns": 0,
+      "statement": "No GitHub check run or workflow run was reported for the tested head at inspection. Local checks are not a GitHub CI result.",
+      "repositoryRulesetsReturned": 0
+    },
+    "evidenceScriptLint": {
+      "command": "node node_modules/eslint/bin/eslint.js docs/evidence/school-storage-interruption-witness.mjs",
+      "exitCode": 0
+    }
+  },
+  "provenance": {
+    "focusedSourceSha256": {
+      "src/store/school-runs.ts": "ce7ad99417bc47faffa37adf5b8b996fd8132418dd4c0a989c2c6b401d60b0db",
+      "src/store/school-participants.ts": "a206f06d2579ff0cf3c86f10c02f47eee599b2733a2e9fcbc4503c6e175af3bd",
+      "src/core/school-experiment.ts": "989ca1f2d0482e6937c44d3fddc37b6f37d55bd8eb5ec6c3c6121d63e0af19ce",
+      "tests/school-runs.test.ts": "989be159d418ab6693ae98b17a0503e4d5f78702b038e323a5769ed4a3d7b496",
+      "tests/school-participants.test.ts": "3ae3c9706b699a9e2c7e952f47c2bd85d2cb4763152e26756d9262a86c8827af",
+      "tests/school-experiment.test.ts": "371f9e0555bd060c4a3f29d3fc5b818a03648b9430712d8e565b3ae26829ce02"
+    },
+    "preFixSourceSha256": {
+      "src/store/school-runs.ts": "58f26c50787ce93f3350251db07ea08227f259636f84dc4fe6ee43eff7e4b9ad",
+      "src/store/school-participants.ts": "fbeb456104f21c866b5b7810793d8a3f4a73f52eadc17a4cf3951f3f863c0777",
+      "src/core/school-experiment.ts": "aa183cd0d85c6cdf5d9b816a4ad49fcfaaf2c86531e57dee2928d86309dae340"
+    },
+    "suiteStartedAt": "2026-11-09T16:41:01.817632+00:00",
+    "suiteCompletedAt": "2026-11-09T16:42:56.552541+00:00",
+    "sourceFilesObserved": 700,
+    "testFilesObserved": 268,
+    "sourceHashInventorySha256": "eb442f22da432a6284639ee7cf7c36ec1e653d046d4874dff6d1b38d6f3ca441",
+    "testHashInventorySha256": "b39bd6c5fc94c7006a733c5bed2431f54d440e1d7ada7a6502ed2084d61b106d",
+    "functionalSourceAndTestsUnchangedDuringVerification": true,
+    "generatedFileNote": "Production build changed only next-env.d.ts generated type-import paths; this was restored to the tested commit after the build.",
+    "logDigests": {
+      "school-pr10-followup-build.log": {
+        "bytes": 9632,
+        "sha256": "174de617b0a2c6165a4e7d5e31e1a7350a7ac8cdf43aa38ff4ee1c90a3c8ef17"
+      },
+      "school-pr10-followup-host-probe.log": {
+        "bytes": 195,
+        "sha256": "0ee489abf126824e1f6780db76aaff3df676f1124052ffe95147862ca544a5f1"
+      },
+      "school-pr10-followup-http.log": {
+        "bytes": 147,
+        "sha256": "13d0bc66f07e01367d2dc0f7398411eedc8d84978797e2c4185c2cbc3ef97e18"
+      },
+      "school-pr10-followup-lint.log": {
+        "bytes": 283,
+        "sha256": "15e375b2c1c67dceff08c7bc6e187ea5b154d570ada5dc9ad242d5bae463aca2"
+      },
+      "school-pr10-followup-regression-current.log": {
+        "bytes": 3545,
+        "sha256": "807d6e0456b9e251a8b6620eae6390f9afb5b7dd14d23888752861d21bdcc8de"
+      },
+      "school-pr10-followup-regression-mutant.log": {
+        "bytes": 7645,
+        "sha256": "5987c1bfd8a4c6cb3f7d43412489d7bb1630c0fa7d74e5ffb90feb620ab5ff0d"
+      },
+      "school-pr10-followup-tests.log": {
+        "bytes": 547128,
+        "sha256": "a8a18325d4105fe7e20ef443429f3d8953c64a103e3d6ff44b08243508ade3ee"
+      },
+      "school-pr10-followup-types.log": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "school-pr10-followup-portable-crash.log": {
+        "bytes": 12164,
+        "sha256": "f1a8afb1cd31475ae1d0916109f71ee2a05be92475bac4808438a35c1cf17ede"
+      }
+    }
+  },
+  "limits": [
+    "The complete suite was run unchanged. The single failing Claude bridge test was retained and independently traced to host denial of os.networkInterfaces(); the relevant source and test match main at 0d9c9f66cc39f92ad0834435d6bc706745b2e7a3.",
+    "The checked-in persistence tests inject failures before matching writes/opens; separate SIGKILL witnesses actually write truncated records or interrupt worker-release cleanup.",
+    "Process interruption and cooperating current-version Linux publishers are demonstrated. Operating-system crash, power-loss durability, Windows filesystem semantics and interference from external/older empty-directory writers are not qualified.",
+    "A process interrupted while holding the pre-existing recovery-directory guard can leave RECOVERY_BUSY; ownership inspection and manual repair remain necessary. Staging cleanup also remains manual.",
+    "The generated memory experiment uses 21 calls at 28571 ms inside a 600000 ms episode limit. Nominal call limits total 599991 ms; per-call setup and storage still consume the episode wall-clock budget.",
+    "No visual browser verification is claimed: Chromium was blocked by executor socket policy during the original workbench verification. This follow-up verifies production HTML/assets/API behavior over HTTP.",
+    "No actual local or hosted model qualification, training, AUM adoption, native release or provider-wide capacity measurement was performed.",
+    "The prior Python arithmetic witness remains historical evidence at 863f9fd; it was not rerun as part of this follow-up, and the generator arithmetic implementation is unchanged."
+  ]
+}

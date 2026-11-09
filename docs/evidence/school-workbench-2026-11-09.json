@@ -1,0 +1,589 @@
+{
+  "version": 1,
+  "checked_at": "2026-11-09T15:42:25.025700+00:00",
+  "status": "VERIFIED_WITH_RECORDED_ENVIRONMENT_LIMITATIONS",
+  "repository": "https://github.com/bdf1992/school",
+  "base_commit": "0d9c9f66cc39f92ad0834435d6bc706745b2e7a3",
+  "branch": "codex/school-workbench-20261109",
+  "runtime": "v26.13.0",
+  "implemented": [
+    "Immutable continuing participant and state registry with explicit saved memory",
+    "Named endpoint revisions, dedicated credentials, runtime receipts and live binding checks",
+    "Generated factorized scalar experiment and independent key verification",
+    "Baseline, assisted, cold, optional saved-memory, lesson-assisted transfer and exact exposure/condition evidence",
+    "Owner classroom, registry imports, gradebook and raw evidence inspection",
+    "Durable sequential queue, due times, bounded explicit worker, cancellation, dead-owner recovery and uncertainty review"
+  ],
+  "verification": {
+    "full_tests": {
+      "total": 3729,
+      "suites": 576,
+      "pass": 3724,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 4,
+      "todo": 0,
+      "durationMs": 80081.627842,
+      "exitCode": 1,
+      "onlyFailure": "Unchanged claude-code-tool-bridge binds 127.0.0.1 test: os.networkInterfaces() fails with uv_interface_addresses system error 1, independently reproduced."
+    },
+    "full_lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 1,
+      "onlyWarning": "Unchanged tests/source-name-ui.test.tsx:26 @next/next/no-head-element"
+    },
+    "typecheck": {
+      "status": "PASSED",
+      "command": "npm run typecheck"
+    },
+    "production_build": {
+      "status": "PASSED",
+      "command": "npm run build",
+      "entrypoints": [
+        "/school",
+        "/api/school/classes",
+        "/api/school/episodes",
+        "/api/school/participants",
+        "/api/school/runs"
+      ]
+    },
+    "production_http": {
+      "status": "PASSED",
+      "assertions": 95,
+      "requests": 46,
+      "configured_provider_calls": 0,
+      "entrypoint": ".next/standalone/server.js",
+      "evidence": "school-workbench-http-2026-11-09.json"
+    },
+    "independent_oracle": {
+      "status": "PASSED",
+      "matching_keys": 1419,
+      "wrong_keys_rejected": 1419,
+      "seeds": 128,
+      "includes_checked_in_seed19_again": true,
+      "evidence": "school-workbench-oracle-2026-11-09.json"
+    },
+    "new_focused_tests": {
+      "participants_and_bound_episodes": 13,
+      "experiments": 23,
+      "classroom_components": 9,
+      "queue_and_recovery": 11
+    },
+    "visual_browser": {
+      "status": "BLOCKED",
+      "reason": "Executor denied Chromium Unix-socket creation; no browser screenshot or visual success claimed."
+    },
+    "snapshot": {
+      "tests": 268,
+      "changed_functional_sources": 41,
+      "unchanged_during_final_tests": true,
+      "generation_only_diff": "Build regenerated next-env.d.ts type paths; original source restored after build."
+    }
+  },
+  "commands": [
+    "NODE_ENV=test node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+    "npm run typecheck",
+    "npm run lint",
+    "npm run build",
+    "node --import tsx docs/evidence/school-oracle-input.mjs /tmp/school-workbench-independent-cases.json",
+    "python3 docs/evidence/school-oracle-check.py /tmp/school-workbench-independent-cases.json /tmp/school-workbench-independent-summary.json"
+  ],
+  "controls": [
+    {
+      "control": "helpful",
+      "operationId": "workbench-helpful",
+      "status": "COMPLETED",
+      "evidence": "SCRIPTED_FIXTURE",
+      "calls": 17,
+      "comparison": {
+        "baseline": {
+          "target": 0,
+          "retention": 1
+        },
+        "retry": {
+          "target": 3,
+          "retention": 1
+        },
+        "total": {
+          "target": 3,
+          "retention": 1
+        },
+        "regressedCases": [],
+        "outcome": "CONTEXTUAL_GAIN",
+        "weightLearning": "NOT_PERFORMED",
+        "adoption": "NOT_REQUESTED",
+        "generalization": "NOT_ESTABLISHED"
+      },
+      "experiment": {
+        "version": 1,
+        "family": "factorized-scalar-step-v1",
+        "seed": 19,
+        "conditions": [
+          {
+            "condition": "baseline",
+            "assistance": "none",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "assisted",
+            "assistance": "lesson",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 3
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "cold",
+            "assistance": "none",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "transfer",
+            "assistance": "lesson",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 3
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          }
+        ],
+        "disclosure": "after-completion",
+        "transferCondition": "LESSON_ASSISTED_FRESH_PARAMETERS",
+        "weightLearning": "NOT_PERFORMED",
+        "persistence": "NOT_ESTABLISHED",
+        "generalization": "NOT_ESTABLISHED",
+        "evidenceScope": "THIS_GENERATOR_AND_SEED"
+      }
+    },
+    {
+      "control": "harmful",
+      "operationId": "workbench-harmful-v2",
+      "status": "COMPLETED",
+      "evidence": "SCRIPTED_FIXTURE",
+      "calls": 17,
+      "comparison": {
+        "baseline": {
+          "target": 0,
+          "retention": 1
+        },
+        "retry": {
+          "target": 3,
+          "retention": 0
+        },
+        "total": {
+          "target": 3,
+          "retention": 1
+        },
+        "regressedCases": [
+          "factor-19-diagnostic-4"
+        ],
+        "outcome": "REGRESSION",
+        "weightLearning": "NOT_PERFORMED",
+        "adoption": "NOT_REQUESTED",
+        "generalization": "NOT_ESTABLISHED"
+      },
+      "experiment": {
+        "version": 1,
+        "family": "factorized-scalar-step-v1",
+        "seed": 19,
+        "conditions": [
+          {
+            "condition": "baseline",
+            "assistance": "none",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "assisted",
+            "assistance": "lesson",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 3
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 0
+            },
+            "regressions": [
+              "factor-19-diagnostic-4"
+            ]
+          },
+          {
+            "condition": "cold",
+            "assistance": "none",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "transfer",
+            "assistance": "lesson",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 3
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 0
+            },
+            "regressions": []
+          }
+        ],
+        "disclosure": "after-completion",
+        "transferCondition": "LESSON_ASSISTED_FRESH_PARAMETERS",
+        "weightLearning": "NOT_PERFORMED",
+        "persistence": "NOT_ESTABLISHED",
+        "generalization": "NOT_ESTABLISHED",
+        "evidenceScope": "THIS_GENERATOR_AND_SEED"
+      }
+    },
+    {
+      "control": "memorizing",
+      "operationId": "workbench-memorizing",
+      "status": "COMPLETED",
+      "evidence": "SCRIPTED_FIXTURE",
+      "calls": 17,
+      "comparison": {
+        "baseline": {
+          "target": 0,
+          "retention": 1
+        },
+        "retry": {
+          "target": 3,
+          "retention": 1
+        },
+        "total": {
+          "target": 3,
+          "retention": 1
+        },
+        "regressedCases": [],
+        "outcome": "CONTEXTUAL_GAIN",
+        "weightLearning": "NOT_PERFORMED",
+        "adoption": "NOT_REQUESTED",
+        "generalization": "NOT_ESTABLISHED"
+      },
+      "experiment": {
+        "version": 1,
+        "family": "factorized-scalar-step-v1",
+        "seed": 19,
+        "conditions": [
+          {
+            "condition": "baseline",
+            "assistance": "none",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "assisted",
+            "assistance": "lesson",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 3
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "cold",
+            "assistance": "none",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          },
+          {
+            "condition": "transfer",
+            "assistance": "lesson",
+            "coverage": "SUFFICIENT",
+            "target": {
+              "expected": 3,
+              "graded": 3,
+              "correct": 0
+            },
+            "retention": {
+              "expected": 1,
+              "graded": 1,
+              "correct": 1
+            },
+            "regressions": []
+          }
+        ],
+        "disclosure": "after-completion",
+        "transferCondition": "LESSON_ASSISTED_FRESH_PARAMETERS",
+        "weightLearning": "NOT_PERFORMED",
+        "persistence": "NOT_ESTABLISHED",
+        "generalization": "NOT_ESTABLISHED",
+        "evidenceScope": "THIS_GENERATOR_AND_SEED"
+      }
+    }
+  ],
+  "source_snapshot": [
+    {
+      "path": "app/api/school/participants/route.ts",
+      "sha256": "4145964610f9a4887875f039e04e4b07d378426e5729c43ccb285ef9dc69cc96"
+    },
+    {
+      "path": "app/api/school/runs/route.ts",
+      "sha256": "5e5d2b1b432273108c36929a75dcabca44cdbce5e6d6dcb4bedbbf6dcdc6c972"
+    },
+    {
+      "path": "app/school/page.tsx",
+      "sha256": "49a967106edfda588c18bf83f93e71ee9fc4fcf41dc893c54c1dc5c7120ca1b3"
+    },
+    {
+      "path": "components/school/classroom-data.ts",
+      "sha256": "c4edd07f1f793b3106e71fda472a00182c0c76b7a9a7dd2c4c09fcb1b28185ef"
+    },
+    {
+      "path": "components/school/classroom.tsx",
+      "sha256": "18237c18ccbfcf5dfe74216e1aadbcba502cb05f1cdb6044f5e5ea2ecf2929d4"
+    },
+    {
+      "path": "components/school/episode-form.tsx",
+      "sha256": "6d9b7107a668524a80a7c40368a2d5a1f40851e7015565a1d931e26806f653a0"
+    },
+    {
+      "path": "components/school/evidence.tsx",
+      "sha256": "6adcae2caf296fd4742da8fe6c094910aceee02301efd8558abc65332a76336a"
+    },
+    {
+      "path": "components/school/gradebook.tsx",
+      "sha256": "9e633e58cbaceb8c1202abb60f7ce1d75c46611b615b56a3323a0b37664a9d91"
+    },
+    {
+      "path": "components/school/import-form.tsx",
+      "sha256": "3fd79eb197501c26185053f52757d266b22acd4cb8e768589bfc341ee74143a9"
+    },
+    {
+      "path": "components/school/work-queue.tsx",
+      "sha256": "2f04a73d45c9064688ed0ac9b3a137a9db71c76972d79ab5eaf9a2fc2989fc24"
+    },
+    {
+      "path": "components/sidebar.tsx",
+      "sha256": "d72d3e6a76f7d114d85993cbbc0e72843065b3a8d3960d6cf5bd57d8cb7ebc6c"
+    },
+    {
+      "path": "examples/school/factorized-class.json",
+      "sha256": "73d49d65aa7f0ef2d5640bb941c550d3ff9ad9ad36e9cacef6cc1e0dfcfabcec"
+    },
+    {
+      "path": "examples/school/factorized-step.json",
+      "sha256": "dacc1c9fedba1ed952340328b744687f22e03ed158cd8f8bbe5d563b03771c17"
+    },
+    {
+      "path": "examples/school/scripted-factorized.ts",
+      "sha256": "dda15c05fb314dd718989047c83f92de31b149aae5727b9945a384f6194183fb"
+    },
+    {
+      "path": "examples/school/scripted-parity.ts",
+      "sha256": "1392d4faa1c4630bd306bac3e1ddb53a809fa472c25a8db3219c1dadc88477a0"
+    },
+    {
+      "path": "package.json",
+      "sha256": "d98c7e046a9a1723a22c01b25b0eb638300d9f2cdb85c5f119001989bdc5b964"
+    },
+    {
+      "path": "scripts/school-episode.ts",
+      "sha256": "b4b579d8e2cc17282046ea5acd9fc35186438fb434d444978e5e1b450b28e88a"
+    },
+    {
+      "path": "scripts/school-experiment.ts",
+      "sha256": "e70cc8bd91be50724c9b47c16c94d230a0bffdfd834296259ea386e293d13d5f"
+    },
+    {
+      "path": "scripts/school-participant.ts",
+      "sha256": "4d626a267e68ddf9de5ac5c8c97b484dde4f0ac0e956f19a47f313166935d719"
+    },
+    {
+      "path": "scripts/school-worker.ts",
+      "sha256": "57c19519ab9d7dc5c1e10dc6f9c2d29146967739ea98c5e5a6be2e64d2e28217"
+    },
+    {
+      "path": "src/agent/school-connections.ts",
+      "sha256": "d2db87f2f347a89486dfa23190eec95f70888f53e62dfe264c48e988cafc9a43"
+    },
+    {
+      "path": "src/core/index.ts",
+      "sha256": "6257f5359e38591b9563465a646cfacd5dfecc2ffa35a7d420459d431de9024c"
+    },
+    {
+      "path": "src/core/school-episode.ts",
+      "sha256": "0761321d2b71606c6354f11b620bea0ae98b5a4080205036f9c1f1c1f8809b5b"
+    },
+    {
+      "path": "src/core/school-experiment.ts",
+      "sha256": "aa183cd0d85c6cdf5d9b816a4ad49fcfaaf2c86531e57dee2928d86309dae340"
+    },
+    {
+      "path": "src/core/school-gradebook.ts",
+      "sha256": "175365360e1dea0660529d7ac899eb0c8b5e044c54718fd9cfd018b683f9b57e"
+    },
+    {
+      "path": "src/core/school-participants.ts",
+      "sha256": "a88e67714e4c24ea810b1db36673c30600a0b5d709c4afdee66596e013161b4a"
+    },
+    {
+      "path": "src/core/school-run.ts",
+      "sha256": "0ff43cd775c2304b1993ab606fd3c474ff3fc15e3c5383c5568e00f58cbadfca"
+    },
+    {
+      "path": "src/server/index.ts",
+      "sha256": "f6e918fecbe5f1357b7adff4ae0c8c972ed6ee176397f7e4c1251f140e285fbf"
+    },
+    {
+      "path": "src/server/school-episodes.ts",
+      "sha256": "ad4547c5aebd56364638f462588bda6e13d55634c5c3cb99ab731dd161bc6dd0"
+    },
+    {
+      "path": "src/server/school-participants.ts",
+      "sha256": "3d01bc6e5020576184412fbcbeb2a701166efed78401789f7062ba76a5794fc6"
+    },
+    {
+      "path": "src/server/school-runs.ts",
+      "sha256": "74f4e527227a335b4a28f8c34d1fc181f0386732d321c79bd7059a8d720eb6d0"
+    },
+    {
+      "path": "src/server/school-state.ts",
+      "sha256": "33f670e0402d763a39de60b01ee17a7617d2f55031b709aca69d29df049c4dfa"
+    },
+    {
+      "path": "src/store/school-episodes.ts",
+      "sha256": "1d2a8a56257429afe948b91a1d019f35f4577cb923b2113e9eb0ff8d9157404d"
+    },
+    {
+      "path": "src/store/school-participants.ts",
+      "sha256": "fbeb456104f21c866b5b7810793d8a3f4a73f52eadc17a4cf3951f3f863c0777"
+    },
+    {
+      "path": "src/store/school-runs.ts",
+      "sha256": "58f26c50787ce93f3350251db07ea08227f259636f84dc4fe6ee43eff7e4b9ad"
+    },
+    {
+      "path": "tests/school-bound-episode.test.ts",
+      "sha256": "db69fc1f35f19ecd26ca405e7127f866a2c1443167c87657ee2830e49c17715c"
+    },
+    {
+      "path": "tests/school-classroom-ui.test.tsx",
+      "sha256": "ffd1fdb6cdf88a6b0e6ae785de865ec494e997db66132ecf8cdaa4247b7bec23"
+    },
+    {
+      "path": "tests/school-experiment-runner.test.ts",
+      "sha256": "a79d7169cf051be01a09ae4f3bf19547681454dfd1312b0fca3a3c13e209b76c"
+    },
+    {
+      "path": "tests/school-experiment.test.ts",
+      "sha256": "8358a27652e63fe3d5ffbbbdd5e82a9610e7476e010c21add0a7e5d443f5e7d1"
+    },
+    {
+      "path": "tests/school-participants.test.ts",
+      "sha256": "d4bd4508db1dd6a52f375543b63a00c33ce9ed4c09667b54329d6a05e13b3c50"
+    },
+    {
+      "path": "tests/school-runs.test.ts",
+      "sha256": "824588804757377ba72c937f31bdfdf3cb792d78b85dad1ad989845ba10a2e96"
+    }
+  ],
+  "remaining": [
+    "Actual local/hosted model qualification and loaded artifact evidence",
+    "AUM edition/training/adoption receipts and continuation after accepted/rejected update",
+    "General world actions and generated grammar/program/state-machine artifacts",
+    "Cohort trial matrices, fleet/shared-provider rate admission and safe partial-raw grading recovery",
+    "Multi-operator grants, peer interaction, enrollment changes, attendance and recurrence",
+    "Automatic evidence-to-memory updates, statistical/general capability claims, native release qualification"
+  ],
+  "limits": [
+    "Scripted controls and loopback fake endpoints establish machinery behavior, not observed LLM learning.",
+    "No external configured model calls, training, adoption or native release performed.",
+    "Cold is an immediate fresh context; transfer is lesson assisted within the declared generator/seed.",
+    "State/artifact hashes are owner declarations; loaded model weights remain NOT_ATTESTED.",
+    "Queue ownership scopes this queue only; direct episode CLI and inherited human chat remain separate.",
+    "Uncertain work is never automatically retried or regraded; an owner review can permit later work while leaving the original unresolved."
+  ]
+}
