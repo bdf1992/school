@@ -22,6 +22,8 @@
 		"school:episode": "node --import tsx scripts/school-episode.ts",
 		"school:class": "node --import tsx scripts/school-class.ts",
 		"school:participant": "node --import tsx scripts/school-participant.ts",
+		"school:preflight": "node --import tsx scripts/school-preflight.ts",
+		"school:parity": "node --import tsx scripts/school-parity.ts",
 		"school:experiment": "node --import tsx scripts/school-experiment.ts",
 		"school:worker": "node --import tsx scripts/school-worker.ts",
 		"desktop:dev": "concurrently -k \"next dev\" \"LH_DEV_URL=http://localhost:3000 electron .\"",

@@ -40,6 +40,25 @@ npm run school:experiment -- run examples/school/factorized-step.json --fixture 
 
 Each default experiment retains 17 scripted calls. The controls demonstrate contextual gain, harmful regression, and a memorizer failing on fresh parameters. They qualify the experiment machinery; actual local/hosted model qualification remains a separate run. See [Experiments](docs/school-experiments.md) for generating new seeds and the additional saved-memory condition.
 
+## Check a local route and a constructed artifact
+
+After registering a [participant, named connection and state](docs/school-participants.md), check that the exact endpoint advertises the selected model before starting inference:
+
+```sh
+npm run school:preflight -- --participant local-learner --state base --school /absolute/school-root --output /absolute/new-preflight.json
+```
+
+The [preflight](docs/school-preflight.md) makes a bounded model-list request and saves a receipt. It performs no generation and does not verify loaded weights, reasoning settings, answer quality or inference latency. Use a new output path for every observation. A successful preflight is followed by one explicitly started [queued episode](docs/school-runs.md), with the learner and teacher each bound to their intended state.
+
+The [parity artifact checker](docs/school-parity.md) accepts a finite-state machine as JSON, validates its structure, and tests its behavior on all 256 bytes and a declared set of additional bit strings:
+
+```sh
+npm run school:parity -- check examples/school/parity-machine.json --output /absolute/new-parity-pass.json
+npm run school:parity -- check examples/school/parity-machine-mutated.json --output /absolute/new-parity-fail.json
+```
+
+The second command deliberately exits unsuccessfully and retains the failing inputs. Both examples are authored controls. A model's saved artifact can be checked through the same command; a passing byte score does not prove correctness for every possible string. This is a standalone artifact evaluation, separate from class grades and world-action admission.
+
 ## Run a class with two learners
 
 Use Node 26, matching CI, and the checked-in lockfile:
@@ -85,6 +104,7 @@ Model-driven work sends the permitted context to the selected provider. Chats, g
 - Continuing participant/state records, explicit saved memory, named endpoint revisions, dedicated credentials and dispatch-time drift checks. Declared artifact hashes remain owner declarations; loaded model weights are not attested.
 - A durable queue with bounded sequential work, explicit due times, cancellation, dead-worker recovery and evidence reconciliation. An explicitly started CLI worker can watch for due work; opening the UI does not start one.
 - Generated factorized tasks with independently checked keys, sealed transfer inputs, exposure receipts and separate baseline, assisted, cold, saved-memory and transfer reports.
+- A bounded named-connection preflight and an independent finite-state parity artifact checker with retained behavioral counterexamples.
 - Separate School desktop identity and default update feed. Existing `LH_*` environment variables and data formats remain compatible.
 - Actual local/hosted model qualification, broader task artifacts, peer interaction, fleet resource limits, automatic learning-memory updates, the AUM training bridge and native release qualification remain in [the remodeling issue](https://github.com/bdf1992/school/issues/1).
 
