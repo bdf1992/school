@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-09T21:08:29.238426+00:00",
+  "purpose": "Bounded local-route preflight and independently checked parity artifacts for School issues 6 and 8.",
+  "source": {
+    "base": "d5ff80408c3185dedf157c31af4533d547e5b80a",
+    "filesSha256": {
+      "src/core/school-parity.ts": "ed5d4c4101dce9ef97f62c6634ae7f3cd0232fac7b02fad2b0d8fa4a94dfb223",
+      "src/agent/school-preflight.ts": "f22d05a07115ad5ab08cbefae58d715dc4542b6800a19a639142379c4e5a91ec",
+      "scripts/school-parity.ts": "bd0554abbcd34853ab99eb9638483468174eb9a7051da0c4480644213b35bd65",
+      "scripts/school-preflight.ts": "629cc22ca2a49cc858ed02bf82dc30cc39b48cb9acd4abe0ba91ba839dad419e",
+      "tests/school-parity.test.ts": "4785ba97955771472480daad8365472fe8c591fecb2626ba6e20b2e813e85de0",
+      "tests/school-preflight.test.ts": "e0c40b6bc8248cf5d5184f50a0dc0716a4e603f8f5cf4e140282f6f56e5b8038",
+      "examples/school/parity-machine.json": "dee3bbab1137ce6c4fbe196a2deaaa69e2aa51ee3d41b4d6adaa329a0e603ab5",
+      "examples/school/parity-machine-mutated.json": "f51c7ab8c8d24d56d7b2e15c6e72cd6009f04963af04130a28755aae9f7e8dcf",
+      "docs/evidence/school-parity-check.py": "cb6e3b647cfebd4c6b8b2135831041b919bad019040039f82eef31bb4d520014",
+      "package.json": "b46bf610b42005787c0c7e10e5b9082db43436526314fcbd5f2599201988f773"
+    }
+  },
+  "environment": {
+    "platform": "Linux",
+    "node": "v26.13.0",
+    "nodeArchiveSource": "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz",
+    "nodeArchiveSha256": "d28a96af6c38596f6d9d97c0ee531c13d238d757742387d1928de822d959e997",
+    "dependencyLockSha256": "91a8f651f0be96530d98ff85bc8ee447b1e20d6c4db002f8826607e52b662daa"
+  },
+  "verification": {
+    "focusedTests": {
+      "command": "node --import tsx --test tests/school-parity.test.ts tests/school-preflight.test.ts",
+      "reportedBy": "Independent review agent; command output retained in tool transcript, no separate filesystem log.",
+      "exitCode": 0,
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 5737.674248
+    },
+    "typecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+      "exitCode": 0
+    },
+    "lint": {
+      "command": "node node_modules/eslint/bin/eslint.js --no-ignore src/core/school-parity.ts scripts/school-parity.ts tests/school-parity.test.ts src/agent/school-preflight.ts scripts/school-preflight.ts tests/school-preflight.test.ts",
+      "exitCode": 0
+    },
+    "independentParity": {
+      "status": "PASSED",
+      "assertions": 1667,
+      "failures": [],
+      "reports": [
+        {
+          "control": "correct",
+          "artifactSha256": "dee3bbab1137ce6c4fbe196a2deaaa69e2aa51ee3d41b4d6adaa329a0e603ab5",
+          "bytes": {
+            "checked": 256,
+            "passed": 256,
+            "failed": 0
+          },
+          "additional": {
+            "checked": 16,
+            "passed": 16,
+            "failed": 0
+          },
+          "counterexample": null
+        },
+        {
+          "control": "mutated",
+          "artifactSha256": "f51c7ab8c8d24d56d7b2e15c6e72cd6009f04963af04130a28755aae9f7e8dcf",
+          "bytes": {
+            "checked": 256,
+            "passed": 128,
+            "failed": 128
+          },
+          "additional": {
+            "checked": 16,
+            "passed": 9,
+            "failed": 7
+          },
+          "counterexample": {
+            "group": "byte",
+            "input": "00000001",
+            "expected": "ODD",
+            "actual": "EVEN",
+            "terminalState": "even",
+            "correct": false
+          }
+        }
+      ],
+      "method": "Independent Python transition interpreter and integer bit_count oracle over the complete declared domain; no School imports.",
+      "modelInference": "NOT_PERFORMED",
+      "allStringEquivalence": "NOT_ESTABLISHED"
+    },
+    "parityCliExitCodes": {
+      "correct": 0,
+      "mutated": 1
+    },
+    "rawReportsSha256": {
+      "correct.json": "317549f9781f5dd7af3cabb0134dd03a5df3305291b3f1b28d83afa5bacbc749",
+      "mutated.json": "41698b8b6f2984ce2b564a8d6a59826d02842b20af88d7e6be646a3a6a99308b",
+      "parity-independent.json": "1b82c67ca1a457da41d3b692ae13b7f3c2f0bf607c8b8d8c1d15cc712e4e61f8",
+      "unavailable-local-route.json": "fa8157421dd85942fbe877848ab1553959f483ebec03368907244885aa8cb545"
+    },
+    "unavailableLocalRoute": {
+      "exitCode": 1,
+      "outcome": "FAILED",
+      "observation": "ABSENT",
+      "error": "REQUEST_FAILED",
+      "request": {
+        "method": "GET",
+        "attempted": true,
+        "responseStatus": null,
+        "bodyBytes": 0,
+        "timeoutMs": 1000,
+        "maxBodyBytes": 1048576,
+        "url": "http://127.0.0.1:10000/v1/models"
+      },
+      "registryFilesUnchanged": true,
+      "inference": "NOT_PERFORMED",
+      "scope": "Current Linux executor only; explicitly declared placeholder model, not a registered Windows Qwen model."
+    },
+    "independentReview": {
+      "remainingBlockingFindings": 0,
+      "resolved": [
+        "FIFO input is opened nonblocking before regular-file admission.",
+        "Preflight output containment resolves symlinked parents.",
+        "Malformed UTF-8, in-flight binding and credential changes are refused.",
+        "Request attempt is distinguished from observed response.",
+        "Independent witness verifies normalized identity and receipt metadata."
+      ]
+    }
+  },
+  "limits": [
+    "The preflight checks only a model advertisement, not generation, latency, context capacity, reasoning settings or loaded weights.",
+    "All positive endpoint tests used explicitly owned loopback fixtures; no live Qwen or hosted model inference occurred.",
+    "The unavailable-route run used a declared placeholder model on this Linux executor, not the Windows Qwen registry.",
+    "Parity examples are authored controls; model generation and learner improvement are not established.",
+    "The artifact check covers all 256 bytes and 16 declared supplemental strings, not all-string DFA equivalence.",
+    "Actor views, observation actions, world mutation, learner/class attribution, teacher follow-up and AUM continuation remain open under issue 8.",
+    "Windows repository registration, filesystem behavior and live Qwen qualification remain unexecuted.",
+    "The full application suite, production build and native release checks were not rerun for these standalone CLI additions."
+  ]
+}

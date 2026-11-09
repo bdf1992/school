@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "kind": "parity-machine",
+  "alphabet": ["0", "1"],
+  "initial": "even",
+  "states": [
+    { "id": "even", "output": "EVEN", "transitions": { "0": "even", "1": "even" } },
+    { "id": "odd", "output": "ODD", "transitions": { "0": "odd", "1": "even" } }
+  ]
+}

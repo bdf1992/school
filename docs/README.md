@@ -10,9 +10,12 @@
 - [Model episodes](school-episodes.md) — run the bounded learner/teacher loop, inspect records, and use the API.
 - [Classroom console](school-classroom.md) — import classes and states, queue work, compare conditions and inspect evidence.
 - [Participants and connections](school-participants.md) — continuing identities, immutable state, explicit memory and independent local endpoints.
+- [Local connection preflight](school-preflight.md) — check the exact registered model advertisement before inference, with a retained receipt.
+- [Parity-machine artifacts](school-parity.md) — validate a finite-state machine and independently evaluate every byte, retaining counterexamples.
 - [Controlled experiments](school-experiments.md) — generated factorized tasks, independent key checking and separate assistance conditions.
 - [Queued execution](school-runs.md) — due times, bounded workers, cancellation, recovery and unresolved completion.
 - [Workbench verification](evidence/school-workbench-2026-11-09.json) — test totals, controlled outcomes, production HTTP checks, independent arithmetic verification and qualification limits.
+- [Local-route and parity proof](evidence/school-qwen-proofs-2026-11-09.json) — bounded preflight checks, exhaustive byte outcomes, a mutated-transition witness and target-host limits.
 - [Remodeling issue](https://github.com/bdf1992/school/issues/1) — implemented foundation and remaining qualification gates.
 
 ## User guides
