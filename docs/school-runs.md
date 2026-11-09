@@ -55,6 +55,24 @@ Reusing an operation with the same request returns its existing queue entry. A d
 
 ## Recover and reconcile
 
+### Publication and interruption limits
+
+New run records and worker leases are written under `queue/staging/` before their complete directories are renamed into the visible queue. Worker release first renames its directory out of the active `worker/` path, then removes the retired directory. An interrupted initial write or release can therefore leave staging residue without publishing an incomplete run or an ownerless active worker. Staging entries are excluded from ordinary listing and ownership checks.
+
+Independent Linux checks interrupted child processes after writing partial records and during release cleanup. Separate checks synchronized four publishers immediately before rename: identical requests replayed one winner, conflicting registry definitions refused, and only one worker acquired ownership. These results cover process interruption and cooperating current-version publishers. They do not establish Windows filesystem behavior or survival of operating-system failure or power loss. Queue publication does not fsync its files or directories; atomic visibility alone is not a power-loss durability guarantee.
+
+The separate `queue/recovery/` guard can remain if the recovery process itself terminates before cleanup. Subsequent recovery reports `RECOVERY_BUSY`, and an unrecovered worker continues to block acquisition. This requires owner inspection with all worker and recovery processes stopped; elapsed time alone does not authorize removing a lock. Recovery-guard ownership and repair remain follow-up work under #6. Staging cleanup is also manual; an entry may belong to a writer that is still active.
+
+The [PR follow-up evidence](evidence/school-pr10-followup-2026-11-09.json) records the tested commits and results. Reproduce the separate process-interruption witness from a full checkout with dependencies installed:
+
+```sh
+node --import tsx docs/evidence/school-storage-interruption-witness.mjs --output /tmp/school-storage-interruption.json
+```
+
+This witness uses fresh temporary data, compares the fixed implementation with the pre-fix storage code, and makes no model calls. It is separate from the unit tests, which inject exceptions before selected write/open calls.
+
+### Inspect and recover retained work
+
 A worker lease has a random token, process ID and host name. Elapsed time cannot steal it. After a worker process has exited:
 
 ```sh

@@ -41,6 +41,8 @@ A seed produces three teaching examples, four diagnostic cases, and four fresh t
 
 The ordinary kit uses 17 calls. Enabling memory uses 21. `schoolExperimentCallCount` supplies the queue's call budget. Each call has one fresh participant context, existing output/deadline limits, and no automatically repeated uncertain provider call.
 
+Generated manifests retain a 600,000 ms episode limit and set the per-call limit to `min(30,000, floor(600,000 / plannedCalls))` ms. The ordinary 17-call experiment therefore keeps 30,000 ms per call; the 21-call memory experiment uses 28,571 ms. This keeps the sum of nominal call limits within the episode limit. Per-call setup, storage and other execution overhead still consume the episode's wall-clock budget, so this is not a guarantee that every call can use its entire allowance and the episode will complete.
+
 Diagnostic cases deliberately repeat: assisted improvement alone could be answer-specific. Transfer cases are withheld from teaching and use distinct normalized task inputs. Case identity ignores renamed IDs, exchanged factors, and parameters irrelevant to a product question. It does not establish novelty relative to pretraining, rule out every mathematical equivalence, or establish transfer beyond this task family.
 
 The transfer condition is explicitly **lesson assisted**. The cold condition is an immediate fresh-context repeat; it is not delayed retention, a server restart, or proof about hidden provider state. The optional memory condition tests a supplied external memory snapshot under the same declared model state. The runner neither writes a new memory nor updates weights.
