@@ -1,9 +1,9 @@
 /**
  * The final release gate (scripts/verify-release.ts) — pure-function tests
  * plus CLI end-to-end runs, all offline against fixtures. The expected asset
- * names asserted here follow the inherited app-builder-lib 26.15.3
- * naming rules with School's product name (see the script header):
- * 11 assets — 4 installers (dmg / NSIS exe / AppImage / deb), the mac
+ * names asserted here are the ones verified against the INSTALLED
+ * app-builder-lib 26.15.3 (see the script header for the derivation):
+ * 10 assets — 3 installers (dmg / NSIS exe / AppImage), the mac
  * updater ZIP, its/exe/dmg blockmaps, and the three latest*.yml feeds.
  */
 import assert from "node:assert/strict";
@@ -34,7 +34,7 @@ function asset(id: number, name: string, overrides: Partial<ReleaseAsset> = {}):
 	return { id, name, size: 5000, state: "uploaded", ...overrides };
 }
 
-/** The complete, healthy 11-asset draft for a version. */
+/** The complete, healthy 10-asset draft for a version. */
 function healthyRelease(version: string, tagForm: "v" | "bare" = "v"): ReleaseRecord {
 	const e = expectedAssets(version);
 	return {
@@ -64,13 +64,12 @@ function healthyFeeds(version: string, release: ReleaseRecord): Record<string, s
 }
 
 describe("release gate — expected asset inventory", () => {
-	it("is exactly the 11 expected builder outputs for the version", () => {
+	it("is exactly the 10 expected builder outputs for the version", () => {
 		assert.deepEqual(expectedAssets(VERSION).files, [
 			"School-0.2.0-arm64.dmg",
 			"School-0.2.0-arm64-mac.zip",
 			"School-0.2.0-x64-setup.exe",
 			"School-0.2.0-x86_64.AppImage",
-			"School-0.2.0-amd64.deb",
 			"School-0.2.0-arm64.dmg.blockmap",
 			"School-0.2.0-arm64-mac.zip.blockmap",
 			"School-0.2.0-x64-setup.exe.blockmap",
@@ -163,13 +162,13 @@ describe("release gate — packaging-config drift guard", () => {
 		["mac artifactName", (config) => { (config.mac as Record<string, unknown>).artifactName = "${productName}-${version}.${ext}"; }],
 		["top-level artifactName", (config) => { config.artifactName = "${name}-${version}.${ext}"; }],
 		["productName", (config) => { config.productName = "school"; }],
-		["appId", (config) => { config.appId = "com.learnharness.LearnHarness"; }],
-		["publish owner", (config) => { (config.publish as Record<string, unknown>[])[0]!.owner = "amosblomqvist"; }],
-		["publish repo", (config) => { (config.publish as Record<string, unknown>[])[0]!.repo = "learnharness"; }],
+		["upstream appId", (config) => { config.appId = "com.learnharness.LearnHarness"; }],
 		["mac targets", (config) => { (config.mac as Record<string, unknown>).target = [{ target: "dmg", arch: ["arm64"] }]; }],
 		["win target", (config) => { (config.win as Record<string, unknown>).target = [{ target: "appx", arch: ["x64"] }]; }],
-		["linux targets", (config) => { (config.linux as Record<string, unknown>).target = [{ target: "AppImage", arch: ["x64"] }]; }],
+		["linux targets", (config) => { (config.linux as Record<string, unknown>).target = [{ target: "AppImage", arch: ["x64"] }, { target: "deb", arch: ["x64"] }]; }],
 		["publish provider", (config) => { config.publish = [{ provider: "github", releaseType: "prerelease" }]; }],
+		["upstream update feed", (config) => { config.publish = [{ provider: "github", releaseType: "draft", owner: "amosblomqvist", repo: "learnharness" }]; }],
+		["additional update feed", (config) => { (config.publish as unknown[]).push({ provider: "github", owner: "amosblomqvist", repo: "learnharness" }); }],
 		["package name", () => { /* pkg checked below */ }],
 	];
 	for (const [label, mutate] of drifts) {
@@ -179,7 +178,7 @@ describe("release gate — packaging-config drift guard", () => {
 			const pkg = label === "package name" ? { ...realPkg, name: "other" } : realPkg;
 			const verdict = verifyConfigAssumptions(config, pkg);
 			assert.ok(!verdict.ok);
-			assert.match(verdict.errors.join("\n"), /expected names no longer hold|would not land in the draft|no longer "school"|productName is |appId is |update feed must /);
+			assert.match(verdict.errors.join("\n"), /expected names no longer hold|would not land in the draft|no longer "school"|productName is |appId is |School update feed/);
 		});
 	}
 });
@@ -222,27 +221,16 @@ describe("release gate — update feeds", () => {
 		assert.ok(verdict.ok, JSON.stringify(verdict, null, 2));
 	});
 
-	it("accepts either AppImage/deb order in latest-linux.yml (builder order is not deterministic)", () => {
+	it("rejects a Debian feed entry even when its unqualified archive has been uploaded", () => {
 		const release = healthyRelease(VERSION);
-		const e = expectedAssets(VERSION);
 		const feeds = healthyFeeds(VERSION, release);
-		// Same content, deb entry first (writeUpdateInfoFiles keeps whichever
-		// target finished first; the gate must accept both).
-		feeds["latest-linux.yml"] = [
-			`version: ${VERSION}`,
-			"files:",
-			`  - url: ${e.linux.deb}`,
-			`    sha512: ${sha512(e.linux.deb)}`,
-			"    size: 5000",
-			`  - url: ${e.linux.appImage}`,
-			`    sha512: ${sha512(e.linux.appImage)}`,
-			"    size: 5000",
-			`path: ${e.linux.deb}`,
-			`sha512: ${sha512(e.linux.deb)}`,
-			"releaseDate: '2026-10-13T09:37:13.265Z'",
-		].join("\n") + "\n";
+		const deb = `School-${VERSION}-amd64.deb`;
+		release.assets.push(asset(2000, deb));
+		feeds["latest-linux.yml"] = feeds["latest-linux.yml"]!.replace("path:", `  - url: ${deb}\n    sha512: ${sha512(deb)}\n    size: 5000\npath:`);
 		const verdict = verifyMetadataFiles(feeds, release, expectedAssets(VERSION));
-		assert.ok(verdict.ok, JSON.stringify(verdict, null, 2));
+		assert.ok(!verdict.ok);
+		assert.match(verdict.errors.join("\n"), /must reference exactly/);
+		assert.ok(!verifyAssets(release, expectedAssets(VERSION)).ok);
 	});
 
 	type Mutation = (feeds: Record<string, string>, release: ReleaseRecord) => void;
@@ -280,12 +268,12 @@ describe("release gate — update feeds", () => {
 		["mac legacy sha512 not matching files[0]", (feeds) => {
 			feeds["latest-mac.yml"] = feeds["latest-mac.yml"]!.replace(`sha512: ${sha512("School-0.2.0-arm64-mac.zip")}\nreleaseDate`, `sha512: ${sha512("tampered")}\nreleaseDate`);
 		}, /top-level sha512 does not match/],
-		["missing deb entry in latest-linux.yml", (feeds) => {
+		["missing AppImage entry in latest-linux.yml", (feeds) => {
 			const e = expectedAssets(VERSION);
 			feeds["latest-linux.yml"] = feeds["latest-linux.yml"]!.replace(
-				`  - url: ${e.linux.deb}\n    sha512: ${sha512(e.linux.deb)}\n    size: 5000\n`, "",
-			).replace(`path: ${e.linux.appImage}`, `path: ${e.linux.appImage}`);
-		}, /must reference exactly/],
+				`  - url: ${e.linux.appImage}\n    sha512: ${sha512(e.linux.appImage)}\n    size: 5000\n`, "",
+			);
+		}, /no files\[\] entries/],
 		["extra entry in latest.yml", (feeds) => {
 			const e = expectedAssets(VERSION);
 			feeds["latest.yml"] = feeds["latest.yml"]!.replace("path:", `  - url: ${e.mac.zip}\n    sha512: ${sha512(e.mac.zip)}\n    size: 5000\npath:`);
@@ -411,7 +399,7 @@ describe("release gate — CLI (offline, repo config)", () => {
 		try {
 			const result = run(["verify", path.join(root, "releases.json"), path.join(root, "metadata"), "--tag", TAG]);
 			assert.equal(result.status, 0, String(result.stderr));
-			assert.match(result.stdout, /11\/11 expected files present/);
+			assert.match(result.stdout, /10\/10 expected files present/);
 			assert.ok(result.stdout.includes(`OK: draft for ${TAG} is complete`));
 		} finally {
 			fs.rmSync(root, { recursive: true, force: true });

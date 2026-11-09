@@ -1,12 +1,13 @@
-# School documentation
+# Documentation
 
-## School's direction
+## School
 
-- [Remodeling LearnHarness into School](school.md) — purpose, current boundary, milestones, and the planned AUM relationship.
-- [Shared language](../CONTEXT.md) — world, learner, teacher, evaluator, evidence, editions, and continuation.
-- [Remodeling issue #1](https://github.com/bdf1992/school/issues/1) — implementation progress and acceptance criteria.
+- [Shared vocabulary](../CONTEXT.md) — participants, material, evidence, change, and continuation.
+- [Staged remodeling plan](school.md) — retained foundation roadmap and restricted session projection.
 
-The guides below describe the inherited application. School-specific changes are identified in the direction document; automated machine-learner participation and model training remain planned work.
+- [Intent and boundaries](school-intent.md) — roles, evidence, AUM ownership, and the remodeling direction.
+- [Model episodes](school-episodes.md) — run the bounded learner/teacher loop, inspect records, and use the API.
+- [Remodeling issue](https://github.com/bdf1992/school/issues/1) — implemented foundation and remaining qualification gates.
 
 ## User guides
 
@@ -27,7 +28,7 @@ The guides below describe the inherited application. School-specific changes are
 
 ## Teaching method
 
-[The theory of learning and teaching](teaching-methodology.md) records the upstream owner's theory underlying LearnHarness's teaching method. It is not a runtime specification or evidence of measured learning outcomes.
+[The theory of learning and teaching](teaching-methodology.md) is the inherited LearnHarness teaching theory. It is an attributed design source, not a runtime specification or evidence of measured learning outcomes.
 
 ## History
 
@@ -36,4 +37,3 @@ The guides below describe the inherited application. School-specific changes are
 ## About these docs
 
 These guides follow the repository source. For a particular installed release, use the documentation at its Git tag and its release notes. Archived plans are historical; unmerged proposals are not documented as available features.
-

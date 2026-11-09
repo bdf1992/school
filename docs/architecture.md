@@ -1,6 +1,6 @@
 # Architecture
 
-LearnHarness is a Next.js application with an Electron desktop host. The server owns agent runs, conversation records, background work, and filesystem persistence; the browser projects those records into a lesson/practice UI and knowledge graph.
+School is a Next.js application with an Electron desktop host, forked from LearnHarness. The server owns agent runs, conversation records, background work, and filesystem persistence; the browser projects those records into a lesson/practice UI and knowledge graph.
 
 This reference describes the [repository source](README.md#about-these-docs). See [Development](development.md) for commands and [the teaching theory](teaching-methodology.md) for pedagogical intent.
 
@@ -75,6 +75,16 @@ Practice uses the same turn/persistence/recovery path, not a separate problem-se
 
 [Prompt composition](../src/agent/prompts/README.md) and [tool-content display recovery](tool-content-recovery.md) have separate references.
 
+## Model-learner episodes
+
+The [School episode interface](school-episodes.md) is separate from human teaching/practice transcripts. `src/core/school-episode.ts` validates manifests, constructs participant allowlists, and implements exact-answer grading/comparison. It never projects an archived teacher transcript to a learner.
+
+`src/agent/school-participant.ts` performs one generation through an injected `PiEngine` with no School tools. `src/server/school-episodes.ts` resolves configured providers, respects subscription background permission, drives baseline → lesson → retry, and checkpoints raw replies before grades. The CLI and `/api/school/episodes` use that runner. Engine injection is internal; HTTP callers cannot select fixture mode.
+
+`src/store/school-episodes.ts` binds an operation ID to a normalized manifest digest and execution mode. Directory creation claims an operation; temporary-file rename replaces its record. Terminal retries return saved results; changed or interrupted operations refuse blind replay. This does not guarantee exactly-once provider execution. Episode records retain evaluation answers and are evaluator-private. Their model `edition` references are declarations, not loaded-weight attestations.
+
+The first comparison measures contextual assistance on authored target and retention cases. It does not train or adopt a model, establish semantic correctness, or demonstrate generalization. The [intent](school-intent.md) describes the planned AUM boundary.
+
 ## Background work
 
 Research, PDF, demo, and visual tools persist jobs, acknowledge dispatch, and start independent workers through [`subagents/runner.ts`](../src/agent/subagents/runner.ts). Demos are checked using the browser helper; visuals use render-and-inspect loops. PDF/SVG rendering is native; demo execution uses Electron's browser service with system Chrome fallback.
@@ -108,7 +118,7 @@ flowchart LR
 
 The pipeline batches oldest uncovered messages without splitting one message. Trigger and batch budgets are distinct: current app wiring does not inject the configurable trigger value as the batch budget. Each source's batches run serially; cross-source work can overlap under a background-LLM semaphore. A process-wide FIFO lock serializes audit through merge. These registries survive module entries through `globalThis`, not separate server processes.
 
-The [extractor](../src/agent/subagents/extraction.ts) reads source text and proposes anchored propositions/chains. The auditor sees propositions and the current graph, not source passages or chains, and submits identity links. The deterministic merger resolves identities/endpoints, unions provenance, deduplicates arguments, simplifies redundant chains, and checkpoints coverage after graph writes. Failed stages leave material uncovered; completed chunks and usage survive later failure/abort. Ordered ledger operations are not an atomic multi-file transaction.
+The [extractor](../src/agent/subagents/extraction.ts) reads source text and proposes anchored propositions/chains. The auditor sees propositions and the current graph, not source passages or chains, and submits identity links. The deterministic merger resolves identities/endpoints, unions provenance, deduplicates arguments, simplifies redundant chains, and checkpoints coverage after graph writes. Simplification proves derivability using every joint premise, excluding the candidate rule itself. A chain with an unresolved or conclusion-equivalent premise is discarded whole rather than strengthened by removing that premise. Failed stages leave material uncovered; completed chunks and usage survive later failure/abort. Ordered ledger operations are not an atomic multi-file transaction.
 
 ### Notes and source organization
 
@@ -135,6 +145,7 @@ Extraction is the construction writer, not the only mutation: source/session/nod
 | Data | Files |
 | --- | --- |
 | Conversations, plans, usage, image snapshots | `chats/*.json` |
+| School manifests, calls, private answers, evaluation, replay state | `school/episodes/<operationId>/record.json` |
 | Worker computation and delivery obligations | `jobs/*.json` |
 | Propositions, chains, checkpoints, coverage | `graph/{nodes,chains,sessions,coverage}.jsonl` |
 | Sources, organization, positions, render preferences | JSON maps under `graph/` |

@@ -19,7 +19,11 @@ npm run build          # Next production build, including standalone output
 npm start              # serve the production build with Next
 ```
 
-`npm run desktop:dist` is the local **signed macOS** packaging path, not a portable unsigned shortcut. Prerequisites and Windows/Linux instructions are in [Desktop builds and releases](desktop-release.md).
+`npm run desktop:dist` prepares a local macOS package with publishing disabled. It requires School-owned signing/notarization configuration and the appropriate Xcode environment; upstream signing identities are not supplied. Prerequisites and Windows/Linux instructions are in [Desktop builds and releases](desktop-release.md).
+
+## Model episodes
+
+`npm run school:episode -- examples/school/byte-parity.json --fixture --output /tmp/school-episodes` runs the deterministic demonstration without provider calls. Use a platform-appropriate absolute output path. Omit `--fixture` only with an explicitly configured manifest. See [Model episodes](school-episodes.md) for participant settings, budgets, results, and replay rules.
 
 ## Configuration
 
@@ -27,7 +31,7 @@ Nonsecret settings are deltas in `<data root>/settings.json`; absent values reso
 
 | Variable | Purpose |
 | --- | --- |
-| `LH_DATA_DIR` | Mutable chats/jobs/graph/settings/prompts; default repo `data/`. |
+| `LH_DATA_DIR` | Mutable chats/jobs/graph/settings/prompts and School episodes; default repo `data/`. |
 | `LH_AUTH_FILE` | Keys/custom-endpoint binding; default repo-root `auth.json`, outside `data/`. |
 | Provider API-key variables | Optional, selected-provider dependent; UI names are in `src/core/auth-keys.ts`. |
 | `TAVILY_API_KEY`, `BRAVE_API_KEY`, `EXA_API_KEY`, `FIRECRAWL_API_KEY`, `OLLAMA_API_KEY` | Optional search adapters. Without a Settings pin, the first keyed engine wins: Tavily → Brave → Exa → Firecrawl → Ollama. A pinned engine requires its own key; no silent fallback. Ollama search is hosted at ollama.com, not a local model server. Page fetching is independent; research can fetch known URLs without a search key. |

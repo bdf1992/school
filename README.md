@@ -1,92 +1,80 @@
 # School
 
-**A workbench for teaching, learning, and evaluating people, local language models, and agents.**
+**A harness for teaching and evaluating humans, local language models, and hosted agents.**
 
-School starts with a world or subject, names the participants and their roles, and runs lessons whose attempts and outcomes can be inspected. The aim is to understand what a learner can do, help it develop a capability, and establish what changed through independent evidence.
+School organizes a learning episode around a world, a subject, a learner, a teacher, an evaluator, and inspectable records. A local model can be the learner while Claude or an OpenAI model teaches it. Roles are assigned explicitly; the choice of provider does not determine who teaches or who learns.
 
-A learner may be a person, a local LLM, Claude, or an OpenAI/ChatGPT agent reached through a supported interface. A teacher prepares observations, examples, explanations, and feedback. An evaluator checks the learner's work. These are roles in an episode, separate from the model provider or application running a participant.
+We are remodeling [LearnHarness](https://github.com/amosblomqvist/learnharness) into this workbench while retaining its human teaching and practice application. The initial fork base is `da08cb5f7d098598ba963c6689b22054c9f2a5a3`. Upstream authorship and the AGPL-3.0-only license remain intact.
 
-School is a fork of [LearnHarness](https://github.com/amosblomqvist/learnharness), created to adapt its teaching interface and recorded workflows for machine learners and AUM experiments. The inherited human teaching experience remains the operating starting point.
+[Intent and boundaries](docs/school-intent.md) · [Model episodes](docs/school-episodes.md) · [Remodeling issue](https://github.com/bdf1992/school/issues/1) · [All documentation](docs/README.md)
 
-[Remodeling issue #1](https://github.com/bdf1992/school/issues/1) · [Direction and milestones](docs/school.md) · [Shared language](CONTEXT.md) · [Development](docs/development.md)
+## The learning loop
 
-## World, learner, teacher, evaluator
-
-| Role | Responsibility |
+| Part | Responsibility |
 | --- | --- |
-| World | Supplies the task's state, rules, available observations and actions, and consequences. |
-| Learner | Receives permitted information and produces an attempt, prediction, or proposed change. |
-| Teacher | Diagnoses observed gaps and supplies lessons, examples, hints, and feedback. |
-| Evaluator | Checks an attempt against a declared criterion and retains the result and its limits. |
-| Records | Connect sources, participants, editions, observations, assistance, attempts, decisions, and unfinished work. |
+| World and subject | Define the task, available observations, and what a valid response means. |
+| Learner | Attempt the task using its permitted view and declared model/edition. |
+| Teacher | Select explanations and examples from permitted teaching material. |
+| Evaluator | Check retained responses against a declared criterion. |
+| Records | Preserve inputs, assistance, raw replies, judgments, failures, and operation identity. |
 
-The world may be a document, an exact mathematical task, a program, an interactive environment, or a model's own editable structure. Teacher agreement, a learner's confidence, and an independently checked result remain separate observations.
+The first model episode runs **baseline → lesson → retry → comparison**. The teacher sees teaching examples and aggregate baseline scores. Evaluation answers stay at the evaluator boundary. Learner replies are saved before grading. Target improvement and loss on previously correct cases are reported separately.
 
-## What works in this first remodeling step
+This episode measures **contextual assistance**. It does not train weights or adopt a successor model. School owns curriculum and episode interaction; [AUM](https://github.com/bdf1992/aum-foundation) owns the proposed model-training, edition, adoption, and continuing-world-work boundary. An integration with that boundary remains planned.
 
-- **Human lessons and practice:** the inherited prober, teacher, practice, plans, questions, provider connections, and local records.
-- **Local inference connections:** the inherited custom OpenAI-compatible endpoint can run teaching-side agents. This does not yet make a configured model the student or train it.
-- **Restricted learner view:** a standalone command projects pending questions and practice problems from a saved native session into a small machine-readable view. It copies permitted task fields only, refuses unsupported or ambiguous records, and leaves the source unchanged.
-- **Graph inference preservation:** merging proposition identities no longer removes a required or unresolved premise and silently strengthens the remaining argument. This correction does not make model-authored claims independently true.
+## Run the first episode
 
-Automatic machine-learner participation, server-side attempt submission and evaluation, model-training jobs, and the AUM episode bridge are the next milestones. No real neural training or useful weight improvement is claimed by this foundation change.
-
-## Try the learner boundary
-
-Use Node 26, the version used by CI. The projection command uses Node's built-in TypeScript support and does not call a model, start the app, or read credentials.
-
-```sh
-node scripts/school-learner-view.ts /absolute/path/to/a-saved-chat.json
-```
-
-After installing the app dependencies, the same command is available as:
-
-```sh
-npm run school:learner-view -- /absolute/path/to/a-saved-chat.json
-```
-
-A saved conversation contains teacher answer keys and precommitted practice solutions. Give a machine learner the restricted view, not the raw record or archival reader output. This is a field-selection boundary: a teacher could still disclose an answer in the question itself, so evaluation material needs separate control.
-
-The command is read-only. It does not submit an attempt, grade a response, or establish a participant's identity. Those behaviors are tracked in [issue #1](https://github.com/bdf1992/school/issues/1).
-
-The first format is narrower than the human UI: it returns pending tasks only and omits lesson prose, prior answers, hints, and extra question details. It accepts native v1 records, including unstamped v1, but refuses reused identities, incomplete turns, missing non-question results, and raw arguments requiring the UI's legacy coercion. An `idle` result means this view has no pending task; it does not mean learning or the lesson is complete.
-
-## What counts as learning
-
-An episode records its starting capability, permitted assistance, attempted intervention, and subsequent evidence. Distinguish:
-
-- improvement while a lesson remains in context;
-- use of external memory or retrieved material;
-- a changed program or policy;
-- a trained adapter or other parameter change;
-- a new representation that preserves current behavior but changes future updates.
-
-Changing an artifact is an observed operation. Useful learning requires an appropriate comparison, fresh tasks, retained-capability checks, and honest failures. A lesson plan's visited nodes and extracted propositions do not constitute a mastery score.
-
-## Relationship to AUM
-
-School owns lesson interaction, practice, participant views, and review surfaces. The intended AUM bridge delegates model editions, admitted training operations, evaluation/adoption receipts, and continuing commitments to AUM.
-
-The target loop is **inspect → propose → execute → evaluate → adopt or reject → continue**. A successor should finish work already in progress and make its next consequential choice. The bridge and actual local training qualification remain open work; the first change establishes the vocabulary and information boundary they need.
-
-## Run the inherited application
+Use Node 26, matching CI, and the checked-in lockfile:
 
 ```sh
 npm ci
-npm run dev
-npm test
-npm run typecheck
-npm run lint
+npm run school:episode -- examples/school/byte-parity.json --fixture --output /tmp/school-episodes
 ```
 
-Configure providers before model-driven use. Local servers, provider APIs, installed Claude Code, and supported subscription routes have different capabilities and authorization. Existing connections are teaching-agent infrastructure; a machine-learner adapter must be configured separately when implemented.
+The fixture uses a scripted learner and teacher, makes no provider requests, and labels its result `SCRIPTED_FIXTURE`. It exercises the same episode orchestration, answer boundary, grading, and durable records used by configured participants. It demonstrates the harness, not a real model's ability. Use a suitable absolute output path on Windows.
 
-See [custom and local models](docs/custom-providers.md), [Claude Code](docs/claude-code.md), and [development](docs/development.md). The current server is intended for trusted local use with one owner per data profile.
+For a configured run, set up the connections in the app, copy the manifest, assign your actual learner and teacher model IDs, give the operation a new identity, and omit `--fixture`. See [Model episodes](docs/school-episodes.md) for the manifest, API, record locations, and retry behavior. The episode interface currently lives in the CLI and API; the existing lesson UI still serves human learners.
 
-## Upstream and license
+## Inspect a saved session for a learner
 
-LearnHarness supplied the original application, teaching workflows, storage, provider integrations, and desktop foundation. Its original contributors retain their attribution. School's initial fork baseline is [`da08cb5`](https://github.com/amosblomqvist/learnharness/commit/da08cb5f7d098598ba963c6689b22054c9f2a5a3).
+```sh
+node --import tsx scripts/school-learner-view.ts /absolute/path/to/chat.json
+```
 
-The [AGPL-3.0-only license](LICENSE) is retained. School support and releases belong to [this repository](https://github.com/bdf1992/school); upstream LearnHarness downloads are upstream builds, not School distributions.
+This read-only command projects supported pending questions/problems from an explicitly supplied native session record. It constructs a restricted view and refuses unsupported or ambiguous records. It does not call a model, submit an answer, or expose the full archive. The manifest-based episode runner above is a separate interface; connecting the two is a subsequent milestone.
 
-For vulnerability reports, follow [School's private reporting instructions](SECURITY.md).
+## Open the teaching application
+
+```sh
+npm run dev            # http://localhost:3000
+npm run desktop:dev    # development desktop host
+```
+
+Choose **Teach** to probe your starting point, plan a lesson, and work through explanations and checks. Choose **Practice** for varied problems. Sessions retain answers, plans, usage, and source material. The knowledge graph carries propositions and reasoning chains across sessions; graph presence is not evidence of learner mastery.
+
+Available connections include provider API keys, supported desktop/web subscription connections, an installed [Claude Code CLI](docs/claude-code.md), and one [custom OpenAI-compatible endpoint](docs/custom-providers.md) with multiple model IDs. A local inference server must already exist; School does not install, train, or download its models. Subscription, API, and CLI routes keep their existing admission and billing semantics.
+
+Model-driven work sends the permitted context to the selected provider. Chats, graphs, settings, and episode records are local files. Local storage does not imply offline inference. Keys and subscription credentials must remain private.
+
+## Current scope
+
+- Human teaching/practice, persistent sessions, graph extraction, and provider connections inherited from LearnHarness.
+- Explicit learner/teacher manifests, bounded model-call orchestration, independent exact-answer evaluation, and inspectable episode records.
+- Separate School desktop identity and default update feed. Existing `LH_*` environment variables and data formats remain compatible.
+- No qualified School installer or live local-model training result is supplied by this foundation change. Native installation, signing, update delivery, role-selection UI, multiple local endpoints, and the AUM training bridge are tracked in [the remodeling issue](https://github.com/bdf1992/school/issues/1).
+
+## Development and support
+
+```sh
+npm run typecheck
+npm run lint
+npm test               # fixtures and fake providers; no paid inference required
+```
+
+See [Development](docs/development.md), [Architecture](docs/architecture.md), [Getting started](docs/getting-started.md), and [Desktop builds and releases](docs/desktop-release.md).
+
+Use [School issues](https://github.com/bdf1992/school/issues) for this fork. Report vulnerabilities through the process in [SECURITY.md](SECURITY.md). Upstream maintainers and services are not School's support channel.
+
+## License and attribution
+
+[AGPL-3.0-only](LICENSE). School builds on LearnHarness by Amos Blomqvist and its contributors. Historical designs, teaching-method notes, and inherited artwork retain their attribution; their inclusion does not establish measured learning outcomes or a School release qualification.

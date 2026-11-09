@@ -15,7 +15,9 @@ const mainRequire = createRequire(mainFile);
 /** Decline the single-instance lock so normal boot never spawns a server.
  * Then call the REAL createWindow with a stub Electron API and inspect its
  * constructor options. No rewritten copy of the production logic. */
-function windowOptions(platform: string, env: Record<string, string> = {}) {
+function windowAndIdentity(platform: string, env: Record<string, string> = {}) {
+	let applicationName = "electron";
+	let userData: string | undefined;
 	class FakeWindow {
 		constructor(readonly options: unknown) {}
 		webContents = { on() {}, setWindowOpenHandler() {} };
@@ -23,7 +25,13 @@ function windowOptions(platform: string, env: Record<string, string> = {}) {
 		once() {}
 	}
 	const electron = {
-		app: { setName() {}, getPath: () => "/fixture/LearnHarness", setPath() {}, requestSingleInstanceLock: () => false, quit() {} },
+		app: {
+			setName(name: string) { applicationName = name; },
+			getPath: () => userData ?? `/fixture/${applicationName}`,
+			setPath(_key: string, value: string) { userData = value; },
+			requestSingleInstanceLock: () => false,
+			quit() {},
+		},
 		BrowserWindow: FakeWindow,
 		session: { defaultSession: { setPermissionRequestHandler() {}, setPermissionCheckHandler() {} } },
 	};
@@ -35,10 +43,23 @@ function windowOptions(platform: string, env: Record<string, string> = {}) {
 	runInNewContext(mainSource, context, { filename: mainFile });
 	const win = runInNewContext('createWindow("http://127.0.0.1:9000")', context) as FakeWindow;
 	// The options originate in a VM realm; normalize prototypes for assertions.
-	return JSON.parse(JSON.stringify(win.options));
+	return { options: JSON.parse(JSON.stringify(win.options)), applicationName, userData: electron.app.getPath() };
+}
+
+function windowOptions(platform: string, env: Record<string, string> = {}) {
+	return windowAndIdentity(platform, env).options;
 }
 
 describe("desktop window chrome", () => {
+	it("sets School's independent data namespace before the existing development suffix", () => {
+		const normal = windowAndIdentity("darwin");
+		assert.equal(normal.applicationName, "School");
+		assert.equal(normal.userData, "/fixture/School");
+		const development = windowAndIdentity("darwin", { LH_DEV_URL: "http://localhost:3000" });
+		assert.equal(development.applicationName, "School");
+		assert.equal(development.userData, "/fixture/School-dev");
+	});
+
 	it("macOS keeps the proven traffic lights and does not enable WCO", () => {
 		const options = windowOptions("darwin");
 		assert.equal(options.titleBarStyle, "hiddenInset");
@@ -145,7 +166,7 @@ describe("desktop packaging policy", () => {
 		await validateConfiguration(config, { isEnabled: false });
 	});
 
-	it("ships Mac arm64, Windows NSIS x64, and both Linux x64 channels", () => {
+	it("configures Mac arm64, Windows NSIS x64, and Linux AppImage without unowned Debian maintainer metadata", () => {
 		assert.deepEqual(config.mac.target, [
 			{ target: "dmg", arch: ["arm64"] }, { target: "zip", arch: ["arm64"] },
 		]);
@@ -153,13 +174,13 @@ describe("desktop packaging policy", () => {
 		assert.equal(config.win.signExecutable, false);
 		assert.equal(config.win.verifyUpdateCodeSignature, false);
 		assert.deepEqual(config.linux.target, [
-			{ target: "AppImage", arch: ["x64"] }, { target: "deb", arch: ["x64"] },
+			{ target: "AppImage", arch: ["x64"] },
 		]);
 		assert.equal(config.linux.syncDesktopName, true);
 		assert.equal(config.publish[0].releaseType, "draft");
 	});
 
-	it("deb has public maintainer metadata and a matching desktop identity", () => {
+	it("preserves upstream authorship with a distinct School repository and desktop identity", () => {
 		const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 		assert.equal(pkg.author.name, "Amos Blomqvist");
 		assert.equal(pkg.author.email, "255718537+amosblomqvist@users.noreply.github.com");

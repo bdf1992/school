@@ -8,10 +8,9 @@
  * reads (release list via the workflow's read-only token, update feeds
  * downloaded by the workflow's own gh steps).
  *
- * These naming rules come from the upstream verification against
- * app-builder-lib 26.15.3, with School's product name substituted below.
- * Native packaging rehearsals must verify the fork's outputs before its
- * first release; this source change does not claim a School build exists.
+ * Every expected file name below was verified against the INSTALLED
+ * builder (app-builder-lib 26.15.3) — these are the artifacts it actually
+ * emits for this repo's electron-builder.yml, not pattern guesses:
  *
  *   mac (dmg + zip, arm64; no user artifactName there):
  *     dmg    School-<v>-arm64.dmg       + .blockmap (createBlockmap)
@@ -23,14 +22,12 @@
  *   win (nsis x64; artifactName "${productName}-${version}-${arch}-setup.${ext}"):
  *     exe    School-<v>-x64-setup.exe   + .blockmap (createBlockmap)
  *     feed   latest.yml — a single file entry, the exe.
- *   linux (AppImage + deb, x64; artifactName "${productName}-${version}-${arch}.${ext}"
- *            is user-forced at the linux level, so it overrides BOTH targets'
- *            default name formats, and ${arch} expands per target ext:
- *            x64→x86_64 for AppImage, x64→amd64 for deb):
+ *   linux (AppImage, x64; artifactName "${productName}-${version}-${arch}.${ext}"
+ *            is user-forced at the linux level; ${arch} expands to x86_64
+ *            for AppImage):
  *     image  School-<v>-x86_64.AppImage (no blockmap in 26.15.3)
- *     deb    School-<v>-amd64.deb       (no blockmap)
- *     feed   latest-linux.yml — the AppImage and deb entries merged by
- *            writeUpdateInfoFiles (order not deterministic; checked as a set).
+ *     feed   latest-linux.yml — a single file entry, the AppImage.
+ *   Debian packaging is deferred until School has explicit maintainer metadata.
  *
  * GitHub asset names equal these file names (all are already "safe" GitHub
  * names, so electron-publish uploads under the plain name) and every yml
@@ -88,12 +85,12 @@ export type DraftSelection =
 	| { ok: true; release: ReleaseRecord; warnings: string[] }
 	| Failures;
 
-/** The full expected asset inventory for one version (11 files). */
+/** The full expected asset inventory for one version (10 files). */
 export type ExpectedAssets = {
 	version: string;
 	mac: { dmg: string; zip: string; feed: string };
 	win: { exe: string; feed: string };
-	linux: { appImage: string; deb: string; feed: string };
+	linux: { appImage: string; feed: string };
 	/** Every asset name the draft must hold, and no others. */
 	files: string[];
 };
@@ -105,7 +102,7 @@ type Issues = Issue[];
 // Version + expected assets
 // ---------------------------------------------------------------------------
 
-/** Product name used by electron-builder.yml and checked by this verifier. */
+/** Verified product name spelled into every artifact (electron-builder.yml productName). */
 const PRODUCT_NAME = "School";
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
@@ -130,18 +127,17 @@ export function expectedAssets(version: string): ExpectedAssets {
 	};
 	const linux = {
 		appImage: `${PRODUCT_NAME}-${version}-x86_64.AppImage`,
-		deb: `${PRODUCT_NAME}-${version}-amd64.deb`,
 		feed: "latest-linux.yml",
 	};
 	// Sidecar differential-update blockmaps: emitted for dmg, mac zip and
-	// NSIS exe (createBlockmap); AppImage/deb have none in app-builder-lib 26.15.3.
+	// NSIS exe (createBlockmap); AppImage has none in app-builder-lib 26.15.3.
 	const blockmaps = [mac.dmg, mac.zip, win.exe].map((name) => `${name}.blockmap`);
 	return {
 		version,
 		mac,
 		win,
 		linux,
-		files: [mac.dmg, mac.zip, win.exe, linux.appImage, linux.deb, ...blockmaps, mac.feed, win.feed, linux.feed],
+		files: [mac.dmg, mac.zip, win.exe, linux.appImage, ...blockmaps, mac.feed, win.feed, linux.feed],
 	};
 }
 
@@ -264,8 +260,8 @@ export function verifyConfigAssumptions(config: unknown, pkg: unknown): { ok: tr
 	if (!isPlainObject(config)) {
 		return { ok: false, errors: ["electron-builder.yml did not parse to a mapping", ...errors] };
 	}
-	if (config.appId !== "io.github.bdf1992.school") bad(`appId is ${JSON.stringify(config.appId)}, expected "io.github.bdf1992.school"`);
 	if (config.productName !== PRODUCT_NAME) bad(`productName is ${JSON.stringify(config.productName)}, expected "${PRODUCT_NAME}"`);
+	if (config.appId !== "io.github.bdf1992.school") bad(`appId is ${JSON.stringify(config.appId)}, expected School's independent identity "io.github.bdf1992.school"`);
 	if (config.artifactName != null) bad("a top-level artifactName now overrides target defaults — expected names no longer hold");
 	const sameTargets = (actual: unknown, expected: Array<Record<string, unknown>>) =>
 		JSON.stringify(actual) === JSON.stringify(expected);
@@ -290,7 +286,7 @@ export function verifyConfigAssumptions(config: unknown, pkg: unknown): { ok: tr
 		if (config.linux.artifactName !== "${productName}-${version}-${arch}.${ext}") {
 			bad(`linux.artifactName changed (${JSON.stringify(config.linux.artifactName)}) — expected names no longer hold`);
 		}
-		if (!sameTargets(config.linux.target, [{ target: "AppImage", arch: ["x64"] }, { target: "deb", arch: ["x64"] }])) {
+		if (!sameTargets(config.linux.target, [{ target: "AppImage", arch: ["x64"] }])) {
 			bad(`linux.target changed (${JSON.stringify(config.linux.target)}) — expected names no longer hold`);
 		}
 	}
@@ -298,8 +294,8 @@ export function verifyConfigAssumptions(config: unknown, pkg: unknown): { ok: tr
 	if (!isPlainObject(publish) || publish.provider !== "github" || publish.releaseType !== "draft") {
 		bad(`publish[0] must be the github provider with releaseType "draft" (${JSON.stringify(config.publish)}) — uploads would not land in the draft`);
 	}
-	if (!isPlainObject(publish) || publish.owner !== "bdf1992" || publish.repo !== "school") {
-		bad(`update feed must use bdf1992/school (${JSON.stringify(publish)})`);
+	if (!Array.isArray(config.publish) || config.publish.length !== 1 || !isPlainObject(publish) || publish.owner !== "bdf1992" || publish.repo !== "school") {
+		bad("School update feed must point only to bdf1992/school; an upstream or additional feed could install a different product");
 	}
 	if (errors.length > 0) {
 		errors.push("packaging config drifted from the verified shapes — re-derive the expected assets in scripts/verify-release.ts");
@@ -348,7 +344,7 @@ export function feedExpectations(expected: ExpectedAssets): FeedExpectation[] {
 	return [
 		{ file: expected.mac.feed, urls: [expected.mac.zip, expected.mac.dmg], first: expected.mac.zip },
 		{ file: expected.win.feed, urls: [expected.win.exe] },
-		{ file: expected.linux.feed, urls: [expected.linux.appImage, expected.linux.deb] },
+		{ file: expected.linux.feed, urls: [expected.linux.appImage] },
 	];
 }
 

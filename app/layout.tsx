@@ -15,7 +15,7 @@ const prose = Source_Sans_3({ subsets: ["latin"], variable: "--font-sans3" });
 
 export const metadata: Metadata = {
 	title: "School",
-	description: "A workbench for teaching and learning with people, local models, and agents.",
+	description: "Learning and teaching with people, local models, and hosted agents — lessons, practice, and attributable evidence.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

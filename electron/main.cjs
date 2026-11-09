@@ -1,5 +1,5 @@
 /**
- * School — the Electron shell, adapted from LearnHarness.
+ * School — the Electron shell, derived from LearnHarness.
  *
  * What this process is and is not:
  *   IS:  a thin launcher + security guard around the app's real server —
@@ -45,11 +45,9 @@ const SIDEBAR_AUTOCLOSE = 928;
 
 const PRODUCT_NAME = "School";
 
-// Set the name before resolving userData: School owns a separate profile
-// from LearnHarness. Product metadata alone does not set Electron's app.name.
-// The LH_DEV_URL suffix below makes the development profile School-dev.
-// Existing LH_* configuration and IPC names remain compatible; no upstream
-// profile is read, copied, or migrated here.
+// School uses a separate userData namespace from LearnHarness. Preserve the
+// LH_* compatibility seams, but never automatically open upstream records.
+// The existing development path suffix remains School-dev.
 app.setName(PRODUCT_NAME);
 const AUTH_FILE = () => path.join(app.getPath("userData"), "auth.json");
 const DATA_DIR = () => path.join(app.getPath("userData"), "data");
@@ -414,11 +412,11 @@ const ZOOM_LADDER = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
  * banner; checks at startup + every 24h) ─────────────────────────────────
  *
  * Feed: GitHub Releases (electron-builder.yml publish → app-update.yml,
- * baked + signed into the bundle). macOS needs the app signed (it is —
- * Developer ID) and updates ride the zip target (Squirrel.Mac); blockmaps
+ * baked into the bundle). School has its own repository feed; packaged
+ * signing and update delivery still require release qualification. On macOS
+ * updates need signing and ride the zip target (Squirrel.Mac); blockmaps
  * give differential downloads for free. Windows uses NSIS; Linux uses
- * AppImage or DebUpdater (6.8.9 supports deb; installation can request
- * administrator permission via the package manager — owner 2026-10-11).
+ * AppImage. Debian packaging awaits School maintainer metadata.
  *
  * Hard rules:
  *  - DEV NEVER UPDATES: !app.isPackaged skips the updater entirely — the

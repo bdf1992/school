@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "operationId": "byte-parity-001",
+  "world": {
+    "id": "byte-parity",
+    "revision": "1",
+    "subject": "Parity as a distinction on binary strings",
+    "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+  },
+  "learner": {
+    "id": "local-learner",
+    "model": { "provider": "custom", "id": "REPLACE_WITH_CONFIGURED_LOCAL_MODEL_ID", "thinkingLevel": "off" }
+  },
+  "teacher": {
+    "id": "teacher",
+    "model": { "provider": "anthropic", "id": "REPLACE_WITH_CONFIGURED_TEACHER_MODEL_ID" }
+  },
+  "teaching": [
+    { "id": "teach-even", "question": "Classify this byte.", "observations": [{ "id": "bits", "status": "SUFFICIENT", "content": "00000000" }], "expected": "EVEN" },
+    { "id": "teach-odd", "question": "Classify this byte.", "observations": [{ "id": "bits", "status": "SUFFICIENT", "content": "00000001" }], "expected": "ODD" }
+  ],
+  "evaluation": [
+    { "id": "target-even", "split": "target", "question": "Classify this byte.", "observations": [{ "id": "bits", "status": "SUFFICIENT", "content": "10110001" }], "expected": "EVEN" },
+    { "id": "target-odd", "split": "target", "question": "Classify this byte.", "observations": [{ "id": "bits", "status": "SUFFICIENT", "content": "11100000" }], "expected": "ODD" },
+    { "id": "retention-even", "split": "retention", "question": "Classify this byte.", "observations": [{ "id": "bits", "status": "SUFFICIENT", "content": "00000011" }], "expected": "EVEN" }
+  ],
+  "limits": { "maxOutputTokens": 512, "callTimeoutMs": 30000, "episodeTimeoutMs": 180000 }
+}

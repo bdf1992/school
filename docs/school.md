@@ -1,5 +1,7 @@
 # Remodeling LearnHarness into School
 
+This staged plan originated in [foundation PR #3](https://github.com/bdf1992/school/pull/3). Its restricted session projection is retained. The continuation also adds a separate manifest-based episode runner; see [current intent](school-intent.md) and [Model episodes](school-episodes.md) for the implemented interface and limits.
+
 Updated 2026-11-09. Direction: Bdo requested a fork for local LLMs, Claude, and OpenAI/ChatGPT agents, with immediate remodeling. [Tracking issue #1](https://github.com/bdf1992/school/issues/1) owns delivery.
 
 ## Purpose
@@ -12,7 +14,7 @@ The [glossary](../CONTEXT.md) defines the roles. The original [teaching methodol
 
 ## Current foundation
 
-This first contribution establishes School's purpose, fork identity, a read-only restricted learner projection, and a graph merge correction. Existing human lessons remain the working application.
+The initial foundation contribution established School's purpose, fork identity, a read-only restricted learner projection, and a graph merge correction. Existing human lessons remain the working application.
 
 The projection takes an explicitly supplied native session record and returns permitted fields from pending questions/problems. It does not provide arbitrary transcript access, credentials, answer keys, private reasoning, evaluation answers, or an automatic model call. Unsupported and ambiguous records refuse instead of silently widening access.
 
@@ -31,7 +33,7 @@ Provider identity is separate from participant role. Claude or an OpenAI model c
 
 ## Information boundaries
 
-These are the target role boundaries for the complete workbench. The current command exposes only pending task fields; permitted prior work, hints, and role-specific teacher/evaluator views remain future work.
+These are the target role boundaries for the complete workbench. The archived-session projection exposes only pending task fields. The separate manifest-based episode runner now supplies its own learner/teacher/evaluator views; richer session context and an adapter connecting these two interfaces remain future work.
 
 | View | Permitted material | Excluded material |
 | --- | --- | --- |

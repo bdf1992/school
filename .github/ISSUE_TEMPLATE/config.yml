@@ -2,5 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: Report a security vulnerability
     url: https://github.com/bdf1992/school/blob/main/SECURITY.md
-    about: Read School's private reporting instructions before sharing vulnerability details.
-
+    about: Read the private reporting process before sharing vulnerability details.

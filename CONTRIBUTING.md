@@ -1,6 +1,6 @@
 # Contributing to School
 
-Bug reports, focused fixes, documentation, reviews, and testing are welcome. School adapts the LearnHarness foundation for teaching and evaluating people, local language models, and agents. The [remodeling issue](https://github.com/bdf1992/school/issues/1), [direction](docs/school.md), and [glossary](CONTEXT.md) describe this fork's purpose.
+Bug reports, focused fixes, documentation, reviews, and testing are welcome. School is a maintainer-led fork of LearnHarness with a deliberate core learning experience.
 
 ## Project direction
 
@@ -12,12 +12,10 @@ Plugins are the intended home for optional capabilities that do not belong in co
 
 ## Before starting
 
-Check School's [issues](https://github.com/bdf1992/school/issues) and [PRs](https://github.com/bdf1992/school/pulls) for related work. **In progress** means someone is already working on the problem; coordinate before starting a parallel implementation. A tracking item is not, by itself, agreement to implement a proposal.
+Check existing issues and PRs, starting with [the remodeling issue](https://github.com/bdf1992/school/issues/1), for related work. **In progress** means someone is already working on the problem; coordinate before starting a parallel implementation. A board item is not, by itself, agreement to implement a proposal.
 
-- [School issues](https://github.com/bdf1992/school/issues): concrete bugs, implementation work, and design proposals. Explain the problem, proposed behavior, and relevant alternatives.
-- [School pull requests](https://github.com/bdf1992/school/pulls): implementations and their review.
-
-Use School's repository for fork-specific support. Upstream LearnHarness remains a separately maintained project; preserve its authorship and distinguish upstream behavior from changes introduced here.
+- [Issues](https://github.com/bdf1992/school/issues): concrete bugs and agreed implementation work.
+- Design proposals belong in a School issue. Explain the problem, proposed behavior, and relevant alternatives; keep decisions in the issue so others can find the context.
 
 ## Pull requests
 
@@ -51,7 +49,8 @@ Maintainers decide project direction and what is accepted. Review may lead to re
 
 Where suitable, we build on contributors’ implementations and work through revisions with their authors. We may integrate a contribution with finishing changes while preserving authorship and appropriate credit; adopting part of a PR is not acceptance of the whole proposal.
 
-A PR does not guarantee acceptance or inclusion in a particular release. Integration and publication are separate; consult School's [tracking issues](https://github.com/bdf1992/school/issues) and [releases](https://github.com/bdf1992/school/releases) for current status.
+A PR does not guarantee acceptance or inclusion in a particular release. Integration and publication are separate; consult the [remodeling issue](https://github.com/bdf1992/school/issues/1) and [releases](https://github.com/bdf1992/school/releases) for current status.
 
-School retains LearnHarness's [AGPL-3.0-only license](LICENSE) and original contributor credit.
+**Interested in contributing regularly?** Open a School issue describing the area you want to help with. Upstream maintainers and community channels do not maintain this fork.
 
+School preserves LearnHarness authorship and is licensed under [AGPL-3.0-only](LICENSE).

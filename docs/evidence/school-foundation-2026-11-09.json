@@ -1,0 +1,161 @@
+{
+  "date": "2026-11-09",
+  "runtime": {
+    "node": "26.13.0",
+    "next": "16.4.3",
+    "platform": "Linux workspace"
+  },
+  "upstream_base": "da08cb5f7d098598ba963c6689b22054c9f2a5a3",
+  "preserved_foundation_commit": "0ebc02d7a6a0642502f3a269b7909e4e575d18fe",
+  "checks": {
+    "typecheck": "PASS",
+    "production_build": "PASS; includes /api/school/episodes",
+    "lint": {
+      "errors": 0,
+      "warnings": 1,
+      "warning": "pre-existing tests/source-name-ui.test.tsx:26 next/no-head-element"
+    },
+    "full_suite": {
+      "command": "NODE_ENV=test node --import tsx --test --test-concurrency=4 tests/*.test.ts tests/*.test.tsx",
+      "tests": 3607,
+      "suites": 575,
+      "passed": 3602,
+      "failed": 1,
+      "skipped": 4,
+      "duration_ms": 91793.962345,
+      "remaining_failure": {
+        "test": "tests/claude-code-tool-bridge.test.ts: binds 127.0.0.1",
+        "cause": "os.networkInterfaces() fails with uv_interface_addresses errno 1 in this workspace",
+        "isolated_reproduction": "node -e 'require(\"node:os\").networkInterfaces()' fails without loading repository code",
+        "test_left_unchanged": true
+      }
+    },
+    "school_episode_scenarios": {
+      "passed": 22,
+      "failed": 0
+    },
+    "preserved_foundation_scenarios": {
+      "passed": 28,
+      "failed": 0
+    },
+    "graph_and_extraction_scenarios": {
+      "passed": 114,
+      "failed": 0,
+      "exhaustive_closure_comparisons": 4096
+    },
+    "configured_custom_transport": {
+      "loopback_fake_http_calls": 7,
+      "calls_on_identical_replay": 0,
+      "external_requests": 0
+    },
+    "production_http": {
+      "runtime": "production standalone Next server, Node26.13.0",
+      "checks": {
+        "school_title": true,
+        "fixture_record_get": true,
+        "cross_origin_refused": true,
+        "invalid_manifest_refused": true,
+        "missing_provider_retained_without_dispatch": true,
+        "failed_operation_replayed_without_dispatch": true
+      },
+      "live_provider_requests": 0
+    },
+    "independent_checks": {
+      "dependency_maps_unchanged": true,
+      "upstream_author_license_preserved": true,
+      "independent_fixture_check": {
+        "calls": 7,
+        "raw_before_grade": true,
+        "participant_field_boundaries": true,
+        "byte_answers_recomputed": true,
+        "baseline_target": [
+          1,
+          2
+        ],
+        "retry_target": [
+          2,
+          2
+        ],
+        "retention": [
+          1,
+          1
+        ]
+      },
+      "record_sha256": "8bc2d3646752bf1f03865fc86bf222641126bfbd3dc9d623b9eb970eba794264"
+    }
+  },
+  "review_fixes": [
+    "Conjunctive graph consequences and identity-merged premises",
+    "Held-out input overlap cannot evade comparison by observation ID/order",
+    "Explicit elapsed-deadline checks prevent continued dispatch after synchronous overruns",
+    "Oversized terminal reply fingerprint retained without claiming unknown completion",
+    "Cold subscription snapshot refreshed before readiness/admission",
+    "Fixture CLI does not initialize unrelated graph migrations",
+    "School default release feed/app identity; Debian packaging deferred pending maintainer metadata"
+  ],
+  "not_qualified": [
+    "Live local LLM, Claude or OpenAI inference quality",
+    "Loaded model/weight artifact identity",
+    "Actual training, adapter/weight updates, adoption or generalization",
+    "Native School signing, installation and real update delivery",
+    "Universal hard provider token or spending ceilings",
+    "Exactly-once remote execution or billing",
+    "Complete suite green in this restricted host"
+  ],
+  "source_sha256": {
+    ".github/ISSUE_TEMPLATE/bug_report.yml": "56d9d5b07ca8ef2225a60e6a0cfe864d61c80a53092626fe213f4efe431b58da",
+    ".github/ISSUE_TEMPLATE/config.yml": "59e4ba598044db69d8e39a55b9b6021ec7802a7434cde0cc355b2051a7458067",
+    ".github/ISSUE_TEMPLATE/question.yml": "891a9bf9f7c5ad8482ea4bfea8814296953728efacf9f77b02767c5f09925d5d",
+    ".github/workflows/notify-website.yml": "11c15af8f7641e65712079faffde2b11875fe3f44315b39b11c4bae147bc1b04",
+    ".github/workflows/release.yml": "01df1ddd934d21f896114c34039063626e49877240c376d7bc07ba8deb30ffab",
+    "CONTEXT.md": "27ce7b2be38fdb7df5c9d4288d8a08253b9ae8401fa42fd7cb8f4c65dd9afa93",
+    "CONTRIBUTING.md": "d03f7778b8b4fbe3713b43199562027c96055a8e0ba8e6401f0905c54852ba02",
+    "README.md": "dd6d9a9d3ca85dd29ad50acb1be7ffe594e6d595cdd2220feda097a7c380e5bd",
+    "SECURITY.md": "09337b69177d2138356506c06ae86d06d5f3e149c0d571f5e4b38e2ed68c4bd1",
+    "app/api/school/episodes/route.ts": "26ecd60ce614945d023103e0c1971ae888296052c275b794719e99a2be0f0d09",
+    "app/layout.tsx": "c660b9d9b77083a637222ae8670980d4fc2ad70a346670d3d4c14aae625895b4",
+    "components/settings/chatgpt-connection.tsx": "def7061d27223fccbf557a7fb79701969f97ac1f90a1624a4435b188cae910c3",
+    "components/settings/claude-code-status.tsx": "b9e63b200d49873b098d8bfcbdaeb3aca7e6c07b118a08c9856a61e529e549dd",
+    "components/settings/model-menu.tsx": "67612d423480acb8fa22462893aa22db840cbfbab91ee6886a2a016d9e1c488d",
+    "components/settings/subscription-connections.tsx": "a72c34bc654f6f6d553b24285ba6ba85b60fc70e536d4ff22307c9eb65b6b556",
+    "components/sidebar.tsx": "1f99756e908a9096d5cfa05f931ea83aa22ec2f838ab9892f4086514e8e7ce96",
+    "components/update-banner.tsx": "b47db5d6bad7c1c188a7820e5d1e55378cb705e36974d9638bf6416deee7a847",
+    "docs/README.md": "7c2f290f540c81e6e616dceaabc8aba1e2f03c0536bb2fe4b9fdd0ecdcf66e36",
+    "docs/architecture.md": "2a5d9dd44fe675d4f633ad0acd51e52058d3d0813df19b16195759dab17214fc",
+    "docs/desktop-release.md": "abee4f754182287365fea7529108e60c1e19b235d7977ce1df8130398d3628a4",
+    "docs/development.md": "8836ce97a3f366bed1ed4c7b788c6c803f2589e2592fa4659042647222de4fe2",
+    "docs/getting-started.md": "623bdb01c3002159d727360c26fbfa9d77bacdcdc4beaa5f9a9c471a0da65509",
+    "docs/school-episodes.md": "43e2594936bc77b4dbc7a3f24fca206624749ec7272fba45c5d33149b9e7f6a7",
+    "docs/school-intent.md": "4f7c905ad8badf7b54c5811b14c6d3a60816cb2ca10c5f5390562147ef985b43",
+    "docs/school.md": "13589038d1802903d080c8d30b749b4d7a6e14de7899f20fa01ed822436b6332",
+    "electron-builder.yml": "8df0e8a940e5dbc1a895fbe2aca2f25659a62463b93f21dabbdab9e714533d04",
+    "electron/main.cjs": "2004be980592927e8831eff5e108bf8bc5d5894bda5449627ea4f3c5a4d1c6da",
+    "examples/school/byte-parity.json": "ed676addcbd1be493b1571829d5152b981edfa78781ff4befbb67f0f68199056",
+    "examples/school/scripted-parity.ts": "72347b74cf3e813822fbaf6d5dbcb91e9dbbd67e2d283748a4669251265f024d",
+    "package-lock.json": "91a8f651f0be96530d98ff85bc8ee447b1e20d6c4db002f8826607e52b662daa",
+    "package.json": "14d56edcc7a179fb7fe88f17aadbca3c1cdde672a39297e6ed66a9d974035ae2",
+    "scripts/school-episode.ts": "11c56507acf961068e12a3fb875f981cc58f0f3f2b8d25b77f8e5e171f289324",
+    "scripts/school-learner-view.ts": "61eeb2f07ad9b9c5d6f5b574e28d86723c51d682bd1e401343303f726578c80b",
+    "scripts/verify-release.ts": "efcfab0878cbc24266bd0b682c0a31309766ddfcd7f1d67c69f4b24bdd86f2a0",
+    "src/agent/models.ts": "0cb9791f798da5d6fd755be8390411cdc5222b8e11053f016fe8d659de56eda0",
+    "src/agent/school-participant.ts": "ed18b24e741163b3c1da9fb07ea0625fdb9ab6c57e165a26eff1b1ec704788a7",
+    "src/core/graph.ts": "2957802ff031e40809d339a65e23aafe851b1a982f9081e7d50a06e5d899f839",
+    "src/core/learner-view.ts": "fb002cdfec93c6cec6b53447f6d85ad509b0ccd4b809ceb3312e92513b1a0752",
+    "src/core/school-episode.ts": "5ee03abcedfb35e78e9dca3a6c1232927b6e6de4a2b89be8d0b688d2d1ac1711",
+    "src/server/index.ts": "04f898106dc5febf0004ebde7b8474ded535c03912f5260811e330dedbf6d6d8",
+    "src/server/school-episodes.ts": "d169544b5273a3a71d25a5b7cfbd7b118083174476377904a049a9b7d6e0768d",
+    "src/store/school-episodes.ts": "48e47cdb99ae72eedd75459ab38a919f4bddad90f46fbda74c74da3382c473db",
+    "tests/desktop-platform.test.ts": "f3b304a4b105eef29e5386880ff35aad8fbd81ad07e341cb0ae1a2e5775042a2",
+    "tests/graph-consequences.test.ts": "7340dc566648decf8ab3c2ab4ef9918bfffc6be5166bb71054975d6f854cfb8e",
+    "tests/provider-neutral-agents.test.ts": "94daf644318e9c966ec82a9f0e08916a8d21fa301f790c91c550a15612231e29",
+    "tests/school-episode-cli.test.ts": "923737ee8d5d23024d4dc75380a1f14a53f44218361288598129531ff3499433",
+    "tests/school-episode-provider.test.ts": "f6ad944607d38b1570733765cf4c171030c885f61decb7312c9fa7f06c8a17a1",
+    "tests/school-episode-subscription.test.ts": "c696b5f4483dfbad2518d48d9a50422e17b6a4be3fc8df14b5922a377307b90d",
+    "tests/school-episode.test.ts": "a9d60f7b888d4739626f4dfce5ad8faf257d0ceb8bf1b5dc84b50937c843ae20",
+    "tests/school-graph-preservation.test.ts": "a5bad56fcd2c658e152b1839bc67eaa1fddb93ddf9394d97db3ddbd163ee999c",
+    "tests/school-learner-view.test.ts": "4af38862346d4c29bf44f5e971d85cdd0dda3173df60c42c200050e7fbf92158",
+    "tests/session-identity.test.ts": "e026e84aa0c6bf1a20a245ff44b8959d6c95b68e1d87e1a33369c62f70c5b9c9",
+    "tests/verify-release.test.ts": "15bfe8fc215db2019f9e1a16972f481caccae10877884754cbb4ceda3b6330a3",
+    "tests/web-subscription-client.test.tsx": "82537c7d0040b9c7cf9c26a9666bfbfeebc2d57df82a2d3137c3b61023bc5dbc"
+  }
+}
