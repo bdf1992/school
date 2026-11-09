@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import fs, { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { after, test } from "node:test";
+import { after, mock, test } from "node:test";
 import { SchoolRunStore } from "../src/store/school-runs.ts";
 import { SchoolEpisodeStore } from "../src/store/school-episodes.ts";
 import { SchoolClassStore } from "../src/store/school-classes.ts";
@@ -189,25 +190,38 @@ test("queue HTTP is owner-only, lists no private manifest, and rejects fixture o
 	assert.equal((await schoolRunPost(request({ action: "drain", maxCalls: 100000 }), options)).status, 400);
 });
 
-test("a crashed enqueue or worker start leaves only staging residue, never a visible incomplete run or lock", () => {
-	const options = setup(), queue = options.runStore.root;
-	// A crash before publication leaves its file under staging only.
-	mkdirSync(path.join(queue, "staging", "crashed-enqueue"), { recursive: true });
-	writeFileSync(path.join(queue, "staging", "crashed-enqueue", "run.json"), "{\"partial\":");
-	mkdirSync(path.join(queue, "runs"), { recursive: true });
+/** Fail the write of one named file, as a crash between the steps that publish it would. */
+function crashWriting(name: string, action: () => unknown): void {
+	const real = fs.writeFileSync;
+	mock.method(fs, "writeFileSync", (file: fs.PathOrFileDescriptor, ...rest: unknown[]) => {
+		if (String(file).includes(name)) throw new Error(`crash writing ${name}`);
+		return (real as (...args: unknown[]) => void)(file, ...rest);
+	});
+	syncBuiltinESMExports();
+	try { assert.throws(action, new RegExp(`crash writing ${name}`)); }
+	finally { mock.restoreAll(); syncBuiltinESMExports(); }
+}
+
+test("a crash while enqueueing leaves no visible run, so the queue still lists and the same run can be enqueued", () => {
+	const options = setup(), manifest = input();
+	crashWriting("run.json", () => options.runStore.enqueue({ manifest }, "SCRIPTED_FIXTURE", at));
 	assert.deepEqual(options.runStore.list(), []);
-	const run = enqueue(options);
-	assert.equal(existsSync(path.join(queue, "runs", run.operationId, "run.json")), true);
-	assert.deepEqual(options.runStore.list().map((item) => item.operationId), [run.operationId]);
-	assert.equal(options.runStore.enqueue({ manifest: run.manifest }, "SCRIPTED_FIXTURE", at).created, false);
+	assert.equal(options.runStore.read(manifest.operationId), null);
+	assert.equal(options.runStore.enqueue({ manifest }, "SCRIPTED_FIXTURE", at).created, true);
+	assert.deepEqual(options.runStore.list().map((run) => run.operationId), [manifest.operationId]);
+});
+
+test("a crash while taking the worker lock leaves no ownerless lock", () => {
+	const options = setup();
+	crashWriting("owner.json", () => options.runStore.acquireWorker());
+	assert.equal(options.runStore.recoverDeadWorker(), false);
 	const lease = options.runStore.acquireWorker();
-	assert.equal(existsSync(path.join(queue, "worker", "owner.json")), true, "the lock appears with its owner");
 	options.runStore.releaseWorker(lease);
-	assert.equal(existsSync(path.join(queue, "worker")), false);
-	options.runStore.releaseWorker(options.runStore.acquireWorker());
-	assert.equal(readdirSync(path.join(queue, "staging")).filter((name) => name !== "crashed-enqueue").length, 0, "publication and release leave no staging directories");
-	// An empty directory claimed outside this protocol is still refused, not filled in.
-	const claimed = input();
-	mkdirSync(path.join(queue, "runs", claimed.operationId));
-	assert.throws(() => options.runStore.enqueue({ manifest: claimed }, "SCRIPTED_FIXTURE", at), errorCode("RUN_CORRUPT"));
+	assert.equal(existsSync(path.join(options.runStore.root, "worker")), false);
+});
+
+test("an empty run directory claimed outside the store is refused, not filled in", () => {
+	const options = setup(), manifest = input();
+	mkdirSync(path.join(options.runStore.root, "runs", manifest.operationId), { recursive: true });
+	assert.throws(() => options.runStore.enqueue({ manifest }, "SCRIPTED_FIXTURE", at), errorCode("RUN_CORRUPT"));
 });

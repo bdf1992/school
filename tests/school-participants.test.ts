@@ -2,10 +2,11 @@
  * owned loopback servers; no configured account or external model is used. */
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import fs, { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { after, test } from "node:test";
+import { after, mock, test } from "node:test";
 import { createFauxCore, fauxAssistantMessage, normalizeContext } from "@earendil-works/pi-ai";
 import type { PiEngine } from "../src/agent/models.ts";
 import { parseSchoolConnectionDefinition, SchoolParticipantError, schoolConnectionCredentialVariable, type SchoolConnectionDefinition } from "../src/core/school-participants.ts";
@@ -190,14 +191,18 @@ test("configured routes reuse the actual callback and refuse runtime drift or wi
 	assert.equal((await complete(prepared.engine)).stopReason, "stop"); assert.equal(dispatched, 1);
 });
 
-test("a crashed registration leaves only staging residue, and the registry still lists and registers", () => {
-	const store = registry();
-	mkdirSync(path.join(store.root, "staging", "crashed-registration"), { recursive: true });
-	writeFileSync(path.join(store.root, "staging", "crashed-registration", "definition.json"), "{\"partial\":");
-	assert.deepEqual(store.list(), { participants: [], states: [], connections: [] });
-	register(store);
-	const listed = store.list();
-	assert.deepEqual([listed.participants.length, listed.states.length, listed.connections.length], [1, 1, 1]);
-	assert.equal(store.createParticipant({ version: 1, id: "learner", label: "learner", kind: "model" }).created, false);
-	assert.deepEqual(readdirSync(path.join(store.root, "staging")), ["crashed-registration"]);
+test("a crash while registering leaves no visible entry, so the registry still lists and the same entry registers", () => {
+	const store = registry(), definition = { version: 1, id: "learner", label: "learner", kind: "model" };
+	const real = fs.openSync;
+	mock.method(fs, "openSync", (file: fs.PathLike, ...rest: unknown[]) => {
+		if (String(file).includes("definition")) throw new Error("crash writing definition");
+		return (real as (...args: unknown[]) => number)(file, ...rest);
+	});
+	syncBuiltinESMExports();
+	try { assert.throws(() => store.createParticipant(definition), /crash writing definition/); }
+	finally { mock.restoreAll(); syncBuiltinESMExports(); }
+	assert.deepEqual(store.list().participants, []);
+	assert.equal(store.inspectParticipant("learner"), null);
+	assert.equal(store.createParticipant(definition).created, true);
+	assert.equal(store.list().participants.length, 1);
 });
