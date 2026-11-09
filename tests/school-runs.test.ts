@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -187,4 +187,27 @@ test("queue HTTP is owner-only, lists no private manifest, and rejects fixture o
 	assert.equal(options.store.read(manifest.operationId), null);
 	assert.equal(schoolRunGet(new Request("http://localhost:3000/api/school/runs?operationId=a&operationId=b"), options).status, 400);
 	assert.equal((await schoolRunPost(request({ action: "drain", maxCalls: 100000 }), options)).status, 400);
+});
+
+test("a crashed enqueue or worker start leaves only staging residue, never a visible incomplete run or lock", () => {
+	const options = setup(), queue = options.runStore.root;
+	// A crash before publication leaves its file under staging only.
+	mkdirSync(path.join(queue, "staging", "crashed-enqueue"), { recursive: true });
+	writeFileSync(path.join(queue, "staging", "crashed-enqueue", "run.json"), "{\"partial\":");
+	mkdirSync(path.join(queue, "runs"), { recursive: true });
+	assert.deepEqual(options.runStore.list(), []);
+	const run = enqueue(options);
+	assert.equal(existsSync(path.join(queue, "runs", run.operationId, "run.json")), true);
+	assert.deepEqual(options.runStore.list().map((item) => item.operationId), [run.operationId]);
+	assert.equal(options.runStore.enqueue({ manifest: run.manifest }, "SCRIPTED_FIXTURE", at).created, false);
+	const lease = options.runStore.acquireWorker();
+	assert.equal(existsSync(path.join(queue, "worker", "owner.json")), true, "the lock appears with its owner");
+	options.runStore.releaseWorker(lease);
+	assert.equal(existsSync(path.join(queue, "worker")), false);
+	options.runStore.releaseWorker(options.runStore.acquireWorker());
+	assert.equal(readdirSync(path.join(queue, "staging")).filter((name) => name !== "crashed-enqueue").length, 0, "publication and release leave no staging directories");
+	// An empty directory claimed outside this protocol is still refused, not filled in.
+	const claimed = input();
+	mkdirSync(path.join(queue, "runs", claimed.operationId));
+	assert.throws(() => options.runStore.enqueue({ manifest: claimed }, "SCRIPTED_FIXTURE", at), errorCode("RUN_CORRUPT"));
 });

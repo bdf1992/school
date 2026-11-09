@@ -119,3 +119,13 @@ test("exposure receipts bind exact supplied views without carrying answer or mem
 	assert.equal((await schoolExposureForCall({ ...call, phase: "lesson", role: "teacher" }, 2)).condition, "teaching");
 	await assert.rejects(schoolExposureForCall(call as SchoolCallRecord, -1), /nonnegative/);
 });
+
+test("generated experiments fit every planned call inside the episode limit", () => {
+	for (const memory of [false, true]) {
+		const manifest = generateSchoolExperiment({ seed: 19, operationId: "factor-limits", memory });
+		const planned = schoolExperimentCallCount(manifest.evaluation.length, manifest.experiment);
+		assert.ok(planned * manifest.limits.callTimeoutMs <= manifest.limits.episodeTimeoutMs, `${planned} calls x ${manifest.limits.callTimeoutMs} ms exceeds ${manifest.limits.episodeTimeoutMs} ms`);
+		assert.equal(parseSchoolEpisode(manifest).limits.callTimeoutMs, manifest.limits.callTimeoutMs);
+	}
+	assert.equal(generateSchoolExperiment({ seed: 19, operationId: "factor-limits" }).limits.callTimeoutMs, 30000, "the ordinary protocol keeps its existing limit");
+});

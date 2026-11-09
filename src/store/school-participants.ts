@@ -1,6 +1,6 @@
 /** Immutable participant identities, state snapshots and named endpoint revisions. */
 import { createHash, randomUUID } from "node:crypto";
-import { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
+import { closeSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
 	MAX_SCHOOL_REGISTRY_BYTES, parseSchoolConnectionDefinition, parseSchoolParticipantDefinition,
@@ -85,16 +85,24 @@ export class SchoolParticipantStore {
 		let directory = this.root;
 		for (const part of parts.slice(0, -1)) { directory = path.join(directory, part); ensureDirectory(directory); }
 		directory = path.join(directory, parts.at(-1)!);
-		try { mkdirSync(directory, { mode: 0o700 }); }
-		catch (error) {
-			if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+		const existing = () => {
 			const prior = this.inspect(collection, id, revision, parse)!;
 			if (prior.sha256 !== sha256) throw new SchoolParticipantError("IMMUTABLE_REGISTRY_CONFLICT", "This identity or revision already has a different definition; register an explicit new identity or revision", 409);
 			return { created: false, ...prior };
+		};
+		// POSIX rename replaces an empty directory; an existing path is never reused.
+		if (exists(directory)) return existing();
+		// Write the entry outside the registry tree and publish its directory with
+		// one rename, so a crash never leaves a visible entry without its definition.
+		const staging = path.join(this.root, "staging", randomUUID());
+		mkdirSync(staging, { recursive: true, mode: 0o700 });
+		writeDurable(path.join(staging, "definition.json"), { version: 1, definition, sha256 });
+		try { renameSync(staging, directory); }
+		catch (error) {
+			rmSync(staging, { recursive: true, force: true });
+			if (!exists(directory)) throw error;
+			return existing();
 		}
-		const temporary = path.join(directory, `definition-${randomUUID()}.tmp`);
-		writeDurable(temporary, { version: 1, definition, sha256 });
-		renameSync(temporary, path.join(directory, "definition.json"));
 		return { created: true, definition, sha256 };
 	}
 	inspectParticipant(id: string): SchoolRegistryEntry<SchoolParticipantDefinition> | null { return this.inspect("participants", id, undefined, parseSchoolParticipantDefinition); }

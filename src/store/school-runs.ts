@@ -28,6 +28,22 @@ export class SchoolRunStore {
 		writeFileSync(temporary, JSON.stringify(value, null, 2) + "\n", { flag: "wx", mode: 0o600 });
 		renameSync(temporary, filename);
 	}
+	/** Build a directory and its file outside the visible tree, then publish it
+	 * with one rename, so a crash never leaves a visible directory without its file.
+	 * Returns false when the target already exists. */
+	private publishDirectory(target: string, filename: string, value: string): boolean {
+		// POSIX rename replaces an empty directory; an existing path is never reused.
+		if (existsSync(target)) return false;
+		const staging = path.join(this.root, "staging", randomUUID());
+		mkdirSync(staging, { recursive: true, mode: 0o700 });
+		writeFileSync(path.join(staging, filename), value, { flag: "wx", mode: 0o600 });
+		try { renameSync(staging, target); return true; }
+		catch (error) {
+			rmSync(staging, { recursive: true, force: true });
+			if (existsSync(target)) return false;
+			throw error;
+		}
+	}
 	read(id: string): SchoolRunRecord | null {
 		const directory = this.directory(id);
 		try { lstatSync(directory); } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return null; throw error; }
@@ -67,10 +83,11 @@ export class SchoolRunStore {
 		}
 		const run: SchoolRunRecord = { version: 1, operationId: parsed.manifest.operationId, ...parsed, requestSha256: digest(parsed, evidence), evidence, status: "QUEUED", plannedCalls: schoolPlannedCalls(parsed.manifest), createdAt: now, updatedAt: now };
 		mkdirSync(path.join(this.root, "runs"), { recursive: true, mode: 0o700 });
-		try { mkdirSync(this.directory(run.operationId), { mode: 0o700 }); }
-		catch (error) { if ((error as NodeJS.ErrnoException).code === "EEXIST") throw new SchoolRunError("RUN_OCCUPIED", "Run identity is already occupied; inspect before retrying", 409); throw error; }
-		this.atomic(path.join(this.directory(run.operationId), "run.json"), run);
-		return { created: true, run };
+		if (this.publishDirectory(this.directory(run.operationId), "run.json", JSON.stringify(run, null, 2) + "\n")) return { created: true, run };
+		// A concurrent identical request may have published first.
+		const raced = this.read(run.operationId);
+		if (raced && raced.requestSha256 === run.requestSha256) return { created: false, run: raced };
+		throw new SchoolRunError("RUN_OCCUPIED", "Run identity is already occupied; inspect before retrying", 409);
 	}
 	requestCancel(id: string, now = new Date().toISOString()): SchoolRunRecord {
 		const run = this.read(id);
@@ -87,14 +104,10 @@ export class SchoolRunStore {
 	 * its RUNNING items remain unresolved until explicit reconciliation. */
 	acquireWorker(): SchoolWorkerLease {
 		mkdirSync(this.root, { recursive: true, mode: 0o700 });
-		const lock = path.join(this.root, "worker");
-		try { mkdirSync(lock, { mode: 0o700 }); }
-		catch (error) {
-			if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-			throw new SchoolRunError("WORKER_BUSY", "A worker owns this queue. Recover a verified dead worker explicitly before continuing.", 409);
-		}
 		const lease = { token: randomUUID(), pid: process.pid, host: hostname() };
-		writeFileSync(path.join(lock, "owner.json"), JSON.stringify(lease), { flag: "wx", mode: 0o600 });
+		// The lock directory appears together with its owner record, so a crash
+		// cannot leave an ownerless lock that recovery is unable to verify.
+		if (!this.publishDirectory(path.join(this.root, "worker"), "owner.json", JSON.stringify(lease))) throw new SchoolRunError("WORKER_BUSY", "A worker owns this queue. Recover a verified dead worker explicitly before continuing.", 409);
 		return lease;
 	}
 	private assertWorker(lease: SchoolWorkerLease): void {
@@ -105,7 +118,11 @@ export class SchoolRunStore {
 	}
 	releaseWorker(lease: SchoolWorkerLease): void {
 		this.assertWorker(lease);
-		rmSync(path.join(this.root, "worker"), { recursive: true });
+		// Rename first so a crash mid-removal cannot leave a lock without its owner.
+		const released = path.join(this.root, "staging", `released-${lease.token}`);
+		mkdirSync(path.dirname(released), { recursive: true, mode: 0o700 });
+		renameSync(path.join(this.root, "worker"), released);
+		rmSync(released, { recursive: true, force: true });
 	}
 	recoverDeadWorker(): boolean {
 		mkdirSync(this.root, { recursive: true, mode: 0o700 });

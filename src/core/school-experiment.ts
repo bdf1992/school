@@ -218,6 +218,9 @@ export function generateSchoolExperiment(input: {
 	learner?: SchoolParticipant; teacher?: SchoolParticipant;
 }): SchoolExperimentManifest {
 	const { teaching, evaluation, transfer } = generatedFactorizedCases(input.seed);
+	const experiment: SchoolExperimentProtocol = { version: 1, family: SCHOOL_EXPERIMENT_FAMILY, seed: input.seed, cold: true, ...(input.memory ? { memory: true as const } : {}), transfer, disclosure: "after-completion" };
+	// Every planned call must fit inside the episode limit at its own worst case.
+	const episodeTimeoutMs = 600000, callTimeoutMs = Math.min(30000, Math.floor(episodeTimeoutMs / schoolExperimentCallCount(evaluation.length, experiment)));
 	return {
 		version: 2, operationId: input.operationId,
 		class: { classId: "learning-dynamics", revision: "1", unitId: "factorized-step" },
@@ -225,8 +228,8 @@ export function generateSchoolExperiment(input: {
 		learner: input.learner ?? { id: "local-learner", model: { provider: "custom", id: "REPLACE_WITH_CONFIGURED_LOCAL_MODEL_ID", thinkingLevel: "off" } },
 		teacher: input.teacher ?? { id: "teacher", model: { provider: "anthropic", id: "REPLACE_WITH_CONFIGURED_TEACHER_MODEL_ID" } },
 		teaching, evaluation,
-		limits: { maxOutputTokens: 512, callTimeoutMs: 30000, episodeTimeoutMs: 600000 },
-		experiment: { version: 1, family: SCHOOL_EXPERIMENT_FAMILY, seed: input.seed, cold: true, ...(input.memory ? { memory: true } : {}), transfer, disclosure: "after-completion" },
+		limits: { maxOutputTokens: 512, callTimeoutMs, episodeTimeoutMs },
+		experiment,
 	};
 }
 

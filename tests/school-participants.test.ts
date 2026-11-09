@@ -2,7 +2,7 @@
  * owned loopback servers; no configured account or external model is used. */
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, test } from "node:test";
@@ -188,4 +188,16 @@ test("configured routes reuse the actual callback and refuse runtime drift or wi
 	assert.match((await complete(prepared.engine)).errorMessage ?? "", /Permission withdrawn/); assert.equal(dispatched, 0);
 	permitted = true;
 	assert.equal((await complete(prepared.engine)).stopReason, "stop"); assert.equal(dispatched, 1);
+});
+
+test("a crashed registration leaves only staging residue, and the registry still lists and registers", () => {
+	const store = registry();
+	mkdirSync(path.join(store.root, "staging", "crashed-registration"), { recursive: true });
+	writeFileSync(path.join(store.root, "staging", "crashed-registration", "definition.json"), "{\"partial\":");
+	assert.deepEqual(store.list(), { participants: [], states: [], connections: [] });
+	register(store);
+	const listed = store.list();
+	assert.deepEqual([listed.participants.length, listed.states.length, listed.connections.length], [1, 1, 1]);
+	assert.equal(store.createParticipant({ version: 1, id: "learner", label: "learner", kind: "model" }).created, false);
+	assert.deepEqual(readdirSync(path.join(store.root, "staging")), ["crashed-registration"]);
 });
