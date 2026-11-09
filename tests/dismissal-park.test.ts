@@ -157,7 +157,7 @@ describe("the dismiss route — the park contract (202)", () => {
 
 		// Mid-turn: the route cannot validate against stale truth — park.
 		assert.ok(!isTurnRunning(chat));
-		beginTurn(chat);
+		const lease = beginTurn(chat); assert.ok(lease);
 		const res = await dismissRoute.POST(
 			new Request(`http://test/api/chats/${chat}/dismiss`, {
 				method: "POST",
@@ -179,7 +179,7 @@ describe("the dismiss route — the park contract (202)", () => {
 
 		// The settle: persistTurn (done) → applyParkedDismissal → endTurn.
 		applyParkedDismissal(chatStore, chat);
-		endTurn(chat);
+		endTurn(chat, lease);
 		assert.equal(danglingQuestionOf(chatStore.getChat(chat)!.messages), null);
 		assert.equal(takeParkedDismissal(chat), null);
 	});

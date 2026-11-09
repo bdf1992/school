@@ -175,17 +175,17 @@ jobs:
         run: |
           case "$RUNNER_OS" in
             macOS)
-              app="dist/mac-arm64/LearnHarness.app/Contents"
+              app="dist/mac-arm64/School.app/Contents"
               payload="$app/Resources/server/standalone"
-              runtime="$app/MacOS/LearnHarness"
+              runtime="$app/MacOS/School"
               ;;
             Windows)
               payload="dist/win-unpacked/resources/server/standalone"
-              runtime="dist/win-unpacked/LearnHarness.exe"
+              runtime="dist/win-unpacked/School.exe"
               ;;
             Linux)
               payload="dist/linux-unpacked/resources/server/standalone"
-              runtime="dist/linux-unpacked/learnharness"
+              runtime="dist/linux-unpacked/school"
               ;;
           esac
           node scripts/smoke-provider-runtime.mjs --standalone "$payload"
@@ -194,20 +194,20 @@ jobs:
         run: |
           case "$RUNNER_OS" in
             macOS)
-              app="dist/mac-arm64/LearnHarness.app/Contents"
-              node scripts/smoke-demo-runtime.mjs --standalone "$app/Resources/server/standalone" --runtime "$app/MacOS/LearnHarness" --browser
+              app="dist/mac-arm64/School.app/Contents"
+              node scripts/smoke-demo-runtime.mjs --standalone "$app/Resources/server/standalone" --runtime "$app/MacOS/School" --browser
               ;;
             Windows)
-              node scripts/smoke-demo-runtime.mjs --standalone dist/win-unpacked/resources/server/standalone --runtime dist/win-unpacked/LearnHarness.exe --browser
+              node scripts/smoke-demo-runtime.mjs --standalone dist/win-unpacked/resources/server/standalone --runtime dist/win-unpacked/School.exe --browser
               ;;
             Linux)
-              xvfb-run -a node scripts/smoke-demo-runtime.mjs --standalone dist/linux-unpacked/resources/server/standalone --runtime dist/linux-unpacked/learnharness --browser
+              xvfb-run -a node scripts/smoke-demo-runtime.mjs --standalone dist/linux-unpacked/resources/server/standalone --runtime dist/linux-unpacked/school --browser
               ;;
           esac
       - name: Save installers and update metadata
         uses: actions/upload-artifact@v7
         with:
-          name: learnharness-${{ matrix.platform }}
+          name: school-${{ matrix.platform }}
           retention-days: 7
           if-no-files-found: error
           path: |
@@ -215,13 +215,12 @@ jobs:
             dist/*.zip
             dist/*.exe
             dist/*.AppImage
-            dist/*.deb
             dist/*.blockmap
             dist/latest*.yml
 
   # The last gate before a human publishes: after ALL three packaging jobs
   # have uploaded, fail the run unless the tag's single draft release holds
-  # exactly the 11 verified assets (4 installers + mac updater ZIP + their
+  # exactly the 10 expected assets (3 installers + mac updater ZIP + their
   # blockmaps + 3 latest*.yml feeds) and the feeds reference those uploads
   # by exact name at the package.json version. Read-only: it never creates,
   # edits, publishes, or deletes anything. Manual rehearsals upload nothing,

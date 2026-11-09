@@ -1141,7 +1141,7 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 		});
 
 		// A live turn is streaming (turn registry + live agent registered).
-		assert.ok(beginTurn(chatId));
+		const lease = beginTurn(chatId); assert.ok(lease);
 		registerLiveAgent(chatId, agent as never);
 
 		const delivery = deliverJobResult(steer); // floats — resolves at settlement
@@ -1152,12 +1152,12 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 		assert.equal(jobStore.getJob(jobId)!.delivery?.status, "pending");
 
 		// Settlement: the run persisted the injected marker.
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 		settleSteers(chatId, [steer as never]);
 		await delivery;
 		assert.equal(jobStore.getJob(jobId)!.status, "done", "delivery resolves at settlement");
 		assert.equal(fired, 0, "never needed a wake");
-		endTurn(chatId);
+		endTurn(chatId, lease);
 	});
 
 	it("a handed marker the run never injected (stopper exit / missed poll) strands at settlement — the idle wake delivers it", async () => {
@@ -1169,16 +1169,16 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 			return 200;
 		});
 
-		assert.ok(beginTurn(chatId));
+		const lease = beginTurn(chatId); assert.ok(lease);
 		registerLiveAgent(chatId, agent as never);
 
 		const delivery = deliverJobResult(steer);
 		await waitFor(() => handed.length === 1, 8000, "handed");
 		// The run settles WITHOUT the marker (question stopper exited before
 		// the follow-up poll) — reconcile against the persisted truth.
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 		settleSteers(chatId, []);
-		endTurn(chatId);
+		endTurn(chatId, lease);
 
 		// The marker returned to pending — the pump's idle wake delivers it.
 		await delivery;
@@ -1198,7 +1198,7 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 			return 200;
 		});
 
-		assert.ok(beginTurn(chat.id));
+		const lease = beginTurn(chat.id); assert.ok(lease);
 		registerLiveAgent(chat.id, agent as never);
 
 		const delivery = deliverJobResult(handoff);
@@ -1207,9 +1207,9 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 		assert.equal(fired.length, 0, "no wake while the prober's turn streams");
 
 		// The prober's turn settles — now the handoff wakes the TEACHER.
-		unregisterLiveAgent(chat.id);
+		unregisterLiveAgent(chat.id, agent as never);
 		settleSteers(chat.id, []);
-		endTurn(chat.id);
+		endTurn(chat.id, lease);
 		await delivery;
 		assert.equal(fired.length, 1);
 		assert.equal(fired[0]![0]!.id, handoff.id, "the handoff rode the wake");
@@ -1247,16 +1247,16 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 		// The learner answers: the handler registers the answer run's agent
 		// BEFORE runPiTurn, so the marker is steered into it synchronously —
 		// it rides the run's START steering poll (first LLM call).
-		assert.ok(beginTurn(chatId));
+		const lease = beginTurn(chatId); assert.ok(lease);
 		registerLiveAgent(chatId, agent as never);
 		assert.equal(handed.length, 1, "registration itself steered the marker in");
 		assert.equal(handed[0]!.id, steer.id);
 
 		// The answer run persisted the marker — the parked pump's wake
 		// re-check resolves it without ever firing a turn.
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 		settleSteers(chatId, [steer as never]);
-		endTurn(chatId);
+		endTurn(chatId, lease);
 		await delivery;
 		assert.equal(fired, 0, "the parked wake never fired — the run delivered");
 		assert.equal(jobStore.getJob(jobId)!.status, "done");
@@ -1308,12 +1308,13 @@ describe("Wave C: live steering handoff + settlement reconciliation", () => {
 		assert.equal(jobStore.getJob(jobId)!.error, undefined);
 		assert.equal(jobStore.getJob(jobId)!.delivery?.status, "pending");
 		const handed: SteerMessage[] = [];
-		assert.ok(beginTurn(chatId));
-		registerLiveAgent(chatId, { steer: (m: SteerMessage) => handed.push(m) } as never);
+		const lease = beginTurn(chatId); assert.ok(lease);
+		const agent = { steer: (m: SteerMessage) => handed.push(m) };
+		registerLiveAgent(chatId, agent as never);
 		assert.deepEqual(handed.map((m) => m.id), [steer.id]);
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 		settleSteers(chatId, [steer]);
-		endTurn(chatId);
+		endTurn(chatId, lease);
 		await delivery;
 	});
 });
@@ -1660,7 +1661,7 @@ describe("abort (src/server/jobs.ts abortJob)", () => {
 		jobStore.updateJob(job.id, { result, status: "done", activity: "finished", delivery: { kind: "result", status: "pending" } });
 
 		// Block the pump's idle gates so the result steer sits QUEUED, not in flight.
-		assert.ok(beginTurn(chat.id));
+		const lease = beginTurn(chat.id); assert.ok(lease);
 		const fired: SteerMessage[] = [];
 		setTurnRunner(async (_cid, input) => {
 			fired.push(...((input as SteerInput).steers as SteerMessage[]));
@@ -1676,7 +1677,7 @@ describe("abort (src/server/jobs.ts abortJob)", () => {
 		assert.equal(jobStore.getJob(job.id)!.status, "done");
 		assert.equal(jobStore.getJob(job.id)!.error, undefined);
 
-		endTurn(chat.id); // gates open — whatever is left in the queue fires
+		endTurn(chat.id, lease); // gates open — whatever is left in the queue fires
 		await waitFor(() => fired.length > 0, 8000, "wake fired");
 		assert.equal(fired.length, 1, "exactly one result delivery");
 		assert.equal(fired[0]!.customType, "subagent-steer");
@@ -1869,6 +1870,26 @@ describe("composer steering: steerLiveChat + the deliver-or-requeue lifecycle", 
 		return { handed, agent: { steer: (m: unknown) => handed.push(m) } };
 	}
 
+	it("a settled agent's late cleanup cannot detach its successor", () => {
+		const chatId = chatStore.createChat("steer: stale cleanup").id;
+		trackChat(chatId);
+		const first = fakeAgent();
+		const second = fakeAgent();
+		registerLiveAgent(chatId, first.agent as never);
+		unregisterLiveAgent(chatId, first.agent as never);
+		registerLiveAgent(chatId, second.agent as never);
+		const message = { id: "new-owner-steer", role: "user", content: "For the current agent", timestamp: 1 };
+		try {
+			assert.equal(unregisterLiveAgent(chatId, first.agent as never), false);
+			assert.equal(steerLiveChat(chatId, message as never), true);
+			assert.equal(first.handed.length, 0);
+			assert.deepEqual(second.handed, [message]);
+		} finally {
+			unregisterLiveAgent(chatId, second.agent as never);
+			reconcileUserSteers(chatId, [message] as never);
+		}
+	});
+
 	it("no live turn → false, nothing parked (the client falls back to a plain send)", () => {
 		const chatId = chatStore.createChat("steer: idle").id;
 		const msg = { id: "steer_x1", role: "user", content: "hold on", timestamp: 1 };
@@ -1876,7 +1897,7 @@ describe("composer steering: steerLiveChat + the deliver-or-requeue lifecycle", 
 		const { handed, agent } = fakeAgent();
 		registerLiveAgent(chatId, agent as never); // a later run hands NOTHING
 		assert.equal(handed.length, 0, "nothing was parked by the refused steer");
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 	});
 
 	it("live agent → steered AND parked (the stranding safety net)", () => {
@@ -1889,7 +1910,7 @@ describe("composer steering: steerLiveChat + the deliver-or-requeue lifecycle", 
 		// Re-registering the SAME agent never re-hands (double-handoff guard).
 		registerLiveAgent(chatId, agent as never);
 		assert.equal(handed.length, 1);
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 	});
 
 	it("settlement reconciliation: delivered ids drop, stranded ones ride the NEXT run", () => {
@@ -1903,7 +1924,7 @@ describe("composer steering: steerLiveChat + the deliver-or-requeue lifecycle", 
 
 		// Settlement: the run persisted ONLY the delivered one (the stranded
 		// copy died with the agent — question termination / abort).
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, agent as never);
 		reconcileUserSteers(chatId, [delivered] as never);
 
 		// The chat's next run (the answer turn) picks up the stranded steer.
@@ -1911,7 +1932,7 @@ describe("composer steering: steerLiveChat + the deliver-or-requeue lifecycle", 
 		registerLiveAgent(chatId, next.agent as never);
 		assert.equal(next.handed.length, 1, "exactly the stranded steer rides the next run");
 		assert.deepEqual((next.handed[0] as { id: string }).id, "steer_s1");
-		unregisterLiveAgent(chatId);
+		unregisterLiveAgent(chatId, next.agent as never);
 		reconcileUserSteers(chatId, [stranded, delivered] as never); // cleanup
 	});
 });

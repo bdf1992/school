@@ -808,10 +808,10 @@ describe("session deletion (deleteChatTraces + deleteChatSession, wave 6)", () =
 
 		const { dA } = buildTwoSessionScenario();
 		// 409 — a turn in flight.
-		beginTurn(dA.id);
+		const lease = beginTurn(dA.id); assert.ok(lease);
 		const turnedAway = await deleteChatSession(dA.id, "delete-nodes");
 		assert.deepEqual(turnedAway, { ok: false, status: 409, code: "turn_in_flight", error: "A turn is running in this session — try again when it finishes", jobIds: [] });
-		endTurn(dA.id);
+		endTurn(dA.id, lease);
 		// 409 — running background jobs; a refused delete keeps its notice.
 		rememberTurnFailure(dA.id, "The reply could not be saved.");
 		const job = jobStore.createJob({ kind: "research", chatId: dA.id, toolCallId: "del-call-1" });

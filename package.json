@@ -1,14 +1,14 @@
 {
-	"name": "learnharness",
+	"name": "school",
 	"version": "0.5.0",
 	"license": "AGPL-3.0-only",
 	"author": {
 		"name": "Amos Blomqvist",
 		"email": "255718537+amosblomqvist@users.noreply.github.com"
 	},
-	"homepage": "https://github.com/amosblomqvist/learnharness",
-	"desktopName": "learnharness.desktop",
-	"description": "An agent harness for learning: adaptive teaching, practice, and a persistent knowledge graph.",
+	"homepage": "https://github.com/bdf1992/school",
+	"desktopName": "school.desktop",
+	"description": "A learning and teaching harness for people, local models, and hosted agents.",
 	"type": "module",
 	"private": true,
 	"main": "electron/main.cjs",
@@ -19,9 +19,11 @@
 		"test": "NODE_ENV=test tsx --test tests/*.test.ts tests/*.test.tsx",
 		"lint": "eslint .",
 		"typecheck": "tsc --noEmit",
+		"school:episode": "node --import tsx scripts/school-episode.ts",
+		"school:class": "node --import tsx scripts/school-class.ts",
 		"desktop:dev": "concurrently -k \"next dev\" \"LH_DEV_URL=http://localhost:3000 electron .\"",
 		"dev:fresh": "bash scripts/dev-fresh.sh",
-		"desktop:dist": "rm -rf dist .next/standalone && next build && node scripts/smoke-provider-runtime.mjs && node scripts/build-server.mjs && node scripts/smoke-server.mjs && DEVELOPER_DIR=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer} APPLE_KEYCHAIN_PROFILE=LH_NOTARY APPLE_TEAM_ID=JS6XN22HY6 electron-builder --mac --arm64"
+		"desktop:dist": "rm -rf dist .next/standalone && next build && node scripts/smoke-provider-runtime.mjs && node scripts/build-server.mjs && node scripts/smoke-server.mjs && electron-builder --mac --arm64 --publish never"
 	},
 	"dependencies": {
 		"@earendil-works/pi-agent-core": "1.4.0",
@@ -96,5 +98,15 @@
 		"tailwindcss": "^4.3.3",
 		"tsx": "^4.19.0",
 		"typescript": "^5.6.0"
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/bdf1992/school.git"
+	},
+	"contributors": [
+		{
+			"name": "bdf1992",
+			"url": "https://github.com/bdf1992"
+		}
+	]
 }

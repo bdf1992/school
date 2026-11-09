@@ -1,5 +1,15 @@
 # Documentation
 
+## School
+
+- [Shared vocabulary](../CONTEXT.md) — participants, material, evidence, change, and continuation.
+- [Staged remodeling plan](school.md) — retained foundation roadmap and restricted session projection.
+
+- [Intent and boundaries](school-intent.md) — roles, evidence, AUM ownership, and the remodeling direction.
+- [Classes](school-classes.md) — rosters, curriculum, schedules, peer boundaries, gradebooks, and class-bound episodes.
+- [Model episodes](school-episodes.md) — run the bounded learner/teacher loop, inspect records, and use the API.
+- [Remodeling issue](https://github.com/bdf1992/school/issues/1) — implemented foundation and remaining qualification gates.
+
 ## User guides
 
 - [Getting started](getting-started.md) — connections, models, sessions, dictation, files, and notes imports.
@@ -19,7 +29,7 @@
 
 ## Teaching method
 
-[The theory of learning and teaching](teaching-methodology.md) is the owner's theory underlying the teaching method. It is not a runtime specification or evidence of measured learning outcomes.
+[The theory of learning and teaching](teaching-methodology.md) is the inherited LearnHarness teaching theory. It is an attributed design source, not a runtime specification or evidence of measured learning outcomes.
 
 ## History
 

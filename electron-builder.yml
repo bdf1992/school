@@ -1,4 +1,4 @@
-# electron-builder config — LearnHarness desktop (macOS arm64; Windows/Linux x64).
+# electron-builder config — School desktop (macOS arm64; Windows/Linux x64).
 #
 # Shape (fact-checked 2026-09-17):
 #   - the app's real server (.next/standalone, curated by
@@ -6,11 +6,10 @@
 #     because native .node/dylib can't dlopen from a read-only archive and
 #     server.js process.chdir()s into its own dir;
 #   - the asar holds only the shell (electron/main.cjs + package.json);
-#   - signed + notarized since 2026-10-08 (Developer ID Application cert in
-#     the login keychain; notary credentials in the LH_NOTARY keychain
-#     profile; the profile + team env vars are baked into desktop:dist).
-appId: com.learnharness.LearnHarness
-productName: LearnHarness
+#   - School releases require their own signing/notarization qualification;
+#     upstream signing credentials and release claims are not inherited.
+appId: io.github.bdf1992.school
+productName: School
 directories:
   output: dist
 # Icons (owner ruling, 2026-10-13) — per-platform sources in build/:
@@ -19,7 +18,7 @@ directories:
 #         macOS 26+ renders the true layered icon) + an actool fallback icns
 #         capped at 256px, which scripts/after-pack.cjs swaps for the
 #         hand-packed full-res build/icon.icns (pre-Tahoe keeps 16→1024).
-#         Requires actool ≥ 26: desktop:dist injects DEVELOPER_DIR locally;
+#         Requires actool ≥ 26: configure DEVELOPER_DIR when needed;
 #         the release workflow's mac job runs setup-xcode.
 #   win   build/icon.ico  — generated (16→256) from the flat design by
 #         scripts/make-icons.mjs.
@@ -125,16 +124,11 @@ mac:
   # Laid for the STT milestone (researcher-verified): the TCC mic prompt
   # reads this string; macOS asks regardless of Electron's own handlers.
   extendInfo:
-    NSMicrophoneUsageDescription: "LearnHarness uses the microphone only for speech-to-text input into your sessions."
+    NSMicrophoneUsageDescription: "School uses the microphone only for speech-to-text input into your sessions."
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist
-  # Signing + notarization (flipped 2026-10-08): identity auto-detects the
-  # Developer ID Application certificate from the login keychain;
-  # notarize: true makes electron-builder sign → submit to Apple's notary
-  # service → staple the ticket, all inside this one build (credentials
-  # via the LH_NOTARY keychain profile, env baked into desktop:dist).
-  # Adds minutes per build (Apple's scan queue). Verification battery:
-  # codesign --verify --deep / spctl --assess / stapler validate.
+  # Release builds require School-owned signing and notarization credentials.
+  # No Apple team ID or keychain profile is supplied by package.json.
   notarize: true
 dmg:
   title: "${productName} ${version}"
@@ -171,24 +165,19 @@ linux:
     - target: AppImage
       arch:
         - x64
-    - target: deb
-      arch:
-        - x64
+  # Debian packaging is deferred until School has explicit maintainer metadata.
+  # electron-builder would otherwise route package maintenance to the upstream
+  # author's email, which remains in package.json for attribution.
   artifactName: "${productName}-${version}-${arch}.${ext}"
   category: Education
   # Match Electron's app_id/WM_CLASS to the installed desktop launcher.
   syncDesktopName: true
-  # Both targets update via electron-updater 6.8.9. AppImage replaces its
-  # own file; deb uses dpkg/apt and may request administrator permission.
+  # AppImage updates via electron-updater 6.8.9 by replacing its own file.
 publish:
-  # Update feed = GitHub Releases (decided 2026-10-08): latest-mac.yml +
-  # zip/blockmap live on releases; electron-updater reads them anonymously.
-  # REQUIRES THE REPO TO BE PUBLIC before 0.3.0 ships — anonymous downloads
-  # from a private repo are impossible, and a token baked into the app
-  # would be a leak. desktop:dist passes no --publish flag, so builds never
-  # upload; publishing happens at release time (GH_TOKEN + --publish).
+  # School can only discover its own release assets through the default feed.
+  # No School installer/update is qualified by this source configuration alone.
+  # desktop:dist never publishes; release CI prepares a draft for review.
   - provider: github
-    owner: amosblomqvist
-    repo: learnharness
-    # All three CI jobs contribute assets; only the owner publishes it.
+    owner: bdf1992
+    repo: school
     releaseType: draft

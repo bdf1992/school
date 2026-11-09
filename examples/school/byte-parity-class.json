@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "id": "generative-structures",
+  "revision": "1",
+  "title": "Generative Structures: Bits and States",
+  "roster": [
+    { "participantId": "local-learner", "roles": ["learner"] },
+    { "participantId": "local-peer", "roles": ["learner"] },
+    { "participantId": "teacher", "roles": ["teacher"] }
+  ],
+  "curriculum": {
+    "id": "bits-and-states",
+    "revision": "1",
+    "title": "Distinctions on binary structure",
+    "units": [
+      {
+        "id": "byte-parity",
+        "title": "Parity of a byte",
+        "objectives": [
+          "Distinguish even and odd counts of set bits.",
+          "Use an explicit observation to classify a byte.",
+          "Compare unassisted and lesson-assisted attempts without claiming a weight update."
+        ],
+        "prerequisites": [],
+        "world": { "id": "byte-parity", "revision": "1" }
+      }
+    ]
+  },
+  "schedule": { "mode": "self-paced" },
+  "assessment": { "evaluator": "trimmed-exact-v1", "scale": "case-count" },
+  "peerPolicy": { "work": "private" }
+}

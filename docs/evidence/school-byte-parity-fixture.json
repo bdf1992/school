@@ -1,0 +1,865 @@
+{
+  "version": 1,
+  "operationId": "review-final-001",
+  "manifestSha256": "1e2306882b108fa8a4875c91a8b3f724f7d3e78c57861e81a8faed6e71006d86",
+  "manifest": {
+    "version": 1,
+    "operationId": "review-final-001",
+    "world": {
+      "id": "byte-parity",
+      "revision": "1",
+      "subject": "Parity as a distinction on binary strings",
+      "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+    },
+    "learner": {
+      "id": "scripted-learner",
+      "model": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "thinkingLevel": "off"
+      },
+      "edition": "deterministic fixture; no model weights"
+    },
+    "teacher": {
+      "id": "scripted-teacher",
+      "model": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "thinkingLevel": "off"
+      },
+      "edition": "deterministic fixture; no model weights"
+    },
+    "teaching": [
+      {
+        "id": "teach-even",
+        "question": "Classify this byte.",
+        "observations": [
+          {
+            "id": "bits",
+            "status": "SUFFICIENT",
+            "content": "00000000"
+          }
+        ],
+        "expected": "EVEN"
+      },
+      {
+        "id": "teach-odd",
+        "question": "Classify this byte.",
+        "observations": [
+          {
+            "id": "bits",
+            "status": "SUFFICIENT",
+            "content": "00000001"
+          }
+        ],
+        "expected": "ODD"
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "target-even",
+        "question": "Classify this byte.",
+        "observations": [
+          {
+            "id": "bits",
+            "status": "SUFFICIENT",
+            "content": "10110001"
+          }
+        ],
+        "expected": "EVEN",
+        "split": "target"
+      },
+      {
+        "id": "target-odd",
+        "question": "Classify this byte.",
+        "observations": [
+          {
+            "id": "bits",
+            "status": "SUFFICIENT",
+            "content": "11100000"
+          }
+        ],
+        "expected": "ODD",
+        "split": "target"
+      },
+      {
+        "id": "retention-even",
+        "question": "Classify this byte.",
+        "observations": [
+          {
+            "id": "bits",
+            "status": "SUFFICIENT",
+            "content": "00000011"
+          }
+        ],
+        "expected": "EVEN",
+        "split": "retention"
+      }
+    ],
+    "limits": {
+      "maxOutputTokens": 512,
+      "callTimeoutMs": 30000,
+      "episodeTimeoutMs": 180000
+    }
+  },
+  "evidence": "SCRIPTED_FIXTURE",
+  "status": "COMPLETED",
+  "createdAt": "2026-11-09T06:42:44.762Z",
+  "updatedAt": "2026-11-09T06:42:44.798Z",
+  "calls": [
+    {
+      "id": "review-final-001-1",
+      "phase": "baseline",
+      "role": "learner",
+      "caseId": "target-even",
+      "participant": {
+        "id": "scripted-learner",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Answer the supplied problem using only the supplied observations and any lesson. Return only the requested answer, without explanation or tool calls. Observation status is an author declaration; do not invent missing data. No tools are available.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "problem": {
+          "id": "target-even",
+          "question": "Classify this byte.",
+          "observations": [
+            {
+              "id": "bits",
+              "status": "SUFFICIENT",
+              "content": "10110001"
+            }
+          ]
+        }
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564765:o2lv26l4u3",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "ODD"
+          }
+        ],
+        "api": "faux:1794206564765:o2lv26l4u3",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 166,
+          "output": 1,
+          "cacheRead": 0,
+          "cacheWrite": 166,
+          "totalTokens": 333,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564765
+      },
+      "text": "ODD",
+      "grade": {
+        "caseId": "target-even",
+        "split": "target",
+        "correct": false,
+        "evaluator": "trimmed-exact-v1"
+      }
+    },
+    {
+      "id": "review-final-001-2",
+      "phase": "baseline",
+      "role": "learner",
+      "caseId": "target-odd",
+      "participant": {
+        "id": "scripted-learner",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Answer the supplied problem using only the supplied observations and any lesson. Return only the requested answer, without explanation or tool calls. Observation status is an author declaration; do not invent missing data. No tools are available.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "problem": {
+          "id": "target-odd",
+          "question": "Classify this byte.",
+          "observations": [
+            {
+              "id": "bits",
+              "status": "SUFFICIENT",
+              "content": "11100000"
+            }
+          ]
+        }
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564775:u8gxxcmldkl",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "ODD"
+          }
+        ],
+        "api": "faux:1794206564775:u8gxxcmldkl",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 166,
+          "output": 1,
+          "cacheRead": 0,
+          "cacheWrite": 166,
+          "totalTokens": 333,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564775
+      },
+      "text": "ODD",
+      "grade": {
+        "caseId": "target-odd",
+        "split": "target",
+        "correct": true,
+        "evaluator": "trimmed-exact-v1"
+      }
+    },
+    {
+      "id": "review-final-001-3",
+      "phase": "baseline",
+      "role": "learner",
+      "caseId": "retention-even",
+      "participant": {
+        "id": "scripted-learner",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Answer the supplied problem using only the supplied observations and any lesson. Return only the requested answer, without explanation or tool calls. Observation status is an author declaration; do not invent missing data. No tools are available.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "problem": {
+          "id": "retention-even",
+          "question": "Classify this byte.",
+          "observations": [
+            {
+              "id": "bits",
+              "status": "SUFFICIENT",
+              "content": "00000011"
+            }
+          ]
+        }
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564779:o21ptqkav9c",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "EVEN"
+          }
+        ],
+        "api": "faux:1794206564779:o21ptqkav9c",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 167,
+          "output": 1,
+          "cacheRead": 0,
+          "cacheWrite": 167,
+          "totalTokens": 335,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564779,
+        "durationMs": 1
+      },
+      "text": "EVEN",
+      "grade": {
+        "caseId": "retention-even",
+        "split": "retention",
+        "correct": true,
+        "evaluator": "trimmed-exact-v1"
+      }
+    },
+    {
+      "id": "review-final-001-4",
+      "phase": "lesson",
+      "role": "teacher",
+      "participant": {
+        "id": "scripted-teacher",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Write one concise, reusable lesson for the learner about the supplied subject. Use only the teaching examples and aggregate baseline summary. Evaluation cases and their answers are withheld. Explain a method rather than guessing hidden test answers. Return lesson text, without tool calls. This is contextual teaching, not a weight update.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "teachingExamples": [
+          {
+            "id": "teach-even",
+            "question": "Classify this byte.",
+            "observations": [
+              {
+                "id": "bits",
+                "status": "SUFFICIENT",
+                "content": "00000000"
+              }
+            ],
+            "expected": "EVEN"
+          },
+          {
+            "id": "teach-odd",
+            "question": "Classify this byte.",
+            "observations": [
+              {
+                "id": "bits",
+                "status": "SUFFICIENT",
+                "content": "00000001"
+              }
+            ],
+            "expected": "ODD"
+          }
+        ],
+        "baselineSummary": {
+          "target": 1,
+          "retention": 1,
+          "targetTotal": 2,
+          "retentionTotal": 1
+        }
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564782:z1cdyx52ke",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Count the 1 bits, or start at EVEN and toggle EVEN/ODD for each 1 bit. Zero bits leave parity unchanged. Return the final parity."
+          }
+        ],
+        "api": "faux:1794206564782:z1cdyx52ke",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 252,
+          "output": 33,
+          "cacheRead": 0,
+          "cacheWrite": 252,
+          "totalTokens": 537,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564782
+      },
+      "text": "Count the 1 bits, or start at EVEN and toggle EVEN/ODD for each 1 bit. Zero bits leave parity unchanged. Return the final parity."
+    },
+    {
+      "id": "review-final-001-5",
+      "phase": "retry",
+      "role": "learner",
+      "caseId": "target-even",
+      "participant": {
+        "id": "scripted-learner",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Answer the supplied problem using only the supplied observations and any lesson. Return only the requested answer, without explanation or tool calls. Observation status is an author declaration; do not invent missing data. No tools are available.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "problem": {
+          "id": "target-even",
+          "question": "Classify this byte.",
+          "observations": [
+            {
+              "id": "bits",
+              "status": "SUFFICIENT",
+              "content": "10110001"
+            }
+          ]
+        },
+        "lesson": "Count the 1 bits, or start at EVEN and toggle EVEN/ODD for each 1 bit. Zero bits leave parity unchanged. Return the final parity."
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564785:d6ke12opyja",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "EVEN"
+          }
+        ],
+        "api": "faux:1794206564785:d6ke12opyja",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 202,
+          "output": 1,
+          "cacheRead": 0,
+          "cacheWrite": 202,
+          "totalTokens": 405,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564786,
+        "durationMs": 2
+      },
+      "text": "EVEN",
+      "grade": {
+        "caseId": "target-even",
+        "split": "target",
+        "correct": true,
+        "evaluator": "trimmed-exact-v1"
+      }
+    },
+    {
+      "id": "review-final-001-6",
+      "phase": "retry",
+      "role": "learner",
+      "caseId": "target-odd",
+      "participant": {
+        "id": "scripted-learner",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Answer the supplied problem using only the supplied observations and any lesson. Return only the requested answer, without explanation or tool calls. Observation status is an author declaration; do not invent missing data. No tools are available.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "problem": {
+          "id": "target-odd",
+          "question": "Classify this byte.",
+          "observations": [
+            {
+              "id": "bits",
+              "status": "SUFFICIENT",
+              "content": "11100000"
+            }
+          ]
+        },
+        "lesson": "Count the 1 bits, or start at EVEN and toggle EVEN/ODD for each 1 bit. Zero bits leave parity unchanged. Return the final parity."
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564790:zs98cqxgh5h",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "ODD"
+          }
+        ],
+        "api": "faux:1794206564790:zs98cqxgh5h",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 201,
+          "output": 1,
+          "cacheRead": 0,
+          "cacheWrite": 201,
+          "totalTokens": 403,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564790,
+        "durationMs": 2
+      },
+      "text": "ODD",
+      "grade": {
+        "caseId": "target-odd",
+        "split": "target",
+        "correct": true,
+        "evaluator": "trimmed-exact-v1"
+      }
+    },
+    {
+      "id": "review-final-001-7",
+      "phase": "retry",
+      "role": "learner",
+      "caseId": "retention-even",
+      "participant": {
+        "id": "scripted-learner",
+        "model": {
+          "provider": "school-fixture",
+          "id": "scripted-parity-v1",
+          "thinkingLevel": "off"
+        },
+        "edition": "deterministic fixture; no model weights"
+      },
+      "systemPrompt": "Answer the supplied problem using only the supplied observations and any lesson. Return only the requested answer, without explanation or tool calls. Observation status is an author declaration; do not invent missing data. No tools are available.",
+      "view": {
+        "world": {
+          "id": "byte-parity",
+          "revision": "1",
+          "subject": "Parity as a distinction on binary strings",
+          "instructions": "Return EVEN if the supplied byte contains an even number of 1 bits; return ODD otherwise. Return only EVEN or ODD. The observation supplies the byte."
+        },
+        "problem": {
+          "id": "retention-even",
+          "question": "Classify this byte.",
+          "observations": [
+            {
+              "id": "bits",
+              "status": "SUFFICIENT",
+              "content": "00000011"
+            }
+          ]
+        },
+        "lesson": "Count the 1 bits, or start at EVEN and toggle EVEN/ODD for each 1 bit. Zero bits leave parity unchanged. Return the final parity."
+      },
+      "state": "REPLY_RETAINED",
+      "resolvedModel": {
+        "provider": "school-fixture",
+        "id": "scripted-parity-v1",
+        "api": "faux:1794206564794:byi4qauh4sv",
+        "thinkingLevel": "off"
+      },
+      "completion": "REPLY_RETAINED",
+      "reply": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "EVEN"
+          }
+        ],
+        "api": "faux:1794206564794:byi4qauh4sv",
+        "provider": "school-fixture",
+        "model": "scripted-parity-v1",
+        "usage": {
+          "input": 202,
+          "output": 1,
+          "cacheRead": 0,
+          "cacheWrite": 202,
+          "totalTokens": 405,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "stopReason": "stop",
+        "timestamp": 1794206564794
+      },
+      "text": "EVEN",
+      "grade": {
+        "caseId": "retention-even",
+        "split": "retention",
+        "correct": true,
+        "evaluator": "trimmed-exact-v1"
+      }
+    }
+  ],
+  "events": [
+    {
+      "sequence": 0,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.764Z",
+      "callId": "review-final-001-1"
+    },
+    {
+      "sequence": 1,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.765Z",
+      "callId": "review-final-001-1"
+    },
+    {
+      "sequence": 2,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.773Z",
+      "callId": "review-final-001-1"
+    },
+    {
+      "sequence": 3,
+      "kind": "EVALUATOR_GRADED",
+      "at": "2026-11-09T06:42:44.774Z",
+      "callId": "review-final-001-1"
+    },
+    {
+      "sequence": 4,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.774Z",
+      "callId": "review-final-001-2"
+    },
+    {
+      "sequence": 5,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.775Z",
+      "callId": "review-final-001-2"
+    },
+    {
+      "sequence": 6,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.777Z",
+      "callId": "review-final-001-2"
+    },
+    {
+      "sequence": 7,
+      "kind": "EVALUATOR_GRADED",
+      "at": "2026-11-09T06:42:44.777Z",
+      "callId": "review-final-001-2"
+    },
+    {
+      "sequence": 8,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.778Z",
+      "callId": "review-final-001-3"
+    },
+    {
+      "sequence": 9,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.779Z",
+      "callId": "review-final-001-3"
+    },
+    {
+      "sequence": 10,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.781Z",
+      "callId": "review-final-001-3"
+    },
+    {
+      "sequence": 11,
+      "kind": "EVALUATOR_GRADED",
+      "at": "2026-11-09T06:42:44.781Z",
+      "callId": "review-final-001-3"
+    },
+    {
+      "sequence": 12,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.782Z",
+      "callId": "review-final-001-4"
+    },
+    {
+      "sequence": 13,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.782Z",
+      "callId": "review-final-001-4"
+    },
+    {
+      "sequence": 14,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.784Z",
+      "callId": "review-final-001-4"
+    },
+    {
+      "sequence": 15,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.785Z",
+      "callId": "review-final-001-5"
+    },
+    {
+      "sequence": 16,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.786Z",
+      "callId": "review-final-001-5"
+    },
+    {
+      "sequence": 17,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.788Z",
+      "callId": "review-final-001-5"
+    },
+    {
+      "sequence": 18,
+      "kind": "EVALUATOR_GRADED",
+      "at": "2026-11-09T06:42:44.788Z",
+      "callId": "review-final-001-5"
+    },
+    {
+      "sequence": 19,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.789Z",
+      "callId": "review-final-001-6"
+    },
+    {
+      "sequence": 20,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.790Z",
+      "callId": "review-final-001-6"
+    },
+    {
+      "sequence": 21,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.792Z",
+      "callId": "review-final-001-6"
+    },
+    {
+      "sequence": 22,
+      "kind": "EVALUATOR_GRADED",
+      "at": "2026-11-09T06:42:44.792Z",
+      "callId": "review-final-001-6"
+    },
+    {
+      "sequence": 23,
+      "kind": "CALL_REQUESTED",
+      "at": "2026-11-09T06:42:44.793Z",
+      "callId": "review-final-001-7"
+    },
+    {
+      "sequence": 24,
+      "kind": "CALL_ADMITTED",
+      "at": "2026-11-09T06:42:44.794Z",
+      "callId": "review-final-001-7"
+    },
+    {
+      "sequence": 25,
+      "kind": "RAW_REPLY_COMMITTED",
+      "at": "2026-11-09T06:42:44.796Z",
+      "callId": "review-final-001-7"
+    },
+    {
+      "sequence": 26,
+      "kind": "EVALUATOR_GRADED",
+      "at": "2026-11-09T06:42:44.796Z",
+      "callId": "review-final-001-7"
+    },
+    {
+      "sequence": 27,
+      "kind": "EPISODE_COMPLETED",
+      "at": "2026-11-09T06:42:44.798Z"
+    }
+  ],
+  "comparison": {
+    "baseline": {
+      "target": 1,
+      "retention": 1
+    },
+    "retry": {
+      "target": 2,
+      "retention": 1
+    },
+    "total": {
+      "target": 2,
+      "retention": 1
+    },
+    "regressedCases": [],
+    "outcome": "CONTEXTUAL_GAIN",
+    "weightLearning": "NOT_PERFORMED",
+    "adoption": "NOT_REQUESTED",
+    "generalization": "NOT_ESTABLISHED"
+  }
+}

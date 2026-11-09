@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-09",
+  "repository": "bdf1992/school",
+  "baseline": "e397fa622fdbecfb3b13fee80cfa034dd75e01d4",
+  "issue": 4,
+  "scope": "Process-local concurrency and state preservation for current School and inherited human-session paths",
+  "runtime": {
+    "node": "26.13.0"
+  },
+  "regressionsBeforeFix": [
+    {
+      "area": "ChatGPT catalog readiness",
+      "failed": 2,
+      "observed": "Superseded cold callers returned before the newest overlapping refresh settled."
+    },
+    {
+      "area": "Turn ownership",
+      "failed": 2,
+      "observed": "Age alone released a still-running turn; stale cleanup released its successor."
+    },
+    {
+      "area": "Audit queue",
+      "failed": 2,
+      "observed": "Cancelling one or two queued waiters admitted a successor while the predecessor still audited."
+    },
+    {
+      "area": "Compaction",
+      "failed": 6,
+      "observed": "Real question dismissal was overwritten; simultaneous callers bypassed the gate; a reentrant kick started a second summary; checkpoint markers cleared existing stop/recovery pauses."
+    }
+  ],
+  "newRegressionTests": 33,
+  "verification": {
+    "combinedFocused": {
+      "tests": 513,
+      "passed": 513,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 24218.268782,
+      "files": [
+        "chatgpt-catalog",
+        "chatgpt-request-cycle",
+        "chatgpt-stream",
+        "school-episode-subscription",
+        "turn-liveness",
+        "chat-flow",
+        "jobs",
+        "job-delivery-recovery",
+        "retry-failed-turn",
+        "dismissal-park",
+        "source-deletion-route",
+        "subscription-background",
+        "chatgpt-background",
+        "graph",
+        "extraction",
+        "compaction-service",
+        "compaction",
+        "compaction-native-parity",
+        "artifact-ui",
+        "session-core",
+        "malformed-question-recovery"
+      ]
+    }
+  },
+  "review": [
+    "Readiness implementation independently reviewed by the compaction reviewer.",
+    "Audit-chain change independently reviewed and cancellation regressions rerun by the readiness reviewer.",
+    "Root inspected turn cleanup and compaction state/marker semantics; cleanup and additional gate/pause failures were corrected."
+  ],
+  "effects": {
+    "liveModelCalls": 0,
+    "training": false,
+    "providerCredentialIssuance": false,
+    "unknownExternalCallsReplayed": false
+  },
+  "limits": [
+    "Locks and fresh-read reconciliation remain single-process mechanisms, not distributed fencing.",
+    "A never-settling turn retains ownership until settlement or process exit.",
+    "Slow obsolete catalog requests can delay their callers within the existing School admission deadlines.",
+    "Completed discarded compactions retain reported usage; provider failures without returned usage and storage-failure accounting remain unqualified.",
+    "Full integrated build and suite after subsequent class integration are reported separately."
+  ]
+}

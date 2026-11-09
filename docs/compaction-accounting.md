@@ -60,6 +60,12 @@ Compaction summarizes older context for future requests; original messages remai
 
 LearnHarness retains its own educational summary prompt, plan continuity, scheduling, authorization, and persistence. A cut dropping no history does not summarize. Requests include the latest summary once, then the retained transcript; later summaries receive the prior summary once plus newly superseded material. Unresolved cutoffs retain the existing full-history fallback. Output-limit (`length`) summaries fail rather than checkpointing incomplete output.
 
+School rereads the record after a summary completes. It preserves concurrent dismissals, new observations, and artifact display preferences. A committed marker stays at the end of the original snapshot, before later appended actions, so a dismissal keeps its delivery pause. If the original message order, summarized source, prior checkpoint, or summarized plan changed, School discards that summary instead of overwriting newer history. These checks protect the current synchronous, single-process store; they are not a cross-process transaction.
+
+The compaction slot is claimed before the summary or its status callbacks run. Simultaneous turn-start callers wait for the active compaction even if they cannot start new background work. A trailing compaction marker is neutral for dismissal and question-recovery pauses; a later real input can clear those pauses.
+
+Completed empty or stale summaries retain their usage with `compaction.outcome: "discarded"` and a reason. Their attempt ID has no committed transcript marker. They still contribute to session spending; they create no compaction divider and do not invalidate the conversation meter. Successful summaries carry `outcome: "committed"`. Deleting a session removes its accounting as well, and a late summary cannot recreate it. Provider failures that return no usage and storage failures remain unqualified accounting paths.
+
 Implementation: [`server/compaction.ts`](../src/server/compaction.ts), [`context-usage.ts`](../src/core/context-usage.ts), [`server/pricing.ts`](../src/server/pricing.ts). Regressions: `compaction-native-parity`, `context-usage`, `pricing-native-parity`, `subscription-usage`, and `session-cache-hit-rate` under `tests/`, plus CLI/custom-provider suites.
 
 ## Upstream attribution

@@ -45,6 +45,7 @@ import {
 	type LhMarkerMessage,
 } from "../core/index.ts";
 import { emit } from "../core/events.ts";
+import type { TurnUsage } from "../core/contracts.ts";
 import type { ChatStore } from "../core/ports.ts";
 import type { PiEngine } from "../agent/models.ts";
 import { runSubagent } from "../agent/subagents/pi-run.ts";
@@ -135,8 +136,21 @@ export function compactionInFlight(chatId: string): boolean {
 /** Await any in-flight compaction for the chat — the structural gate
  *  every model interaction for the chat passes through. */
 export async function awaitCompaction(chatId: string): Promise<void> {
+	let running: Promise<void> | undefined;
+	while ((running = state().inFlight.get(chatId))) await running;
+}
+
+/** Claim before running any callbacks or publishing status. The deferred
+ *  body prevents a synchronous status listener from starting a second run.
+ *  Only the registered promise may release its own slot. */
+function startCompaction(deps: CompactionDeps, chatId: string): Promise<void> {
 	const running = state().inFlight.get(chatId);
-	if (running) await running;
+	if (running) return running;
+	const run = Promise.resolve().then(() => compact(deps, chatId)).finally(() => {
+		if (state().inFlight.get(chatId) === run) state().inFlight.delete(chatId);
+	});
+	state().inFlight.set(chatId, run);
+	return run;
 }
 
 // ─── the effective threshold (owner ruling: min(setting, window − reserve)) ─
@@ -169,9 +183,23 @@ export function projectedContextTokens(messages: readonly LhMessage[], systemPro
 
 // ─── the compaction run ─────────────────────────────────────────────────────
 
+/** The summarized source must stay unchanged while the model runs. Demo/
+ *  figure display preferences are the one permitted nonsemantic edit: they
+ *  never enter the summarizer or provider view, and are kept from the latest
+ *  record. Compare full source values, not the summarizer's truncated text. */
+function summarySource(messages: readonly LhMessage[]): string {
+	return JSON.stringify(messages.map((message) => {
+		if (message.role !== "custom" || message.customType !== "subagent-steer") return message;
+		const details = message.details as { kind?: string; ui?: unknown } | undefined;
+		if (!details || (details.kind !== "demo" && details.kind !== "visual")) return message;
+		const { ui: _ui, ...contentDetails } = details;
+		return { ...message, details: contentDetails };
+	}));
+}
+
 /** Run one compaction for the chat (the registry mutex is HELD by the
  *  caller — ensureCompacted). Reads the record fresh, cuts, summarizes,
- *  appends the marker, records usage, notifies. Never throws upward
+ *  reconciles the snapshot, records usage, notifies. Never throws upward
  *  past the registry cleanup. */
 async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 	const record = deps.chatStore.getChat(chatId);
@@ -217,9 +245,12 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 	const spanText = serializeForSummary(summaryMessages);
 	const fullSpan = priorSummary ? `[SYSTEM NOTE — prior compaction summary, still authoritative where not superseded]\n${priorSummary}\n\n${spanText}` : spanText;
 
+	const planText = planTreeToText(record.tree, messages);
+	const sourceAtStart = summarySource(messages.slice(0, cut));
+	const checkpointAtStart = JSON.stringify(previous);
 	const prompt = buildCompactionPrompt({
 		spanText: fullSpan,
-		planTreeText: planTreeToText(record.tree, messages),
+		planTreeText: planText,
 		kind: deps.kind,
 	});
 
@@ -228,7 +259,6 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 		const summarize = deps.summarize ?? subagentSummarizer;
 		const { summary, usage } = await summarize(prompt, deps.engine);
 		const trimmed = summary.trim();
-		if (!trimmed) return; // an empty summary is a refusal artifact — leave the record honest
 
 		const firstKept = messages[cut]!;
 		const details: CompactionDetails = {
@@ -238,15 +268,34 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 			at: new Date().toISOString(),
 		};
 		const marker = newCompactionMarker(trimmed, details);
-		deps.chatStore.saveMessages(chatId, [...messages, marker]);
+		const current = deps.chatStore.getChat(chatId);
+		if (!current) return; // deletion owns the record; never resurrect it for a late summary
+		const originalEnd = messages.length;
+		let reason: Extract<NonNullable<TurnUsage["compaction"]>, { outcome: "discarded" }>["reason"] | undefined;
+		if (!trimmed) reason = "empty-summary";
+		else if (current.messages.length < originalEnd || messages.some((message, i) => current.messages[i]?.id !== message.id)) reason = "history-changed";
+		else if (JSON.stringify(activeCompactionOf(current.messages)) !== checkpointAtStart || current.messages.slice(originalEnd).some((message) => message.role === "custom" && message.customType === "compaction")) reason = "checkpoint-changed";
+		else if (summarySource(current.messages.slice(0, cut)) !== sourceAtStart) reason = "source-changed";
+		else if (planTreeToText(current.tree, current.messages.slice(0, originalEnd)) !== planText) reason = "plan-changed";
+		if (reason) {
+			console.info(`[chat ${chatId}] compaction discarded — ${reason}`);
+		} else {
+			// Preserve edits and appends from the synchronous fresh read. The
+			// checkpoint belongs before actions that arrived during summarizing:
+			// putting it after a dismissal would silently clear the delivery pause.
+			// The ID/order check above establishes this position; a stale numeric
+			// index alone must never decide which history the summary replaces.
+			deps.chatStore.saveMessages(chatId, [...current.messages.slice(0, originalEnd), marker, ...current.messages.slice(originalEnd)]);
+		}
 		// The money channel: the summary is a real model call on the
-		// session's own engine — its usage keys to the marker (provenance:
-		// the transcript shows the compaction divider at the marker).
+		// session's own engine even when its snapshot became obsolete. The
+		// explicit outcome prevents a discarded attempt ID implying a checkpoint.
 		deps.chatStore.appendTurnUsage(chatId, {
 			id: crypto.randomUUID(),
 			messageId: marker.id,
 			at: details.at,
 			model: deps.modelId,
+			compaction: reason ? { outcome: "discarded", reason } : { outcome: "committed" },
 			steps: [
 				{
 					inputTokens: usage.input,
@@ -258,13 +307,13 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 				},
 			],
 		});
-		// Notify-then-fetch: the record gained the marker (the client's
-		// dividers appear) and the status event ends the send gate.
+		// Notify-then-fetch: expose completed-call usage and, when committed,
+		// the checkpoint. A discarded summary never invalidates the meter.
 		emit("record-changed", { chatId });
 	} catch (err) {
-		// A failed compaction leaves the record untouched — the next
-		// turn-start gate retries (the same self-healing law as the
-		// extraction trigger).
+		// Failures before commit leave messages untouched. The separate usage
+		// write can also fail after a marker commits; never claim rollback or
+		// repeat the provider call here. The next gate reads actual record state.
 		console.error(`[chat ${chatId}] compaction failed:`, err);
 	} finally {
 		emit("compaction-changed", { chatId, running: false });
@@ -282,19 +331,15 @@ export async function ensureCompacted(deps: CompactionDeps, chatId: string): Pro
 	// chats are fixtures — the service itself is tested directly with an
 	// injected summarizer.
 	if (process.env.NODE_ENV === "test" && !deps.summarize) return;
-	await awaitCompaction(chatId);
+	// Do not yield on an empty gate: two simultaneous callers must not both
+	// leave that await and let one return past a newly registered owner.
+	// Eligibility only controls starting work; all callers wait for active work.
+	while (state().inFlight.has(chatId)) await awaitCompaction(chatId);
 	if (deps.canStart?.() === false) return;
 	const record = deps.chatStore.getChat(chatId);
 	if (!record) return;
 	if (projectedContextTokens(record.messages, deps.systemPromptTokens) <= deps.thresholdTokens) return;
-	if (state().inFlight.has(chatId)) return; // a concurrent caller started it while we awaited
-	const run = compact(deps, chatId);
-	state().inFlight.set(chatId, run);
-	try {
-		await run;
-	} finally {
-		state().inFlight.delete(chatId);
-	}
+	await startCompaction(deps, chatId);
 }
 
 /**
@@ -312,7 +357,5 @@ export function kickCompaction(buildDeps: () => CompactionDeps | null, chatId: s
 	const record = deps.chatStore.getChat(chatId);
 	if (!record) return;
 	if (projectedContextTokens(record.messages, deps.systemPromptTokens) <= deps.thresholdTokens) return;
-	const run = compact(deps, chatId);
-	state().inFlight.set(chatId, run);
-	void run.finally(() => state().inFlight.delete(chatId));
+	void startCompaction(deps, chatId);
 }

@@ -342,10 +342,10 @@ export function reconcileUserSteers(chatId: string, persisted: readonly LhMessag
 
 /** Clear the live agent at settlement — MUST run before settleSteers so the
  *  reconciliation's re-pump can never hand a marker to the dying agent. */
-export function unregisterLiveAgent(chatId: string): void {
-	const agent = state().liveAgents.get(chatId);
-	if (agent) state().automaticDeferred.delete(agent);
-	state().liveAgents.delete(chatId);
+export function unregisterLiveAgent(chatId: string, agent: Agent): boolean {
+	if (state().liveAgents.get(chatId) !== agent) return false;
+	state().automaticDeferred.delete(agent);
+	return state().liveAgents.delete(chatId);
 }
 
 /** Restore exact registry objects after native drain but before dispatch.

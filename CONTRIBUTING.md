@@ -1,6 +1,6 @@
-# Contributing to LearnHarness
+# Contributing to School
 
-Bug reports, focused fixes, documentation, reviews, and testing are welcome. LearnHarness is a maintainer-led project with a deliberate core learning experience.
+Bug reports, focused fixes, documentation, reviews, and testing are welcome. School is a maintainer-led fork of LearnHarness with a deliberate core learning experience.
 
 ## Project direction
 
@@ -12,11 +12,10 @@ Plugins are the intended home for optional capabilities that do not belong in co
 
 ## Before starting
 
-Check existing issues, PRs, and the [public work board](https://github.com/users/amosblomqvist/projects/2) for related work. **In progress** means someone is already working on the problem; coordinate before starting a parallel implementation. A board item is not, by itself, agreement to implement a proposal.
+Check existing issues and PRs, starting with [the remodeling issue](https://github.com/bdf1992/school/issues/1), for related work. **In progress** means someone is already working on the problem; coordinate before starting a parallel implementation. A board item is not, by itself, agreement to implement a proposal.
 
-- [Issues](https://github.com/amosblomqvist/learnharness/issues): concrete bugs and agreed implementation work.
-- [Discussions](https://github.com/amosblomqvist/learnharness/discussions): feature ideas and substantial design proposals. Explain the problem, proposed behavior, and relevant alternatives.
-- [Discord](https://discord.gg/5tCHHQEB2e): quick questions and conversation. Record actionable proposals and decisions on GitHub so others can find the context.
+- [Issues](https://github.com/bdf1992/school/issues): concrete bugs and agreed implementation work.
+- Design proposals belong in a School issue. Explain the problem, proposed behavior, and relevant alternatives; keep decisions in the issue so others can find the context.
 
 ## Pull requests
 
@@ -50,8 +49,8 @@ Maintainers decide project direction and what is accepted. Review may lead to re
 
 Where suitable, we build on contributors’ implementations and work through revisions with their authors. We may integrate a contribution with finishing changes while preserving authorship and appropriate credit; adopting part of a PR is not acceptance of the whole proposal.
 
-A PR does not guarantee acceptance or inclusion in a particular release. Integration and publication are separate; consult the [work board](https://github.com/users/amosblomqvist/projects/2) and [releases](https://github.com/amosblomqvist/learnharness/releases) for current status.
+A PR does not guarantee acceptance or inclusion in a particular release. Integration and publication are separate; consult the [remodeling issue](https://github.com/bdf1992/school/issues/1) and [releases](https://github.com/bdf1992/school/releases) for current status.
 
-**Interested in contributing regularly?** If you’d like to help maintain LearnHarness, review and finish fixes, or support other contributors, email me at [contribute@learnharness.ai](mailto:contribute@learnharness.ai). Tell me a little about your interests and how you’d like to help.
+**Interested in contributing regularly?** Open a School issue describing the area you want to help with. Upstream maintainers and community channels do not maintain this fork.
 
-LearnHarness is licensed under [AGPL-3.0](LICENSE).
+School preserves LearnHarness authorship and is licensed under [AGPL-3.0-only](LICENSE).

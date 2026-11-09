@@ -1,51 +1,17 @@
 # Security policy
 
-LearnHarness stores API keys, sign-in tokens, chats, and learning records on your machine, and its agent reads files and fetches web content on your behalf. If you find a way to abuse any of that, please tell us privately so a fix can ship before the details are public.
+School is a fork of LearnHarness. It stores keys, sign-in tokens, chats, and learning records locally and can send permitted context to configured external services. Reports about this fork belong with the School maintainers.
 
 ## Reporting a vulnerability
 
-**Do not open a public issue, pull request, or Discord post for a security problem.**
+Do not publish vulnerability details, credentials, private records, or an exploit in an issue or pull request.
 
-Report it through GitHub's private vulnerability reporting:
-[Security → Report a vulnerability](https://github.com/amosblomqvist/learnharness/security/advisories/new).
+Use [School's private vulnerability reporting](https://github.com/bdf1992/school/security/advisories/new) when it is available. If GitHub does not offer that form, open a minimal [School issue](https://github.com/bdf1992/school/issues) asking for a private reporting channel, without describing the vulnerability or attaching a reproduction. The maintainers can arrange a private handoff before receiving details.
 
-If that page is unavailable, message a maintainer on [Discord](https://discord.gg/5tCHHQEB2e) and ask for a private channel. Do not include any details in that first message.
+A private report should identify the School commit or build, operating system, prerequisites, demonstrated impact, and a synthetic reproduction. Do not send School reports to upstream LearnHarness support unless the affected upstream code has been independently confirmed and an upstream report is appropriate.
 
-A useful report includes:
+## Supported scope
 
-- the LearnHarness version and your OS;
-- what an attacker can do and what they need first (a web page the agent reads, a file the learner opens, network access, and so on);
-- steps to reproduce, or a proof of concept;
-- any fix or mitigation you have in mind.
+School is being remodeled from source. There is no School installer, signing, update, or response-time qualification implied by the inherited upstream release history. Use the current School source and check the [remodeling issue](https://github.com/bdf1992/school/issues/1) for current limitations.
 
-## What to expect
-
-These are targets, not guarantees:
-
-| Step | Target |
-| --- | --- |
-| Acknowledge your report | within 7 days |
-| Initial assessment (confirmed or not, severity) | within 14 days |
-| Fix released and advisory published | within 90 days of the report |
-
-The fix is developed privately in a GitHub security advisory. We will keep you updated, agree on a disclosure date with you, and credit you in the published advisory unless you prefer to stay anonymous. A CVE can be requested through GitHub when one is warranted.
-
-## Supported versions
-
-Only the latest release receives security fixes. The desktop app updates itself, so fixes reach users through a new release. If you run from source, update to the latest `main` or the latest release tag.
-
-## Scope
-
-In scope:
-
-- the desktop app (Electron shell, window, and IPC);
-- the local API server, whether started by the desktop app or run from source;
-- the agent and its tools, including prompt injection from web pages, PDFs, or other content that leads to reading, changing, or sending your data;
-- rendered content such as demos, figures, and markdown;
-- the update and release pipeline.
-
-Out of scope:
-
-- attacks that already require running code as your OS user;
-- bugs in third-party model or service providers themselves (report those to the provider);
-- automated scanner output without a demonstrated impact on LearnHarness.
+The relevant code includes the desktop host, local API, participant and tool boundaries, rendered content, episode records, credential handling, and release/update configuration. Problems in a model provider's own service should also be reported to that provider. Reports should show a concrete impact; a scanner finding alone does not establish one.

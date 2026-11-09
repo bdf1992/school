@@ -1,85 +1,85 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/lh_banner_dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/lh_banner_light.png">
-    <img src="docs/assets/lh_banner_light.png" alt="LearnHarness" width="640">
-  </picture>
-</p>
+# School
 
-<p align="center"><strong>An agent harness for learning.</strong></p>
+**A school for teaching and evaluating people, local language models, and hosted agents.**
 
-<p align="center">
-  <a href="https://learnharness.ai">Download</a> ·
-  <a href="#how-it-works">How it works</a> ·
-  <a href="docs/README.md">Documentation</a> ·
-  <a href="https://github.com/amosblomqvist/learnharness/issues">Issues</a> ·
-  <a href="https://discord.gg/5tCHHQEB2e">Discord</a>
-</p>
+School organizes continuing classes with a roster, curriculum, schedule, peers, and a gradebook. Every new model episode belongs to a named class and curriculum unit. Within that setting, a learner and teacher work in an explicit world while an evaluator records what happened. A local model can learn while Claude or an OpenAI model teaches it; provider choice does not determine the role.
 
-LearnHarness uses AI agents to plan and teach lessons from your current understanding to your goal. It builds a detailed picture of what you understand and how you reason. That picture is updated as you learn.
+We are remodeling [LearnHarness](https://github.com/amosblomqvist/learnharness) into this workbench while retaining its human teaching and practice application. The initial fork base is `da08cb5f7d098598ba963c6689b22054c9f2a5a3`. Upstream authorship and the AGPL-3.0-only license remain intact.
 
-Instead of just giving you an explanation, it uses your answers and thinking to decide what you need next. Teaching builds understanding one reasoning step at a time. Practice makes it usable. A persistent knowledge graph carries it across sessions.
+[Intent and boundaries](docs/school-intent.md) · [Classes](docs/school-classes.md) · [Model episodes](docs/school-episodes.md) · [Remodeling issue](https://github.com/bdf1992/school/issues/1) · [All documentation](docs/README.md)
 
-![LearnHarness teaching session](docs/assets/teaching-session.png)
+## The learning loop
 
-## How it works
+| Part | Responsibility |
+| --- | --- |
+| Class | Bind membership, curriculum, schedule and assessment policy across episodes. |
+| World and subject | Define the task, available observations, and what a valid response means. |
+| Learner | Attempt the task using its permitted view and declared model/edition. |
+| Teacher | Select explanations and examples from permitted teaching material. |
+| Evaluator | Check retained responses against a declared criterion. |
+| Records | Preserve inputs, assistance, raw replies, judgments, failures, and operation identity. |
 
-1. **Measure.** Before teaching, the agent finds where your understanding ends on each part the lesson depends on. Your answers, confidence, and thinking show it where to start.
-2. **Plan.** It works out a dependency map from that starting point to your goal. You can see the plan, and the lesson adapts when your understanding turns out different.
-3. **Teach.** Each step builds on something you already understand. You predict, get an explanation, and check your understanding. Confusions are repaired before anything is built on them. The aim is for the goal to feel obviously true, not merely familiar.
-4. **Practice.** Separate sessions pose varied problems that require the right knowledge to come to mind without being named first. Problems and hints adapt to your reasoning.
+The first model episode runs **baseline → lesson → retry → comparison**. The teacher sees teaching examples and aggregate baseline scores. Evaluation answers stay at the evaluator boundary. Learner replies are saved before grading. Target improvement and loss on previously correct cases are reported separately.
 
-**Think out loud.** The thinking fields let you explain your reasoning, uncertainties, and reactions in your own words. This is how the agent gets a detailed picture rather than just a record of right and wrong answers. You can type or use dictation.
+This episode measures **contextual assistance**. It does not train weights or adopt a successor model. School owns curriculum and episode interaction; [AUM](https://github.com/bdf1992/aum-foundation) owns the proposed model-training, edition, adoption, and continuing-world-work boundary. An integration with that boundary remains planned.
 
-**Bring your files.** In the desktop app, attach PDFs, photos, or any other file with the paperclip, or drag them in. The file stays where it is: the message carries its path, and the agent reads it from there.
+## Run a class with two learners
 
-The agent can also research questions in the background, create visual explanations, show your own images in the lesson and mark them up with arrows and labels, and build interactive demonstrations.
+Use Node 26, matching CI, and the checked-in lockfile:
 
-## Knowledge that carries forward
+```sh
+npm ci
+npm run school:class -- register examples/school/byte-parity-class.json --school /tmp/school-demo
+npm run school:episode -- examples/school/byte-parity.json --fixture --school /tmp/school-demo --operation parity-a
+npm run school:episode -- examples/school/byte-parity.json --fixture --school /tmp/school-demo --operation parity-b --learner local-peer
+npm run school:class -- grades generative-structures 1 --school /tmp/school-demo
+```
 
-What you are taught accumulates as propositions and reasoning chains: individual claims and the premises that lead to them. The graph shows this structure, with links back to the source sessions. You can also import notes.
+The fixture uses scripted participants, makes no provider requests, and labels its results `SCRIPTED_FIXTURE`. The two learners share the class curriculum while retaining separate attempts and grades. Each episode pins the admitted class revision. Repeating an operation returns its original evidence without more calls. Use a suitable absolute School directory on Windows.
 
-Future teaching sessions can read the graph instead of starting from scratch. Practice sessions can draw their material from it. It stores the ideas and their connections, not ratings of your ability.
+For a configured run, set up connections in the app, register a class with the intended participant IDs, assign actual learner and teacher models in the episode manifest, give the operation a new identity, and omit `--fixture`. See [Classes](docs/school-classes.md) and [Model episodes](docs/school-episodes.md) for admission, schedules, APIs and replay. These interfaces currently live in the CLI and API; the existing lesson UI still serves human learners.
 
-![LearnHarness knowledge graph](docs/assets/knowledge-graph.png)
+## Inspect a saved session for a learner
 
-## Download and get started
+```sh
+node --import tsx scripts/school-learner-view.ts /absolute/path/to/chat.json
+```
 
-**[Download from learnharness.ai](https://learnharness.ai)** · [GitHub Releases](https://github.com/amosblomqvist/learnharness/releases)
+This read-only command projects supported pending questions/problems from an explicitly supplied native session record. It constructs a restricted view and refuses unsupported or ambiguous records. It does not call a model, submit an answer, or expose the full archive. The manifest-based episode runner above is a separate interface; connecting the two is a subsequent milestone.
 
-- **macOS (Apple Silicon):** signed and notarized DMG. Drag the app to Applications.
-- **Windows (x64):** run the installer. It is currently unsigned; Windows may show an “unknown publisher” or SmartScreen warning.
-- **Linux (x64):** make the AppImage executable and open it, or install the Debian/Ubuntu `.deb`.
+## Open the teaching application
 
-Choose your models, then start a session with what you want to understand. You can use provider API keys, supported subscription connections in the desktop app, an installed [Claude Code CLI](docs/claude-code.md), or a [custom OpenAI-compatible endpoint](docs/custom-providers.md), including a local model server. Optional dictation and web search use separate service keys. Web research can use a Tavily, Brave, Exa, Firecrawl, or Ollama key in Settings → Providers → Search. Ollama search uses its hosted service, not a local model server.
+```sh
+npm run dev            # http://localhost:3000
+npm run desktop:dev    # development desktop host
+```
 
-See [Getting started](docs/getting-started.md) for model setup, dictation, files, and notes imports, and [context, caching, and costs](docs/compaction-accounting.md) for advanced cache preferences.
+Choose **Teach** to probe your starting point, plan a lesson, and work through explanations and checks. Choose **Practice** for varied problems. Sessions retain answers, plans, usage, and source material. The knowledge graph carries propositions and reasoning chains across sessions; graph presence is not evidence of learner mastery.
 
-All three platforms support in-app updates.
+Available connections include provider API keys, supported desktop/web subscription connections, an installed [Claude Code CLI](docs/claude-code.md), and one [custom OpenAI-compatible endpoint](docs/custom-providers.md) with multiple model IDs. A local inference server must already exist; School does not install, train, or download its models. Subscription, API, and CLI routes keep their existing admission and billing semantics.
 
-## Your keys, your data
+Model-driven work sends the permitted context to the selected provider. Chats, graphs, settings, and episode records are local files. Local storage does not imply offline inference. Keys and subscription credentials must remain private.
 
-- **Your keys and models.** No LearnHarness subscription or markup. Billing depends on your provider, CLI configuration, subscription, or local setup. The live cost meter estimates known API costs, not subscription, CLI, or custom-endpoint charges.
-- **Local storage.** Your chats, graph, settings, and API keys live on your machine. Learning records are plain files you can inspect.
-- **External services.** Models run through your configured providers. Model requests send the context needed for the task; web research and dictation also contact external services. Local storage does not mean offline processing.
-- **Inspectable behavior.** System prompts are visible and editable. The app is open source under the AGPL-3.0 license.
+## Current scope
+
+- Human teaching/practice, persistent sessions, graph extraction, and provider connections inherited from LearnHarness.
+- Explicit learner/teacher manifests, bounded model-call orchestration, independent exact-answer evaluation, and inspectable episode records.
+- Immutable class revisions, roster/role checks, curriculum dependencies, self-paced or dated session admission, private peer work, and an evidence-derived owner gradebook. A schedule does not automatically run a model; peer messaging and a class UI remain planned.
+- Separate School desktop identity and default update feed. Existing `LH_*` environment variables and data formats remain compatible.
+- No qualified School installer or live local-model training result is supplied by this foundation change. Native installation, signing, update delivery, role-selection UI, multiple local endpoints, and the AUM training bridge are tracked in [the remodeling issue](https://github.com/bdf1992/school/issues/1).
 
 ## Development and support
 
-```bash
-npm ci
-npm run dev        # http://localhost:3000
-npm test           # fixtures and fake providers
+```sh
+npm run typecheck
+npm run lint
+npm test               # fixtures and fake providers; no paid inference required
 ```
 
-See the [documentation index](docs/README.md) for all guides, [development](docs/development.md) for setup and checks, [architecture](docs/architecture.md) for the runtime, [keyboard shortcuts](docs/keyboard.md), and [desktop builds and releases](docs/desktop-release.md).
+See [Development](docs/development.md), [Architecture](docs/architecture.md), [Getting started](docs/getting-started.md), and [Desktop builds and releases](docs/desktop-release.md).
 
-Questions, bug reports, and feature requests: [GitHub Issues](https://github.com/amosblomqvist/learnharness/issues).
+Use [School issues](https://github.com/bdf1992/school/issues) for this fork. Report vulnerabilities through the process in [SECURITY.md](SECURITY.md). Upstream maintainers and services are not School's support channel.
 
-Security vulnerabilities: report privately as described in [SECURITY.md](SECURITY.md), not in public issues.
+## License and attribution
 
-## License
-
-[AGPL-3.0](LICENSE)
-
-The app is free and open forever. If we ever charge for anything, it will be for convenience — managed keys, hosting — never for features you can run locally.
+[AGPL-3.0-only](LICENSE). School builds on LearnHarness by Amos Blomqvist and its contributors. Historical designs, teaching-method notes, and inherited artwork retain their attribution; their inclusion does not establish measured learning outcomes or a School release qualification.

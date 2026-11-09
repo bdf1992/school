@@ -858,6 +858,71 @@ describe("the extraction pipeline (extractor → auditor → merger)", () => {
 		assert.deepEqual(await pipelineC.runExtraction(c.chatId), { nodes: 1, chains: 0 });
 	});
 
+	for (const cancelledCount of [1, 2]) {
+		it(`serialized audit: ${cancelledCount} cancelled waiters preserve their predecessor's ownership`, { timeout: 10_000 }, async (t) => {
+			const owner = fixtureChat();
+			const cancelled = Array.from({ length: cancelledCount }, () => fixtureChat());
+			const successor = fixtureChat();
+			const ledgers = memoryLedgers();
+			let releaseOwner!: () => void;
+			const ownerGate = new Promise<void>((resolve) => { releaseOwner = resolve; });
+			const pending: Promise<unknown>[] = [];
+			t.after(async () => {
+				releaseOwner();
+				await Promise.allSettled(pending);
+			});
+			const pipeline = (name: string, auditor: PiEngine) => createExtractionPipeline({
+				chatStore,
+				graphStore: ledgers,
+				extractor: submitModel("submit_findings", {
+					propositions: [{ id: name, name, statement: `${name} statement`, aliases: [], messageId: "a1" }],
+					chains: [],
+				}),
+				auditor,
+			});
+			const runOwner = pipeline("owner", gatedSubmitModel("submit_review", { links: [] }, ownerGate)).runExtraction(owner.chatId);
+			pending.push(runOwner);
+			await until(() => extractionStatuses().some((r) => r.chatId === owner.chatId && r.phase === "auditing"));
+
+			let cancelledAuditCalls = 0;
+			const cancelledRuns: Promise<unknown>[] = [];
+			for (const [index, chat] of cancelled.entries()) {
+				const run = pipeline(`cancelled-${index}`, submitModel("submit_review", { links: [] }, () => { cancelledAuditCalls++; })).runExtraction(chat.chatId);
+				pending.push(run);
+				cancelledRuns.push(run);
+				await until(() => extractionStatuses().some((r) => r.chatId === chat.chatId && r.phase === "waiting"));
+			}
+
+			let successorAuditCalls = 0;
+			let successorSawOwnerMerge = false;
+			const runSuccessor = pipeline("successor", submitModel("submit_review", { links: [] }, () => {
+				successorAuditCalls++;
+				successorSawOwnerMerge = ledgers.readNodes().some((n) => n.name === "owner");
+			})).runExtraction(successor.chatId);
+			pending.push(runSuccessor);
+			await until(() => extractionStatuses().some((r) => r.chatId === successor.chatId && r.phase === "waiting"));
+
+			for (const chat of cancelled) assert.equal(abortExtraction(chat.chatId), true);
+			for (const run of cancelledRuns) assert.deepEqual(await run, { nodes: 0, chains: 0 });
+			// Drain ready work without a wall-clock sleep. The held owner is
+			// still unresolved, so no successor is allowed into audit/merge.
+			await new Promise<void>((resolve) => setImmediate(resolve));
+			assert.equal(cancelledAuditCalls, 0, "cancelled waiters make no auditor call");
+			assert.equal(successorAuditCalls, 0, "cancelling a waiter cannot release its predecessor's gate");
+			assert.equal(extractionStatuses().find((r) => r.chatId === successor.chatId)?.phase, "waiting");
+			assert.equal(ledgers.readNodes().length, 0, "nothing merges while the first audit is held");
+
+			releaseOwner();
+			assert.deepEqual(await runOwner, { nodes: 1, chains: 0 });
+			assert.deepEqual(await runSuccessor, { nodes: 1, chains: 0 });
+			assert.equal(successorAuditCalls, 1);
+			assert.equal(successorSawOwnerMerge, true, "the next audit observes the predecessor's committed merge");
+			assert.deepEqual(ledgers.readNodes().map((n) => n.name).sort(), ["owner", "successor"]);
+			for (const chat of cancelled) assert.equal(ledgers.readCoverage().some((row) => row.chatId === chat.chatId), false);
+			assert.equal(extractionStatuses().length, 0, "all runs leave the registry");
+		});
+	}
+
 	it("captures per-stage usage live, persists the run's usage into the chat record", async () => {
 		const { chatId } = fixtureChat();
 		const ledgers = memoryLedgers();

@@ -10,7 +10,7 @@ interface LeaseValue extends Stamp { accessToken: string; accountId: string }
 interface Pending { op: string; resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }
 interface BridgeState {
  status: ChatGPTStatus; stamp: Stamp; models: Model<"openai-responses">[]; catalogAccount: string | null;
- pending: Map<string, Pending>; controllers: Map<AbortController, boolean>; listeners: Set<() => void>; counter: number; catalogRequest: number;
+ pending: Map<string, Pending>; controllers: Map<AbortController, boolean>; listeners: Set<() => void>; counter: number; catalogRequest: number; catalogRefresh?: Promise<void>;
 }
 const key = Symbol.for("lh.chatgpt.bridge");
 const unavailable = (): ChatGPTStatus => ({ available: false, pending: false, allowBackgroundUse: true, activeId: null, accounts: [], error: null });
@@ -116,6 +116,25 @@ export async function refreshChatGPTModels(supported: Model<"openai-responses">[
  const state = bridge();
  if (!runtimeConnected()) { clearCatalog(state); return; }
  const sequence = ++state.catalogRequest;
+ const refresh = refreshCatalog(state, sequence, supported);
+ state.catalogRefresh = refresh;
+ try {
+  // A superseded response cannot establish readiness. Follow the current
+  // refresh before returning to callers that immediately inspect the catalog.
+  // Keep each request's supported-model filter and latest-wins authority;
+  // waiting never retries a request or grants permission to generate.
+  let current = refresh;
+  while (true) {
+   await current;
+   const latest = state.catalogRefresh;
+   if (!latest || latest === current) return;
+   current = latest;
+  }
+ } finally {
+  if (state.catalogRefresh === refresh) state.catalogRefresh = undefined;
+ }
+}
+async function refreshCatalog(state: BridgeState, sequence: number, supported: Model<"openai-responses">[]): Promise<void> {
  try {
   const value = await chatGPTRequest<ModelsValue>("models");
   if (sequence !== state.catalogRequest || !validStamp(value)) return;

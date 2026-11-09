@@ -50,13 +50,13 @@ for (const p of NATIVE_SUBSCRIPTIONS) for (const revokeAfterQueue of [false, tru
 	} });
 	let wakes = 0;
 	setTurnRunner(async (chatId, input) => { wakes++; if (input.type === "steers") stores.chatStore.saveMessages(chatId, [...stores.chatStore.getChat(chatId)!.messages, ...input.steers]); return 200; });
-	assert(beginTurn(chat.id)); registerLiveAgent(chat.id, agent); const delivered = deliverJobResult(steer);
+	const lease = beginTurn(chat.id); assert(lease); registerLiveAgent(chat.id, agent); const delivered = deliverJobResult(steer);
 	assert(steerLiveChat(chat.id, { id: "fixture-live-learner", role: "user", content: "Continue my learning", timestamp: 3 } as never));
 	if (revokeAfterQueue) connection(p.providerId, false);
 	assert(!automaticFollowUpAllowed(chat.id, agent)); await agent.continue();
 	assert.equal(contexts.length, 1); assert(contexts[0]!.includes("Continue my learning")); assert(!contexts[0]!.includes(steer.id));
 	const persisted = persistTurn(stores.chatStore, chat.id, 0, agent.state.messages, false);
-	unregisterLiveAgent(chat.id); endTurn(chat.id); settleSteers(chat.id, persisted); await new Promise((resolve) => setImmediate(resolve));
+	unregisterLiveAgent(chat.id, agent); endTurn(chat.id, lease); settleSteers(chat.id, persisted); await new Promise((resolve) => setImmediate(resolve));
 	assert.equal(wakes, 0); assert.equal(stores.jobStore.getJob(job.id)!.status, "done"); assert.equal(stores.jobStore.getJob(job.id)!.delivery?.status, "pending");
 	connection(p.providerId, true); await delivered; assert.equal(wakes, 1); assert.equal(stores.jobStore.getJob(job.id)!.status, "done");
 });
