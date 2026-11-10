@@ -23,6 +23,7 @@ export { readRenderSettings, writeRenderSettings } from "../store/render-setting
 export {
 	readSettings as readSettingsRecord,
 	writeSettings as writeSettingsRecord,
+	readLocalInferencePolicy,
 	settingsStore,
 } from "../store/settings.ts";
 export { promptOverrides } from "../store/prompt-overrides.ts";

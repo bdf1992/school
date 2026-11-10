@@ -5,7 +5,7 @@ import { clampThinkingLevel, createModels, createProvider, type Api, type Model 
 import { lazyStream } from "@earendil-works/pi-ai/api/lazy";
 import { openAICompletionsApi } from "@earendil-works/pi-ai/api/openai-completions.lazy";
 import { SchoolParticipantError, type SchoolConnectionDefinition, type SchoolParticipantBindingReceipt, type SchoolParticipantState, type SchoolRuntimeReceipt } from "../core/school-participants.ts";
-import { APP_IDENTITY, type PiEngine } from "./models.ts";
+import { APP_IDENTITY, authorizeModelOperation, type PiEngine } from "./models.ts";
 
 interface SchoolConnectionEngineOptions {
 	state: SchoolParticipantState;
@@ -50,6 +50,8 @@ function explicitEngine(options: SchoolConnectionEngineOptions, connection: Extr
 		model, level,
 		streamFn: (_requestModel, context, streamOptions) => lazyStream(model, async () => {
 			options.assertCurrent();
+			const dispatchPolicy = await authorizeModelOperation(model);
+			options.assertCurrent();
 			const key = connection.auth.mode === "environment" ? options.credential(connection.auth.variable)?.trim() : undefined;
 			if (connection.auth.mode === "environment" && !key) throw new SchoolParticipantError("CONNECTION_CREDENTIAL_UNAVAILABLE", "The named connection's dedicated credential is unavailable", 409);
 			if (key && /[^\x20-\x7e]/.test(key)) throw new SchoolParticipantError("CONNECTION_CREDENTIAL_INVALID", "The named connection credential is not valid HTTP header text", 409);
@@ -70,7 +72,7 @@ function explicitEngine(options: SchoolConnectionEngineOptions, connection: Extr
 				const url = input instanceof Request ? input.url : String(input);
 				if (url !== target) throw new SchoolParticipantError("CONNECTION_ROUTE_DRIFT", "The named connection attempted a different request destination", 409);
 				if (connection.auth.mode === "environment" && options.credential(connection.auth.variable)?.trim() !== key) throw new SchoolParticipantError("CONNECTION_CREDENTIAL_CHANGED", "The connection credential changed before dispatch", 409);
-				const result = await globalThis.fetch(input, { ...init, redirect: "manual" });
+				const result = await (dispatchPolicy?.fetch ?? globalThis.fetch)(input, { ...init, redirect: "manual" });
 				if (result.status >= 300 && result.status < 400) { await result.body?.cancel(); throw new SchoolParticipantError("CONNECTION_REDIRECT_REFUSED", "Named connection redirects are refused", 409); }
 				return result;
 			};

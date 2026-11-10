@@ -23,6 +23,7 @@
 		"school:class": "node --import tsx scripts/school-class.ts",
 		"school:participant": "node --import tsx scripts/school-participant.ts",
 		"school:preflight": "node --import tsx scripts/school-preflight.ts",
+		"school:context": "node --import tsx scripts/school-context.ts",
 		"school:parity": "node --import tsx scripts/school-parity.ts",
 		"school:experiment": "node --import tsx scripts/school-experiment.ts",
 		"school:worker": "node --import tsx scripts/school-worker.ts",

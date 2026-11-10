@@ -16,8 +16,9 @@
  * turn start awaits the gate. No mid-run surgery exists.
  *
  * Trigger threshold (owner ruling): effective = min(settings threshold,
- * model contextWindow − 16k reserve). Defaults: threshold 150k, kept
- * tail ~20k recent tokens (pi's defaults, owner-approved). Token
+ * model contextWindow − a window-sized reserve). Large-window ceilings:
+ * threshold 150k, retained tail ~20k, reserve 16k. Smaller windows also
+ * reserve the configured output allowance and scale their retained tail. Token
  * estimation follows pi's law (2026-10-05 incident fix): anchor on the
  * provider-reported usage of the last assistant message, chars/4 only
  * for messages appended after that anchor; the heuristic alone runs
@@ -51,6 +52,24 @@ export const KEEP_RECENT_TOKENS = 20_000;
 /** The reserve subtracted from the model's contextWindow when the window
  * (not the user's threshold) is the binding constraint (pi's default). */
 export const COMPACTION_RESERVE_TOKENS = 16_384;
+
+/** Some catalogs advertise an output maximum equal to their whole window.
+ * It cannot be requested alongside any input. Clamp that impossible default
+ * to the reserve; the transport must send this same cap. */
+export function contextOutputLimit(contextWindowTokens: number, maxOutputTokens: number): number {
+	return maxOutputTokens >= contextWindowTokens
+		? Math.min(COMPACTION_RESERVE_TOKENS, Math.max(1, Math.floor(contextWindowTokens / 4)))
+		: maxOutputTokens;
+}
+
+/** Leave a quarter of smaller windows free, up to the legacy reserve, and
+ * account for the actual output allowance when it is larger. */
+export function contextReserveTokens(contextWindowTokens: number, maxOutputTokens = 0): number {
+	return Math.max(
+		Math.min(COMPACTION_RESERVE_TOKENS, Math.ceil(contextWindowTokens / 4)),
+		Number.isFinite(maxOutputTokens) && maxOutputTokens > 0 ? Math.ceil(contextOutputLimit(contextWindowTokens, maxOutputTokens)) : 0,
+	);
+}
 
 /** Factory default for the settings threshold (owner ruling: 150k). */
 export const DEFAULT_COMPACTION_THRESHOLD_TOKENS = 150_000;
@@ -206,7 +225,7 @@ function cutMessage(message: LhMessage): LhMessage | null {
  * Returns the first kept record index; a zero/no-progress cut drops nothing.
  * Keep this and estimateMessageTokens aligned deliberately when upgrading Pi.
  */
-export function compactionCutIndex(messages: readonly LhMessage[], keepRecentTokens = KEEP_RECENT_TOKENS): number {
+export function compactionCutIndex(messages: readonly LhMessage[], keepRecentTokens = KEEP_RECENT_TOKENS, maxRetainedTokens?: number): number {
 	const previous = activeCompactionOf(messages);
 	const previousKept = previous ? keptIndexFor(messages, previous) : -1;
 	const start = Math.max(0, previousKept);
@@ -234,6 +253,32 @@ export function compactionCutIndex(messages: readonly LhMessage[], keepRecentTok
 		const before = messages[cut - 1]!;
 		if ((before.role === "custom" && before.customType === "compaction") || cutMessage(before)) break;
 		cut--;
+	}
+	if (maxRetainedTokens !== undefined) {
+		// The native walk can overshoot by a whole message. For bounded
+		// windows advance only to a complete exchange boundary. Never split
+		// a call from a retained result or discard an unanswered call.
+		const calls = new Map<string, number>();
+		const answered = new Set<string>();
+		for (let i = start; i < messages.length; i++) {
+			const message = messages[i]!;
+			if (message.role === "assistant") for (const block of message.content) {
+				if (block.type === "toolCall") calls.set(block.id, i);
+			}
+			if (message.role === "toolResult") answered.add(message.toolCallId);
+		}
+		const unresolved = [...calls].filter(([id]) => !answered.has(id)).map(([, index]) => index);
+		for (const candidate of [cut, ...points.filter((point) => point > cut)]) {
+			if (unresolved.some((index) => index < candidate)) continue;
+			if (messages.slice(candidate).some((message) => message.role === "toolResult" &&
+				calls.has(message.toolCallId) && calls.get(message.toolCallId)! < candidate)) continue;
+			const retained = messages.slice(candidate).filter((message) => cutMessage(message) !== null);
+			if (estimateTokens(retained) <= maxRetainedTokens) return candidate;
+		}
+		// No complete retained turn fits. A no-progress cut lets the service
+		// refuse the request without losing an unanswered call or orphaning
+		// a result merely to satisfy an estimated token target.
+		return start;
 	}
 	return cut;
 }
@@ -377,6 +422,8 @@ export function buildCompactionPrompt(input: {
 	planTreeText: string | null;
 	/** The session kind (wording: tutor vs practice agent). */
 	kind: "teach" | "practice" | "probe";
+	/** A bounded local window cannot accept an arbitrarily long summary. */
+	maxSummaryTokens?: number;
 }): string {
 	const planSection =
 		input.planTreeText ?? "No plan tree exists in this session (nothing was persisted).";
@@ -398,7 +445,7 @@ ${planSection}
 ## The current moment
 What is happening RIGHT NOW at the cut: any question or problem awaiting the learner's answer, any commitment the agent has made that a later turn must honor, and the immediate next step.
 
-Rules: no praise, no filler, no speculation beyond the transcript. Every claim about the learner must be traceable to what they actually said or answered. Keep every identifier (proposition ids, node ids, file paths) exact.
+Rules: no praise, no filler, no speculation beyond the transcript. Every claim about the learner must be traceable to what they actually said or answered. Keep every identifier (proposition ids, node ids, file paths) exact.${input.maxSummaryTokens === undefined ? "" : ` Keep the entire summary within ${input.maxSummaryTokens} tokens, including the plan tree. If this is a continuation, carry forward the accumulated summary and update it with the new transcript span.`}
 
 TRANSCRIPT TO SUMMARIZE:
 

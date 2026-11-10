@@ -45,6 +45,9 @@ export const APP_IDENTITY = Object.freeze({
 
 export interface PiEngine {
 	model: Model<Api>;
+	/** A mutable custom endpoint can change limits during a tool loop. Budget
+	 * checks use the same live metadata that the next dispatch resolves. */
+	currentModel?: () => Model<Api>;
 	streamFn: StreamFunction;
 	/** The initially resolved (config-or-settings, CLAMPED) thinking level.
 	 *  Custom streams re-resolve the original preference per operation. */
@@ -57,8 +60,22 @@ let collection: ReturnType<typeof createModels> | undefined;
 interface ProviderSource {
 	sync(models: MutableModels): void;
 	isCustom(id: string): boolean;
+	/** Server-owned policy, checked before every operation, including engines
+	 * created before the policy changed. A scoped transport can enforce the
+	 * authorized final destination without teaching the agent layer storage. */
+	authorizeModel?(model: Model<Api>): Promise<ModelDispatchPolicy | void>;
 }
 let providerSource: ProviderSource | undefined;
+
+export interface ModelDispatchPolicy {
+	fetch?: typeof fetch;
+}
+
+/** Also used by explicitly bound School connections, which have their own
+ * private model collection and do not pass through piEngineForSpec. */
+export async function authorizeModelOperation(model: Model<Api>): Promise<ModelDispatchPolicy | void> {
+	return providerSource?.authorizeModel?.(model);
+}
 
 /** Configuration IO is injected by the server; the agent never imports stores. */
 export function configureProviderSource(source: ProviderSource): void {
@@ -148,15 +165,22 @@ export function piEngineForSpec(spec: ResolvedModelSpec, background: boolean | (
 	const level = thinkingPreference
 		? clampThinkingLevel(model, thinkingPreference)
 		: defaultThinkingLevel(model);
+	const currentCustomModel = () => {
+		const models = piModels();
+		const current = models.getModel(spec.provider, spec.id);
+		if (!current) throw new Error("The selected custom model is unavailable.");
+		return { models, model: permitImages(current) };
+	};
 	// A lesson's agent loop can stay alive through many tool calls. Remember
 	// only that this is a custom route, never its configuration for that run.
 	return {
 		model,
+		...(custom ? { currentModel: () => currentCustomModel().model } : {}),
 		level,
 		// The agent loop forwards state.thinkingLevel as `reasoning` (undefined
 		// = off on pi-ai's scale). Built-ins keep the factory clamp; custom
 		// requests re-resolve thinking against their current metadata below.
-		streamFn: (requestModel, context, options) => {
+		streamFn: (requestModel, context, options) => lazyStream(requestModel, async () => {
 			// Read the slot preference for every operation, not just engine creation.
 			// Unset adds NOTHING: native defaults/env and explicit caller options survive.
 			const retention = cacheRetention?.();
@@ -170,18 +194,18 @@ export function piEngineForSpec(spec: ResolvedModelSpec, background: boolean | (
 				// tool-loop steps. Resolve thinking from the ORIGINAL preference (or
 				// existing default order), not a previous metadata snapshot's clamp.
 				// Pi retains the setup of an operation already in flight.
-				const current = piModels();
-				const currentModel = current.getModel(spec.provider, spec.id);
-				if (!currentModel) return lazyStream(requestModel, async () => { throw new Error("The selected custom model is unavailable."); });
+				const { models: current, model: currentModel } = currentCustomModel();
+				const policy = await authorizeModelOperation(currentModel);
 				const currentLevel = thinkingPreference
 					? clampThinkingLevel(currentModel, thinkingPreference)
 					: defaultThinkingLevel(currentModel);
-				return current.streamSimple(permitImages(currentModel), context, { ...requestOptions, reasoning: currentLevel === "off" ? undefined : currentLevel });
+				return current.streamSimple(currentModel, context, { ...requestOptions, ...(policy?.fetch ? { fetch: policy.fetch, maxRetries: 0 } : {}), reasoning: currentLevel === "off" ? undefined : currentLevel });
 			}
+			const policy = await authorizeModelOperation(model);
 			const purpose = typeof background === "function" ? background : () => background;
 			const stream = spec.provider === "chatgpt" ? chatGPTStream(purpose, lifecycle) : nativeId ? nativeSubscriptionStream(models.getProvider(nativeId)!, purpose, lifecycle) : models.streamSimple.bind(models);
-			return stream(requestModel, context, requestOptions);
-		},
+			return stream(requestModel, context, { ...requestOptions, ...(policy?.fetch ? { fetch: policy.fetch, maxRetries: 0 } : {}) });
+		}),
 	};
 }
 

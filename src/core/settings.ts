@@ -243,6 +243,14 @@ export interface CustomModel {
 	context?: number;
 	/** Max output tokens, from the endpoint. Absent → the default. */
 	maxTokens?: number;
+	/** Observations from native Ollama discovery. Native capacity is never
+	 * used as the request budget; a profile's explicit num_ctx is. */
+	ollama?: {
+		nativeContext?: number;
+		configuredContext?: number;
+		activeContext?: number;
+		observedAt: string;
+	};
 }
 
 /** A user pin for one custom model: it beats what the endpoint publishes
@@ -258,6 +266,9 @@ export interface CustomModelOverride {
 
 /** The single custom endpoint's stored config (delta section). */
 export interface CustomProviderSettings {
+	/** Restrict inference to verified local Ollama models. Other providers
+	 * are refused per operation, including background and explicit routes. */
+	localOnly?: boolean;
 	/** Server-owned random authorization nonce; never a credential hash. */
 	credentialBindingId?: string;
 	/** Explicit authentication intent; never inferred from a saved key. */
@@ -654,6 +665,7 @@ export function sanitizeCustomModelOverrides(
  *  true; token counts only as positive ints). Clamp-never-reject. */
 function sanitizeCustomProvider(raw: Record<string, unknown>): CustomProviderSettings {
 	const out: CustomProviderSettings = {};
+	if (raw.localOnly === true) out.localOnly = true;
 	if (typeof raw.credentialBindingId === "string" && /^[a-f0-9]{32}$/.test(raw.credentialBindingId)) out.credentialBindingId = raw.credentialBindingId;
 	if (raw.authMode === "keyless" || raw.authMode === "apiKey") out.authMode = raw.authMode;
 	if (typeof raw.baseUrl === "string") {
@@ -675,6 +687,16 @@ function sanitizeCustomProvider(raw: Record<string, unknown>): CustomProviderSet
 			if (context) model.context = context;
 			const maxTokens = positiveInt(rec.maxTokens);
 			if (maxTokens) model.maxTokens = maxTokens;
+			if (rec.ollama && typeof rec.ollama === "object" && !Array.isArray(rec.ollama)) {
+				const observation = rec.ollama as Record<string, unknown>;
+				if (typeof observation.observedAt === "string" && Number.isFinite(Date.parse(observation.observedAt))) {
+					model.ollama = { observedAt: observation.observedAt };
+					for (const key of ["nativeContext", "configuredContext", "activeContext"] as const) {
+						const value = positiveInt(observation[key]);
+						if (value) model.ollama[key] = value;
+					}
+				}
+			}
 			byId.set(id, model);
 		}
 		out.models = [...byId.values()];

@@ -33,7 +33,9 @@ import {
 	activeCompactionOf,
 	buildCompactionPrompt,
 	compactionCutIndex,
-	COMPACTION_RESERVE_TOKENS,
+	contextReserveTokens,
+	contextOutputLimit,
+	KEEP_RECENT_TOKENS,
 	estimateContextTokens,
 	estimateTokens,
 	newCompactionMarker,
@@ -113,6 +115,8 @@ export interface CompactionDeps {
 	/** The composed system prompt's token estimate (chars/4) — the
 	 *  projection the provider actually receives starts with it. */
 	systemPromptTokens: number;
+	/** Not yet persisted input that the next conversation call must fit. */
+	pendingInputTokens?: number;
 	/** Injectable summarizer (tests); default = the sub-agent one-shot. */
 	summarize?: Summarizer;
 }
@@ -157,10 +161,129 @@ function startCompaction(deps: CompactionDeps, chatId: string): Promise<void> {
 
 /** Resolve the effective trigger. Unknown window → the setting alone
  *  (honest: no fake window — the catalog-index precedent). */
-export function effectiveThresholdTokens(settingTokens: number | undefined, contextWindowTokens: number | undefined): number {
+export function effectiveThresholdTokens(settingTokens: number | undefined, contextWindowTokens: number | undefined, maxOutputTokens?: number): number {
 	const setting = settingTokens ?? 150_000;
 	if (contextWindowTokens === undefined) return setting;
-	return Math.min(setting, Math.max(contextWindowTokens - COMPACTION_RESERVE_TOKENS, 1));
+	return Math.min(setting, Math.max(contextWindowTokens - contextReserveTokens(contextWindowTokens, maxOutputTokens), 1));
+}
+
+/** App-side estimates are not the backend tokenizer. Reject an estimated
+ * overflow instead of submitting a request that may silently truncate. */
+export class ContextBudgetError extends Error {
+	constructor(message: string) {
+		super(`Context budget: ${message}`);
+		this.name = "ContextBudgetError";
+	}
+}
+
+function modelWindow(model: PiEngine["model"]): number | undefined {
+	const value = model.contextWindow;
+	return Number.isFinite(value) && value > 0 ? Math.floor(value) : undefined;
+}
+
+function contextWindowOf(engine: PiEngine): number | undefined {
+	return modelWindow(engine.currentModel?.() ?? engine.model);
+}
+
+function inputBudgetOf(engine: PiEngine): number | undefined {
+	const model = engine.currentModel?.() ?? engine.model;
+	const window = modelWindow(model);
+	if (window === undefined) return undefined;
+	const budget = window - contextReserveTokens(window, model.maxTokens);
+	if (budget <= 0) throw new ContextBudgetError(`the configured output allowance leaves no input space in this ${window}-token window. Lower the output limit or select a larger verified context.`);
+	return budget;
+}
+
+/** Used before dispatch, including the actual system/tool messages once
+ * Pi has normalized them. Full persisted history is never rewritten. */
+export function assertContextFits(messages: readonly (LhMessage | AgentMessage)[], engine: PiEngine, additionalTokens = 0): void {
+	const budget = inputBudgetOf(engine);
+	if (budget === undefined) return;
+	const estimate = estimateTokens(messages) + additionalTokens;
+	if (estimate > budget) throw new ContextBudgetError(`the request is estimated at ${estimate} input tokens, but ${budget} are available after reserving output. Shorten the input or select a larger verified context.`);
+}
+
+/** Guard every model operation, including tool-loop growth after admission. */
+export function withContextBudgetGuard(engine: PiEngine): PiEngine {
+	return {
+		...engine,
+		streamFn: (model, context, options) => {
+			// Custom-provider settings can change while an Agent is alive. Its
+			// captured model is not the authority for the next operation's window.
+			const current = engine.currentModel?.() ?? model;
+			const requested = options?.maxTokens ?? current.maxTokens;
+			const limited = contextOutputLimit(current.contextWindow, requested);
+			assertContextFits(context.messages, { model: { ...current, maxTokens: limited }, streamFn: engine.streamFn });
+			return engine.streamFn(current, context, limited === requested ? options : { ...options, maxTokens: limited });
+		},
+	};
+}
+
+function budgetFor(deps: CompactionDeps) {
+	const inputTokens = inputBudgetOf(deps.engine) ?? deps.thresholdTokens;
+	const available = Math.min(inputTokens, deps.thresholdTokens) - deps.systemPromptTokens - (deps.pendingInputTokens ?? 0);
+	if (available < 256) throw new ContextBudgetError("system instructions, pending input, and output leave too little room for a retained turn and summary.");
+	return {
+		inputTokens,
+		keepRecentTokens: Math.min(KEEP_RECENT_TOKENS, Math.floor(available / 2)),
+		summaryTokens: Math.min(4096, Math.floor(available / 4), (deps.engine.currentModel?.() ?? deps.engine.model).maxTokens || 4096),
+		available,
+	};
+}
+
+const MAX_SUMMARY_CALLS = 64;
+const SUMMARY_INPUT_MARGIN = 256;
+
+/** Oversized old histories use bounded rolling summaries on the SAME engine.
+ * Every source character reaches a chunk; no prefix is silently discarded.
+ * The 64-call ceiling makes an unexpectedly huge import an explicit refusal. */
+async function summarizeSpan(
+	deps: CompactionDeps,
+	spanText: string,
+	planText: string | null,
+	maxSummaryTokens: number,
+	onUsage: (usage: Usage) => void,
+): Promise<string> {
+	const window = contextWindowOf(deps.engine);
+	const makePrompt = (text: string) => buildCompactionPrompt({ spanText: text, planTreeText: planText, kind: deps.kind, maxSummaryTokens });
+	const guarded = withContextBudgetGuard(deps.engine);
+	const summaryEngine: PiEngine = {
+		...deps.engine,
+		model: { ...(deps.engine.currentModel?.() ?? deps.engine.model), maxTokens: maxSummaryTokens },
+		streamFn: (model, context, options) => guarded.streamFn(model, context, {
+			...options,
+			maxTokens: Math.min(options?.maxTokens ?? maxSummaryTokens, maxSummaryTokens),
+		}),
+	};
+	const summarize = deps.summarize ?? subagentSummarizer;
+	const prefix = (summary: string) => summary ? `[ACCUMULATED SUMMARY — retain its facts unless the new span supersedes them]\n${summary}\n\n[NEXT TRANSCRIPT SPAN]\n` : "";
+	const summaryReserve = window === undefined ? maxSummaryTokens : contextReserveTokens(window, maxSummaryTokens);
+	const capacity = (summary: string) => window === undefined ? spanText.length :
+		(window - summaryReserve - SUMMARY_INPUT_MARGIN) * 4 - SUMMARIZER_SYSTEM_PROMPT.length - makePrompt(prefix(summary)).length;
+	const minimumCapacity = capacity("x".repeat(maxSummaryTokens * 4));
+	if (minimumCapacity < 256 || Math.ceil(spanText.length / minimumCapacity) > MAX_SUMMARY_CALLS) {
+		throw new ContextBudgetError("the summary instructions, plan, or imported history cannot fit within the bounded summarization budget. Select a larger verified context or reduce the imported material.");
+	}
+	let summary = "";
+	let offset = 0;
+	let calls = 0;
+	do {
+		let end = Math.min(spanText.length, offset + capacity(summary));
+		// Never split a UTF-16 surrogate pair at a chunk boundary.
+		if (end < spanText.length && /[\uD800-\uDBFF]/.test(spanText[end - 1] ?? "")) end--;
+		if ((end <= offset && spanText.length > 0) || ++calls > MAX_SUMMARY_CALLS) throw new ContextBudgetError("the history exceeds the bounded summarization budget.");
+		const prompt = makePrompt(`${prefix(summary)}${spanText.slice(offset, end)}`);
+		if (window !== undefined && Math.ceil((SUMMARIZER_SYSTEM_PROMPT.length + prompt.length) / 4) + maxSummaryTokens + SUMMARY_INPUT_MARGIN > window) {
+			throw new ContextBudgetError("the summarization request exceeds the selected model window.");
+		}
+		const result = await summarize(prompt, summaryEngine);
+		onUsage(result.usage);
+		summary = result.summary.trim();
+		if (!summary) return "";
+		if (Math.ceil(summary.length / 4) > maxSummaryTokens) throw new ContextBudgetError("the generated summary exceeds its reserved space; no checkpoint was committed.");
+		offset = end;
+	} while (offset < spanText.length);
+	return summary;
 }
 
 // ─── the estimate over the ACTIVE projection ────────────────────────────────
@@ -205,10 +328,13 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 	const record = deps.chatStore.getChat(chatId);
 	if (!record) return;
 	const messages = record.messages;
-	const tokensBefore = projectedContextTokens(messages, deps.systemPromptTokens);
+	const tokensBefore = projectedContextTokens(messages, deps.systemPromptTokens) + (deps.pendingInputTokens ?? 0);
 	if (tokensBefore <= deps.thresholdTokens) return; // settled beneath while we waited
 
-	const cut = compactionCutIndex(messages);
+	let budget: ReturnType<typeof budgetFor>;
+	try { budget = budgetFor(deps); }
+	catch (error) { console.error(`[chat ${chatId}] compaction cannot fit:`, error); return; }
+	const cut = compactionCutIndex(messages, budget.keepRecentTokens, budget.available - budget.summaryTokens - 64);
 	if (cut <= 0 || cut >= messages.length) return; // no history can be dropped
 
 	// The previous compaction's kept boundary (chained compactions
@@ -248,25 +374,25 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 	const planText = planTreeToText(record.tree, messages);
 	const sourceAtStart = summarySource(messages.slice(0, cut));
 	const checkpointAtStart = JSON.stringify(previous);
-	const prompt = buildCompactionPrompt({
-		spanText: fullSpan,
-		planTreeText: planText,
-		kind: deps.kind,
-	});
+	const details: CompactionDetails = {
+		firstKeptMessageId: messages[cut]!.id,
+		tokensBefore,
+		model: deps.modelId,
+		at: new Date().toISOString(),
+	};
+	// Avoid spending even a local inference call if the smallest retained
+	// complete exchange cannot coexist with the reserved summary and input.
+	try {
+		const reserved = newCompactionMarker("x".repeat(budget.summaryTokens * 4), details);
+		assertContextFits(toLlmMessages([...messages, reserved]), deps.engine, deps.systemPromptTokens + (deps.pendingInputTokens ?? 0));
+	} catch (error) { console.error(`[chat ${chatId}] compaction cannot fit:`, error); return; }
 
 	emit("compaction-changed", { chatId, running: true });
+	const usages: Usage[] = [];
+	let usageRecorded = false;
+	let checkpointCommitted = false;
 	try {
-		const summarize = deps.summarize ?? subagentSummarizer;
-		const { summary, usage } = await summarize(prompt, deps.engine);
-		const trimmed = summary.trim();
-
-		const firstKept = messages[cut]!;
-		const details: CompactionDetails = {
-			firstKeptMessageId: firstKept.id,
-			tokensBefore,
-			model: deps.modelId,
-			at: new Date().toISOString(),
-		};
+		const trimmed = await summarizeSpan(deps, fullSpan, planText, budget.summaryTokens, (usage) => usages.push(usage));
 		const marker = newCompactionMarker(trimmed, details);
 		const current = deps.chatStore.getChat(chatId);
 		if (!current) return; // deletion owns the record; never resurrect it for a late summary
@@ -277,6 +403,11 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 		else if (JSON.stringify(activeCompactionOf(current.messages)) !== checkpointAtStart || current.messages.slice(originalEnd).some((message) => message.role === "custom" && message.customType === "compaction")) reason = "checkpoint-changed";
 		else if (summarySource(current.messages.slice(0, cut)) !== sourceAtStart) reason = "source-changed";
 		else if (planTreeToText(current.tree, current.messages.slice(0, originalEnd)) !== planText) reason = "plan-changed";
+		const candidate = [...current.messages.slice(0, originalEnd), marker, ...current.messages.slice(originalEnd)];
+		if (!reason) {
+			try { assertContextFits(toLlmMessages(candidate), deps.engine, deps.systemPromptTokens + (deps.pendingInputTokens ?? 0)); }
+			catch { reason = "context-budget"; }
+		}
 		if (reason) {
 			console.info(`[chat ${chatId}] compaction discarded — ${reason}`);
 		} else {
@@ -285,7 +416,8 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 			// putting it after a dismissal would silently clear the delivery pause.
 			// The ID/order check above establishes this position; a stale numeric
 			// index alone must never decide which history the summary replaces.
-			deps.chatStore.saveMessages(chatId, [...current.messages.slice(0, originalEnd), marker, ...current.messages.slice(originalEnd)]);
+			deps.chatStore.saveMessages(chatId, candidate);
+			checkpointCommitted = true;
 		}
 		// The money channel: the summary is a real model call on the
 		// session's own engine even when its snapshot became obsolete. The
@@ -296,17 +428,16 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 			at: details.at,
 			model: deps.modelId,
 			compaction: reason ? { outcome: "discarded", reason } : { outcome: "committed" },
-			steps: [
-				{
+			steps: usages.map((usage) => ({
 					inputTokens: usage.input,
 					outputTokens: usage.output,
 					cacheReadTokens: usage.cacheRead,
 					cacheWriteTokens: usage.cacheWrite,
 					cacheWrite1hTokens: usage.cacheWrite1h ?? 0,
 					reasoningTokens: usage.reasoning ?? 0,
-				},
-			],
+			})),
 		});
+		usageRecorded = true;
 		// Notify-then-fetch: expose completed-call usage and, when committed,
 		// the checkpoint. A discarded summary never invalidates the meter.
 		emit("record-changed", { chatId });
@@ -315,6 +446,19 @@ async function compact(deps: CompactionDeps, chatId: string): Promise<void> {
 		// write can also fail after a marker commits; never claim rollback or
 		// repeat the provider call here. The next gate reads actual record state.
 		console.error(`[chat ${chatId}] compaction failed:`, err);
+		if (usages.length && !usageRecorded && !checkpointCommitted && deps.chatStore.getChat(chatId)) {
+			// A later chunk can fail after earlier chunks completed. Preserve
+			// those measured calls without pretending they made a checkpoint.
+			try {
+				deps.chatStore.appendTurnUsage(chatId, {
+					id: crypto.randomUUID(), messageId: crypto.randomUUID(), at: details.at, model: deps.modelId,
+					compaction: { outcome: "discarded", reason: err instanceof ContextBudgetError ? "context-budget" : "summary-failed" },
+					steps: usages.map((usage) => ({ inputTokens: usage.input, outputTokens: usage.output, cacheReadTokens: usage.cacheRead,
+						cacheWriteTokens: usage.cacheWrite, cacheWrite1hTokens: usage.cacheWrite1h ?? 0, reasoningTokens: usage.reasoning ?? 0 })),
+				});
+				emit("record-changed", { chatId });
+			} catch (accountingError) { console.error(`[chat ${chatId}] compaction usage could not be saved:`, accountingError); }
+		}
 	} finally {
 		emit("compaction-changed", { chatId, running: false });
 	}
@@ -338,8 +482,9 @@ export async function ensureCompacted(deps: CompactionDeps, chatId: string): Pro
 	if (deps.canStart?.() === false) return;
 	const record = deps.chatStore.getChat(chatId);
 	if (!record) return;
-	if (projectedContextTokens(record.messages, deps.systemPromptTokens) <= deps.thresholdTokens) return;
-	await startCompaction(deps, chatId);
+	if (projectedContextTokens(record.messages, deps.systemPromptTokens) + (deps.pendingInputTokens ?? 0) > deps.thresholdTokens) await startCompaction(deps, chatId);
+	const current = deps.chatStore.getChat(chatId);
+	if (current) assertContextFits(toLlmMessages(current.messages), deps.engine, deps.systemPromptTokens + (deps.pendingInputTokens ?? 0));
 }
 
 /**
@@ -356,6 +501,6 @@ export function kickCompaction(buildDeps: () => CompactionDeps | null, chatId: s
 	if (!deps || deps.canStart?.() === false) return;
 	const record = deps.chatStore.getChat(chatId);
 	if (!record) return;
-	if (projectedContextTokens(record.messages, deps.systemPromptTokens) <= deps.thresholdTokens) return;
+	if (projectedContextTokens(record.messages, deps.systemPromptTokens) + (deps.pendingInputTokens ?? 0) <= deps.thresholdTokens) return;
 	void startCompaction(deps, chatId);
 }

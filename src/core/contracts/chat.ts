@@ -160,7 +160,7 @@ export interface TurnUsage {
 	 *  checkpoint. Absent on ordinary turns and historical records. */
 	compaction?: { outcome: "committed" } | {
 		outcome: "discarded";
-		reason: "empty-summary" | "history-changed" | "source-changed" | "checkpoint-changed" | "plan-changed";
+		reason: "empty-summary" | "history-changed" | "source-changed" | "checkpoint-changed" | "plan-changed" | "context-budget" | "summary-failed";
 	};
 }
 
