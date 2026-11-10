@@ -2,7 +2,7 @@
  * credential-binding and optimistic-write boundaries. No secret reaches GET. */
 import { createHmac, randomBytes } from "node:crypto";
 import { normalizeBaseUrl, parseModelIds, sanitizeCustomModelOverrides, type CustomProviderSettings } from "../core/settings.ts";
-import { readSettings, writeSettings } from "../store/settings.ts";
+import { readLocalInferencePolicy, readSettings, writeSettings } from "../store/settings.ts";
 import { readCustomAuth } from "../store/auth.ts";
 import { customAuthState, customKeyAuthorized, persistCustomAuth } from "./custom-provider-auth.ts";
 import type { CustomAuthBinding } from "../core/custom-provider-auth.ts";
@@ -11,6 +11,7 @@ import { subscriptionRequestOrigin } from "./web-subscription-http.ts";
 import { discoverModels, mergeManualModels, syncCustomProvider } from "./custom-provider.ts";
 import { parseCustomModelOverridesBody } from "./settings-body.ts";
 import { CustomBodyLimitError, readBoundedJson } from "./custom-provider-body.ts";
+import { discoverLocalOllamaModels, localOllamaOrigin, LocalOllamaError } from "./ollama-local.ts";
 
 const revisionKey = Symbol.for("learnharness.custom-provider-revision");
 const globals = globalThis as typeof globalThis & { [revisionKey]?: Buffer };
@@ -39,7 +40,9 @@ export function customProviderGet(request: Request): Response {
 	const inspect = new URL(request.url).searchParams.get("authMode") === "apiKey";
 	const current = snapshot();
 	const s = snapshot(inspect || current.cp?.authMode === "apiKey");
+	const restriction = readLocalInferencePolicy();
 	return response({
+		localOnly: !restriction.ok || restriction.localOnly,
 		baseUrl: s.cp?.baseUrl ?? "", authMode: s.cp?.authMode ?? "keyless",
 		models: s.cp?.models ?? [], overrides: s.cp?.overrides ?? {}, manualModels: s.cp?.manualModels ?? [],
 		keyPresent: Boolean(s.key), keySource: s.auth.source,
@@ -94,7 +97,9 @@ export async function customProviderMutation(request: Request): Promise<Response
 		if (!before.auth.readable) return failure("Custom authorization storage is unavailable. No changes were saved.", 500);
 		if (request.headers.get("if-match") !== before.etag) return stale();
 		if (request.method === "DELETE") {
-			commit(undefined, { version: 1, id: randomBytes(16).toString("hex"), authMode: "disabled" });
+			// Disconnect must not silently re-enable remote inference for an
+			// already-running background job. Preserve the opt-in restriction.
+			commit(before.cp?.localOnly ? { localOnly: true } : undefined, { version: 1, id: randomBytes(16).toString("hex"), authMode: "disabled" });
 			return response({ ok: true });
 		}
 		if (request.method === "PATCH") {
@@ -102,6 +107,12 @@ export async function customProviderMutation(request: Request): Promise<Response
 			if (!parsed.ok) return failure(parsed.error);
 			if (!before.cp?.baseUrl) return failure("No custom endpoint configured", 409);
 			const overrides = sanitizeCustomModelOverrides(parsed.settings, before.cp.models?.map((m) => m.id));
+			if (before.cp.localOnly) {
+				for (const model of before.cp.models ?? []) {
+					const pin = overrides[model.id]?.context;
+					if (pin && model.context && pin > model.context) return failure(`The context pin for ${model.id} exceeds its observed Ollama profile. Create a larger profile and reconnect first.`);
+				}
+			}
 			commit({ ...before.cp, overrides });
 			return response({ ok: true, overrides });
 		}
@@ -110,6 +121,13 @@ export async function customProviderMutation(request: Request): Promise<Response
 		if (!base) return failure("Base URL must be http(s), with no credentials, query or fragment.");
 		if (raw.authMode !== "keyless" && raw.authMode !== "apiKey") return failure("Choose Keyless or API key authentication.");
 		const authMode = raw.authMode;
+		if (raw.localOnly !== undefined && typeof raw.localOnly !== "boolean") return failure("Local Ollama only must be a boolean.");
+		const restriction = readLocalInferencePolicy();
+		const localOnly = raw.localOnly === undefined ? !restriction.ok || restriction.localOnly : raw.localOnly;
+		if (localOnly) {
+			if (authMode !== "keyless") return failure("Local Ollama only requires Keyless authentication.");
+			localOllamaOrigin(base);
+		}
 		if (raw.key !== undefined && typeof raw.key !== "string") return failure("API key must be a string.");
 		const supplied = typeof raw.key === "string" ? raw.key.trim() : undefined;
 		if (authMode === "apiKey" && supplied === "") return failure("Choose Keyless to clear authentication.");
@@ -126,7 +144,9 @@ export async function customProviderMutation(request: Request): Promise<Response
 		if (authMode === "apiKey" && !effectiveKey) return failure("API key mode requires an effective key.");
 		const manualModels = parseModelIds(raw.manualModels);
 		if (manualModels.length > 10_000) return failure("Model list exceeds 10000 entries");
-		const found = await discoverModels(base, effectiveKey);
+		const found = localOnly
+			? { ok: true as const, models: await discoverLocalOllamaModels(base, manualModels) }
+			: await discoverModels(base, effectiveKey);
 		if (!found.ok && (found.fatal || found.status === 401 || found.status === 403)) return failure(found.error, 502);
 		if (!found.ok && !manualModels.length) return failure(`${found.error}. If this endpoint has no /models list, add model IDs manually.`, 502);
 		// Discovery yields; both the custom record and the credential must still
@@ -134,16 +154,17 @@ export async function customProviderMutation(request: Request): Promise<Response
 		const now = snapshot(authMode === "apiKey");
 		if (before.etag !== now.etag || JSON.stringify(before.auth) !== JSON.stringify(now.auth)) return stale();
 		const discovered = found.ok ? found.models : !changedTarget ? before.cp?.models ?? [] : [];
-		const models = mergeManualModels(discovered, manualModels);
+		const models = localOnly ? discovered : mergeManualModels(discovered, manualModels);
 		if (models.length > 10_000) return failure("Model list exceeds 10000 entries");
 		const overrides = sanitizeCustomModelOverrides(!changedTarget ? before.cp?.overrides : undefined, models.map((m) => m.id));
 		const id = randomBytes(16).toString("hex");
 		const fileKey = authMode === "keyless" ? undefined : supplied && !envOwned ? supplied : now.auth.fileKey;
 		const fileKeyBaseUrl = authMode === "apiKey" ? envOwned ? now.auth.binding?.fileKeyBaseUrl : base : undefined;
 		const binding: CustomAuthBinding = { version: 1, id, baseUrl: base, authMode, ...(fileKey && fileKeyBaseUrl ? { fileKeyBaseUrl } : {}) };
-		commit({ baseUrl: base, authMode, credentialBindingId: id, models, overrides, ...(manualModels.length ? { manualModels } : {}) }, binding, fileKey);
+		commit({ baseUrl: base, authMode, localOnly, credentialBindingId: id, models, overrides, ...(manualModels.length ? { manualModels } : {}) }, binding, fileKey);
 		return response({ ok: true, models });
 	} catch (error) {
+		if (error instanceof LocalOllamaError) return failure(error.message, 400);
 		return failure(error instanceof CustomBodyLimitError ? "Configuration body exceeds 64 KiB." : error instanceof SyntaxError ? "Invalid JSON body." : "Unable to save custom configuration. Reload configuration and retry.", error instanceof CustomBodyLimitError ? 413 : error instanceof SyntaxError ? 400 : 500);
 	}
 }

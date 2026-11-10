@@ -54,6 +54,8 @@ async function fixture(language: "pl" | "en" = "pl", delayedRead?: Promise<Respo
 		nextMic: undefined as Promise<{ getTracks: () => { stop: () => void }[] }> | undefined,
 		readFails: false,
 		reads: 0,
+		tokenMints: 0,
+		permissionChecks: 0,
 		active: false,
 		captures: 0,
 		stops: 0,
@@ -71,7 +73,13 @@ async function fixture(language: "pl" | "en" = "pl", delayedRead?: Promise<Respo
 		WebSocket: Socket, AudioContext: AudioGraph, AudioWorkletNode: Worklet,
 		IS_REACT_ACT_ENVIRONMENT: true,
 		fetch: async (url: string, init?: RequestInit) => {
-			if (url === "/api/stt/token") return Response.json({ token: "test-token" });
+			if (url === "/api/stt/token" || url === "/api/stt/token?check=1") {
+				if (url.endsWith("?check=1")) state.permissionChecks++;
+				if (state.record.customProvider?.localOnly) return Response.json({ message: "Hosted dictation is disabled while Local Ollama only is enabled." }, { status: 403 });
+				if (url.endsWith("?check=1")) return Response.json({ allowed: true });
+				state.tokenMints++;
+				return Response.json({ token: "test-token" });
+			}
 			if (url === "/api/settings") {
 				state.reads++;
 				if (state.nextRead) { const response = state.nextRead; state.nextRead = undefined; return response; }
@@ -129,6 +137,46 @@ async function fixture(language: "pl" | "en" = "pl", delayedRead?: Promise<Respo
 }
 
 afterEach(async () => { await dispose?.(); restore?.(); dispose = undefined; restore = undefined; });
+
+test("an already-warmed dictation token cannot start a new socket after local-only mode is enabled", async () => {
+	const f = await fixture();
+	await f.mount();
+	assert.equal(f.state.tokenMints, 1);
+	// An external settings change emits no browser notification. The final
+	// permission check must still reject the cached, otherwise valid JWT.
+	f.state.record.customProvider = { localOnly: true };
+	await act(async () => { f.dictation.toggle(); });
+	assert.equal(f.state.permissionChecks, 1);
+	assert.equal(f.state.tokenMints, 1, "no further upstream mint after the policy changes");
+	assert.equal(Socket.all.length, 0);
+	assert.equal(f.dictation.phase, "idle");
+	assert.match(f.dictation.error!, /Local Ollama only/);
+	assert.equal(f.state.stops, 1, "the rejected start releases the microphone");
+});
+
+test("saving provider settings invalidates a warm token without starting a new mint", async () => {
+	const f = await fixture();
+	await f.mount();
+	assert.equal(f.state.tokenMints, 1);
+	await act(async () => { notifySettingsSaved("keys"); });
+	assert.equal(f.state.tokenMints, 1);
+	await act(async () => { f.dictation.toggle(); });
+	assert.equal(f.state.tokenMints, 2, "the next authorized run obtains a fresh token");
+	assert.equal(Socket.all.length, 1);
+});
+
+test("a reconnect cannot mint or open another socket after local-only mode is enabled", async () => {
+	const f = await fixture();
+	await f.mount();
+	await act(async () => { f.dictation.toggle(); });
+	const first = Socket.all[0]!;
+	await act(async () => { first.open(); });
+	f.state.record.customProvider = { localOnly: true };
+	await act(async () => { first.end(1006); });
+	assert.equal(f.state.tokenMints, 1);
+	assert.equal(Socket.all.length, 1);
+	assert.equal(f.dictation.phase, "idle");
+});
 
 test("waits for the saved language; reconnect preserves it and finals still flush exactly once", async () => {
 	const read = deferred<Response>();

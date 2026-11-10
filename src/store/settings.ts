@@ -29,6 +29,28 @@ import { writeFileAtomicSync } from "./atomic-write.ts";
 import { parseFileAccessSettings, type FileAccessSettingsResult } from "../core/file-access.ts";
 
 const FILE_ACCESS_ERROR = "File-access configuration cannot be read reliably. Learner-file access is blocked. Repair File access in Settings → Agent → Tools.";
+const LOCAL_INFERENCE_POLICY_ERROR = "Inference policy cannot be read reliably. New model and hosted-service requests are blocked. Repair the custom provider settings.";
+export type LocalInferencePolicy = { ok: true; localOnly: boolean } | { ok: false; error: string };
+
+function localInferenceFromRecord(raw: unknown): LocalInferencePolicy {
+	if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, error: LOCAL_INFERENCE_POLICY_ERROR };
+	const cp = (raw as Record<string, unknown>).customProvider;
+	if (cp === undefined) return { ok: true, localOnly: false };
+	if (!cp || typeof cp !== "object" || Array.isArray(cp)) return { ok: false, error: LOCAL_INFERENCE_POLICY_ERROR };
+	const value = (cp as Record<string, unknown>).localOnly;
+	if (value !== undefined && typeof value !== "boolean") return { ok: false, error: LOCAL_INFERENCE_POLICY_ERROR };
+	return { ok: true, localOnly: value === true };
+}
+
+/** A corrupt policy must not turn a previously selected API route back on.
+ * First boot is distinguished from an unreadable/corrupt existing record. */
+export function readLocalInferencePolicy(): LocalInferencePolicy {
+	try { return localInferenceFromRecord(JSON.parse(fs.readFileSync(SETTINGS_FILE, "utf-8"))); }
+	catch (error) {
+		return (error as NodeJS.ErrnoException).code === "ENOENT" && settingsAreAbsent()
+			? { ok: true, localOnly: false } : { ok: false, error: LOCAL_INFERENCE_POLICY_ERROR };
+	}
+}
 
 /** Separate strict view: the ordinary settings API keeps its historical
  * null/default behavior, but source access must distinguish absent prefs
@@ -98,6 +120,7 @@ export function readSettings(): UserSettings | null {
 	}
 	const record = sanitizeUserSettings(parsed);
 	if (!record) return null;
+	if (!localInferenceFromRecord(parsed).ok) record.customProvider = { ...record.customProvider, localOnly: true };
 	if (!fileAccessFromRecord(parsed).ok) {
 		// Unrelated section writes carry this safe placeholder, not a dropped
 		// malformed policy that would silently restore unrestricted reads.
@@ -113,6 +136,13 @@ export function readSettings(): UserSettings | null {
 export function writeSettings(raw: unknown): UserSettings {
 	const settings = sanitizeUserSettings(raw);
 	if (!settings) throw new Error("settings record must be a JSON object");
+	const requestedPolicy = raw && typeof raw === "object" && !Array.isArray(raw)
+		? (raw as Record<string, unknown>).customProvider : undefined;
+	const explicitPolicy = requestedPolicy && typeof requestedPolicy === "object" && !Array.isArray(requestedPolicy)
+		&& typeof (requestedPolicy as Record<string, unknown>).localOnly === "boolean";
+	if (!readLocalInferencePolicy().ok && !explicitPolicy) {
+		settings.customProvider = { ...settings.customProvider, localOnly: true };
+	}
 	if (!readFileAccessSettings().ok && settings.agent?.fileAccess === undefined) {
 		// A whole-file corruption cannot be carried by readSettings (null).
 		// Saving another preference repairs it into a BLOCKED policy unless

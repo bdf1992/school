@@ -57,6 +57,7 @@ interface KeysResponse {
 
 /** The custom endpoint's non-secret status (GET /api/custom-provider). */
 interface CustomStatus {
+	localOnly: boolean;
 	keyReuseRequired: boolean;
 	revision: string;
 	authMode: "keyless" | "apiKey";
@@ -73,7 +74,7 @@ async function readCustomStatus(inspectKey = false): Promise<CustomStatus> {
 	const response = await fetch(`/api/custom-provider${inspectKey ? "?authMode=apiKey" : ""}`);
 	if (!response.ok) throw new Error("Unable to load custom configuration.");
 	const cp = await response.json() as Partial<CustomStatus>;
-	return { keyReuseRequired: Boolean(cp.keyReuseRequired), revision: response.headers.get("etag") ?? "", authMode: cp.authMode ?? "keyless", keySource: cp.keySource ?? "none", baseUrl: cp.baseUrl ?? "", models: cp.models ?? [], overrides: cp.overrides ?? {}, manualModels: cp.manualModels ?? [], keyPresent: Boolean(cp.keyPresent) };
+	return { localOnly: cp.localOnly === true, keyReuseRequired: Boolean(cp.keyReuseRequired), revision: response.headers.get("etag") ?? "", authMode: cp.authMode ?? "keyless", keySource: cp.keySource ?? "none", baseUrl: cp.baseUrl ?? "", models: cp.models ?? [], overrides: cp.overrides ?? {}, manualModels: cp.manualModels ?? [], keyPresent: Boolean(cp.keyPresent) };
 }
 
 /** The curated tools group, pinned by id (the catalog owns the copy;
@@ -519,6 +520,7 @@ export function KeysSection({
 				)}
 				{addingCustom && (
 					<CustomEndpointEditor
+						localOnly0={custom?.localOnly ?? false}
 						revision0={custom?.revision ?? ""}
 						authMode0={custom?.authMode ?? "keyless"}
 						keySource0={custom?.keySource ?? "none"}
@@ -681,7 +683,7 @@ export function CustomEndpointSetup({ onSaved }: { onSaved: () => void | Promise
 	}
 	useEffect(() => { void reload(); }, []);
 	if (!status || error) return <div className="text-xs">{error ? "Unable to load custom configuration." : "Loading custom configuration…"}{error && <button onClick={() => void reload()}>Retry</button>}</div>;
-	return <CustomEndpointEditor key={status.revision} setup revision0={status.revision} authMode0={status.authMode} keySource0={status.keySource} keyReuseRequired0={status.keyReuseRequired} baseUrl0={status.baseUrl} keyPresent={status.keyPresent} models={status.models} overrides={status.overrides} manualModels0={status.manualModels} onSaved={onSaved} onPinsSaved={reload} onReload={reload} onCancel={reload} />;
+	return <CustomEndpointEditor key={status.revision} setup localOnly0={status.localOnly} revision0={status.revision} authMode0={status.authMode} keySource0={status.keySource} keyReuseRequired0={status.keyReuseRequired} baseUrl0={status.baseUrl} keyPresent={status.keyPresent} models={status.models} overrides={status.overrides} manualModels0={status.manualModels} onSaved={onSaved} onPinsSaved={reload} onReload={reload} onCancel={reload} />;
 }
 
 /** The custom endpoint's status row (shown once configured); clicking re-opens the editor. */
@@ -695,7 +697,7 @@ function CustomEndpointRow({
 	onToggle: () => void;
 }) {
 	const count = status.models.length;
-	const line = `${status.baseUrl} · ${count} model${count === 1 ? "" : "s"} · ${status.authMode === "keyless" ? "keyless" : status.keyPresent ? "API key" : "API key missing"}`;
+	const line = `${status.baseUrl} · ${count} model${count === 1 ? "" : "s"} · ${status.localOnly ? "local only" : status.authMode === "keyless" ? "keyless" : status.keyPresent ? "API key" : "API key missing"}`;
 	return (
 		<div data-testid="custom-endpoint-row">
 			<button
@@ -759,6 +761,7 @@ const pinTestid = (prefix: string, id: string) => `${prefix}-${id.replace(/[^a-z
  *  detected automatically. */
 function CustomEndpointEditor({
 	setup = false,
+	localOnly0,
 	revision0, authMode0, keySource0, keyReuseRequired0, onReload,
 	baseUrl0,
 	keyPresent: initialKeyPresent,
@@ -771,6 +774,7 @@ function CustomEndpointEditor({
 	onDelete,
 }: {
 	setup?: boolean;
+	localOnly0: boolean;
 	revision0: string;
 	authMode0: "keyless" | "apiKey";
 	keySource0: "env" | "file" | "none";
@@ -790,6 +794,7 @@ function CustomEndpointEditor({
 	onDelete?: (revision: string) => Promise<string | null>;
 }) {
 	const [revision, setRevision] = useState(revision0);
+	const [localOnly, setLocalOnly] = useState(localOnly0);
 	const [authMode, setAuthMode] = useState(authMode0);
 	const [keySource, setKeySource] = useState(keySource0);
 	const [keyPresent, setKeyPresent] = useState(initialKeyPresent);
@@ -863,7 +868,7 @@ function CustomEndpointEditor({
 		const res = await fetch("/api/custom-provider", {
 			method: "POST",
 			headers: { "content-type": "application/json", "if-match": revision },
-			body: JSON.stringify({ baseUrl, authMode, reuseKey, manualModels, ...(authMode === "apiKey" && keyTouched && key.trim() && keySource !== "env" ? { key } : {}) }),
+			body: JSON.stringify({ baseUrl, authMode, localOnly, reuseKey, manualModels, ...(authMode === "apiKey" && keyTouched && key.trim() && keySource !== "env" ? { key } : {}) }),
 		}).catch(() => null);
 		if (!res || !res.ok) {
 			const b = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;
@@ -901,8 +906,13 @@ function CustomEndpointEditor({
 				disabled={busy}
 				className="h-7 min-w-0 rounded-sm border border-border bg-background px-1.5 font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-muted-foreground/50"
 			/>
+			<label className="flex items-center gap-2 text-xs">
+				<input type="checkbox" data-testid="custom-local-only" checked={localOnly} disabled={busy || pinsBusy} onChange={(event) => { setLocalOnly(event.target.checked); if (event.target.checked) { setAuthMode("keyless"); setReuseKey(false); } }} />
+				Local Ollama only
+			</label>
+			{localOnly && <p data-testid="custom-local-help" className="text-[11px] text-muted-foreground">Uses local weights on this computer. Blocks other model providers and new hosted search and dictation requests. Click Connect to apply.</p>}
 			<label className="flex items-center gap-2 text-xs">Authentication
-				<select aria-label="Custom endpoint authentication" data-testid="custom-auth-mode" value={authMode} disabled={busy || pinsBusy} onChange={(e) => { setAuthMode(e.target.value as "keyless" | "apiKey"); setReuseKey(false); }}>
+				<select aria-label="Custom endpoint authentication" data-testid="custom-auth-mode" value={authMode} disabled={busy || pinsBusy || localOnly} onChange={(e) => { setAuthMode(e.target.value as "keyless" | "apiKey"); setReuseKey(false); }}>
 					<option value="keyless">Keyless</option><option value="apiKey">API key</option>
 				</select>
 			</label>
@@ -966,6 +976,7 @@ function CustomEndpointEditor({
 									<span className="min-w-0 flex-1 truncate font-mono text-[11px] text-foreground" title={m.id}>
 										{m.id}
 										<span className="block text-[10px] text-muted-foreground">Context: {d.context.trim() ? "user pin" : m.context ? `reported ${m.context}` : `fallback ${CUSTOM_MODEL_DEFAULT_CONTEXT_WINDOW}`} · Output: {d.maxTokens.trim() ? "user pin" : m.maxTokens ? `reported ${m.maxTokens}` : `fallback ${CUSTOM_MODEL_DEFAULT_MAX_TOKENS}`}</span>
+										{m.ollama && <span className="block text-[10px] text-muted-foreground" title={`Observed ${m.ollama.observedAt}`}>Ollama profile: {m.ollama.configuredContext ?? "not set"} · Loaded: {m.ollama.activeContext ?? "not observed"} · Model capacity: {m.ollama.nativeContext ?? "unknown"}</span>}
 									</span>
 									<input
 										type="text"

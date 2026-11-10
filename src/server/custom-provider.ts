@@ -8,11 +8,12 @@
 import { createProvider, type Api, type Model, type Provider } from "@earendil-works/pi-ai";
 import { openAICompletionsApi } from "@earendil-works/pi-ai/api/openai-completions.lazy";
 import { configureProviderSource, piModels } from "../agent/models.ts";
-import { readSettings } from "../store/settings.ts";
+import { readLocalInferencePolicy, readSettings } from "../store/settings.ts";
 import { CustomBodyLimitError, readBoundedJson } from "./custom-provider-body.ts";
 import { CUSTOM_PROVIDER } from "../core/auth-keys.ts";
 import { customBindingMatches } from "../core/custom-provider-auth.ts";
 import { customAuthState, customKeyAuthorized } from "./custom-provider-auth.ts";
+import { authorizeLocalOllamaModel, LocalOllamaError } from "./ollama-local.ts";
 import {
 	CUSTOM_MODEL_DEFAULT_CONTEXT_WINDOW,
 	CUSTOM_MODEL_DEFAULT_MAX_TOKENS,
@@ -37,6 +38,20 @@ export function installCustomProviderSource(readAuth = customAuthState): void {
 	let fingerprint: string | undefined;
 	configureProviderSource({
 		isCustom: (id) => id === CUSTOM_PROVIDER.id,
+		async authorizeModel(model) {
+			const restriction = readLocalInferencePolicy();
+			if (!restriction.ok) throw new LocalOllamaError(restriction.error);
+			if (!restriction.localOnly) return;
+			const cp = readSettings()?.customProvider;
+			if (model.provider !== CUSTOM_PROVIDER.id || !cp?.baseUrl || cp.authMode !== "keyless" || model.baseUrl !== cp.baseUrl) {
+				throw new LocalOllamaError("Local Ollama only mode blocks this inference provider. Choose a verified local model in Settings → Providers.");
+			}
+			const auth = customAuthState(false);
+			if (!auth.readable || !customBindingMatches(cp, auth.binding)) throw new LocalOllamaError("Local Ollama authorization is unavailable. Reconnect the custom provider.");
+			const policy = await authorizeLocalOllamaModel(cp.baseUrl, model.id, model.contextWindow);
+			if (JSON.stringify(readSettings()?.customProvider) !== JSON.stringify(cp)) throw new LocalOllamaError("Local model configuration changed during inspection. Retry the request.");
+			return policy;
+		},
 		sync(models) {
 			const cp = readSettings()?.customProvider;
 			// Validate the durable nonce/URL/mode before resolving ANY credential.

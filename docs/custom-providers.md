@@ -16,6 +16,42 @@ Connect requests `GET <base>/models`; reported metadata wins over duplicate ente
 
 Discovery is not a continuous health or capability check. LearnHarness does not install a backend, download models, or perform custom-endpoint OAuth.
 
+## Local Ollama only
+
+For local inference without hosted model calls, enable **Local Ollama only** in
+the custom endpoint editor, use **Keyless** and a loopback base URL such as
+`http://127.0.0.1:11434/v1`, then click **Connect**. This mode uses native Ollama
+metadata rather than the generic `/models` fallback. It excludes cloud aliases
+and embedding-only models, including aliases with remote-upstream metadata but
+an innocent-looking name.
+
+The model row separates the profile's explicit `num_ctx`, the last observed
+loaded context, and the model's advertised native capacity. The profile controls
+the application budget; a loaded observation or native maximum cannot silently
+enlarge it. A model without explicit `num_ctx` needs a prepared profile before
+inference in this mode. [Measure and prepare 16k/32k/64k profiles](local-context.md)
+on the computer that has the model and GPU.
+
+Local-only mode is checked before each model operation, including background
+roles and explicit School participant connections. It hides other providers
+from model selection and refuses their requests rather than falling back.
+Existing model selections are preserved: select a local model for Strong/Cheap/
+Vision and clear any background-role overrides that still name another provider.
+Only assign a model to Vision if its actual weights and runtime support images.
+The final inference transport must target the configured loopback endpoint and
+verified model, without redirects or forwarded authorization headers.
+
+New hosted search requests and dictation token grants are also blocked while
+the mode is enabled. Work already dispatched is not revoked. Existing keys and
+other provider configuration are retained. Disconnecting the custom endpoint
+preserves the restriction so an outstanding background job cannot switch to a
+paid provider. Reconnecting with the checkbox explicitly cleared disables it.
+
+Ollama metadata is evidence from the local server, not an independent attestation
+of its executable or resident weights. The optional Windows setup script also
+sets `OLLAMA_NO_CLOUD=1` in the Ollama server environment. No cloud/API inference
+is used by the context measurement workflow.
+
 ## Budgets and reasoning
 
 Edit each model's pins offline:

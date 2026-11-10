@@ -37,6 +37,10 @@ export async function schoolParticipantEngine<T extends SchoolBindableParticipan
 }): Promise<{ engine: PiEngine; receipt: SchoolRuntimeReceipt }> {
 	const registry = options.registry ?? schoolParticipants;
 	if (participant.id !== binding.receipt.participantId || participant.stateRef?.revision !== binding.receipt.stateRef.revision || participant.edition !== binding.state.edition || schoolRegistrySha256(participant.model) !== schoolRegistrySha256(binding.state.model)) throw new SchoolParticipantError("PARTICIPANT_BINDING_DRIFT", "The manifest participant no longer matches its admitted binding", 409);
+	// Named OpenAI-compatible connections bypass the global engine factory.
+	// A cold CLI must install the same live inference policy as normal chats
+	// before preparing either kind of participant connection.
+	await import("./keys.ts");
 	return prepareSchoolConnectionEngine({
 		state: binding.state, connection: binding.connection, binding: binding.receipt,
 		assertCurrent: () => registry.assertBinding(binding), configuredEngine: () => options.configuredEngine(participant),

@@ -49,7 +49,9 @@ import { registerTurn, rememberTurnFailure, unregisterTurn } from "./turn-runs.t
 import { persistTurn, triggerExtraction, TurnPersistenceError } from "./turn-service.ts";
 import { hasProbeDone, hasUnresolvedQuestion } from "../core/native-messages.ts";
 import { composeInstructions } from "../agent/teacher-agent.ts";
-import { ensureCompacted, kickCompaction, effectiveThresholdTokens } from "./compaction.ts";
+import { ensureCompacted, kickCompaction, effectiveThresholdTokens, assertContextFits, ContextBudgetError, withContextBudgetGuard } from "./compaction.ts";
+import { estimateTokens } from "../core/compaction.ts";
+import { toLlmMessages } from "../core/native-messages.ts";
 import { catalogContextLimits, refreshConnectionCatalog } from "./model-catalog.ts";
 import { emit } from "../core/events.ts";
 import { settledTurnResponse } from "./turn-runs.ts";
@@ -91,7 +93,7 @@ function connectionBackgroundAllowed(provider: string): boolean {
 }
 
 function settlementErrorText(error: unknown): string {
-	return error instanceof TurnPersistenceError ? error.message : "An error occurred.";
+	return error instanceof TurnPersistenceError || error instanceof ContextBudgetError ? error.message : "An error occurred.";
 }
 
 const jobRunner = createJobRunner({
@@ -280,10 +282,22 @@ export async function handleChatInput(
 		noDispatch: (kind) => requestCycle?.noDispatch(kind),
 	};
 	let conversationEngine: PiEngine;
-	try { conversationEngine = piEngineForSpec(conversation, () => callPurpose.background, lifecycle, retentionForSlot("strong")); }
+	try { conversationEngine = withContextBudgetGuard(piEngineForSpec(conversation, () => callPurpose.background, lifecycle, retentionForSlot("strong"))); }
 	catch { return Response.json({ error: conversation.provider === "chatgpt" ? chatGPTStreamError("model catalog") : isSubscriptionProvider(conversation.provider) ? nativeSubscriptionError(conversation.provider, "model catalog") : "The selected model is unavailable." }, { status: 503 }); }
 	const modelIdForCompaction = `${conversationEngine.model.provider}:${conversationEngine.model.id}`;
-	await ensureCompacted(
+	let pendingInputTokens = 0;
+	try {
+		const existingMessages = record.messages;
+		const pending = input.type === "steers" ? input.steers.filter((s) => !steerDelivered(existingMessages, s.id)) : inputAppends(record, input);
+		// An indivisible incoming turn cannot be rescued by summarizing old
+		// history. Reject it before a summary, network call, or durable write.
+		assertContextFits(pending, conversationEngine);
+		pendingInputTokens = estimateTokens(pending);
+	} catch (error) {
+		if (error instanceof ChatInputError || error instanceof ContextBudgetError) return Response.json({ error: error.message }, { status: error instanceof ContextBudgetError ? 413 : 400 });
+		throw error;
+	}
+	try { await ensureCompacted(
 		{
 			chatStore: stores.chatStore,
 			engine: piEngineForSpec(conversation, true, undefined, retentionForSlot("strong")),
@@ -293,11 +307,16 @@ export async function handleChatInput(
 			thresholdTokens: effectiveThresholdTokens(
 				effective.compaction?.thresholdTokens,
 				catalogContextLimits().get(modelIdForCompaction),
+				conversationEngine.model.maxTokens,
 			),
-			systemPromptTokens: Math.ceil(composeInstructions(record.kind === "practice" ? "practice" : "teacher").length / 4),
+			systemPromptTokens: Math.ceil(composeInstructions(record.kind === "practice" ? "practice" : hasProbeDone(record.messages) ? "teacher" : "prober", effective.agent.prompts).length / 4),
+			pendingInputTokens,
 		},
 		chatId,
-	);
+	); } catch (error) {
+		if (error instanceof ContextBudgetError) return Response.json({ error: error.message }, { status: 413 });
+		throw error;
+	}
 	const compactedRecord = stores.chatStore.getChat(chatId);
 	if (!compactedRecord) return Response.json({ error: "Unknown chat" }, { status: 404 });
 	record = compactedRecord;
@@ -529,6 +548,29 @@ export async function handleChatInput(
 						},
 						agentOpts,
 					);
+		// The constructed transcript contains the actual system instructions
+		// and tool declarations, including enabled overrides. Cold sessions
+		// can need a second compaction with this complete overhead accounted.
+		const systemMessages = constructed.state.messages.filter((message) => message.role === "system");
+		const requestEngine = { ...engine, model: constructed.state.model };
+		try { assertContextFits(toLlmMessages(constructed.state.messages), requestEngine); }
+		catch (error) {
+			if (!(error instanceof ContextBudgetError) || stagedAutomatic) throw error;
+			await ensureCompacted({
+				chatStore: stores.chatStore,
+				engine: piEngineForSpec(conversation, true, undefined, retentionForSlot("strong")),
+				canStart: () => connectionBackgroundAllowed(conversation.provider),
+				modelId, kind: record.kind === "practice" ? "practice" : teaching ? "teach" : "probe",
+				thresholdTokens: effectiveThresholdTokens(effective.compaction?.thresholdTokens, requestEngine.model.contextWindow, requestEngine.model.maxTokens),
+				systemPromptTokens: estimateTokens(systemMessages),
+			}, chatId);
+			const fitted = stores.chatStore.getChat(chatId);
+			if (!fitted) throw new Error("Session deleted during compaction");
+			const fittedMessages = input.type === "retry" ? fitted.messages.filter((message) => !retryOmissions.has(message.id)) : fitted.messages;
+			constructed.state.messages = [...systemMessages, ...asAgentMessages(fittedMessages)];
+			persistBaseCount = fittedMessages.length;
+			assertContextFits(toLlmMessages(constructed.state.messages), requestEngine);
+		}
 
 		// A test-injected agent gets no usage collector (tests assert the
 		// transcript, not the money channel); when it's ours, usage flows through
@@ -570,6 +612,8 @@ export async function handleChatInput(
 			// route through here: they ride the error-result path and reach the
 			// transcript directly (the retry context the model saw).
 			onError: (error) => {
+				// Pi may rethrow a stream setup failure as an ordinary Error.
+				if (error instanceof Error && error.message.startsWith("Context budget:")) return error.message;
 				if (conversation.provider === "chatgpt") return chatGPTStreamError(String(error));
 				if (isSubscriptionProvider(conversation.provider)) return nativeSubscriptionError(conversation.provider, String(error));
 				console.error(`[chat ${chatId}] turn error:`, error);
@@ -674,8 +718,9 @@ export async function handleChatInput(
 							thresholdTokens: effectiveThresholdTokens(
 								fresh.compaction?.thresholdTokens,
 								catalogContextLimits().get(kickModelId),
+								kickEngine.model.maxTokens,
 							),
-							systemPromptTokens: Math.ceil(composeInstructions(freshRecord.kind === "practice" ? "practice" : "teacher").length / 4),
+							systemPromptTokens: estimateTokens(constructed.state.messages.filter((message) => message.role === "system")),
 						};
 					}, chatId);
 			},
@@ -711,6 +756,7 @@ export async function handleChatInput(
 			endTurn(chatId, turnLease);
 		}
 		console.error(`[chat ${chatId}] turn failed to start:`, err);
+		if (err instanceof ContextBudgetError) return Response.json({ error: err.message }, { status: 413 });
 		return Response.json({ error: "Failed to start the turn" }, { status: 500 });
 	}
 }

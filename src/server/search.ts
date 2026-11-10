@@ -22,6 +22,17 @@
 import { SEARCH_ENGINES, type SearchEngineId, type SearchHit, type SearchProvider, type SearchStatus } from "../core/search.ts";
 import { keyValue } from "./keys.ts";
 import { effectiveSettings } from "./stores.ts";
+import { readLocalInferencePolicy } from "../store/settings.ts";
+
+const LOCAL_SEARCH_REFUSAL = "Hosted web search is disabled while Local Ollama only is enabled.";
+/** Check at transport time too: an adapter captured before a settings change
+ * must not be able to start a new billed request after the mode is enabled. */
+const paidSearchFetch: FetchLike = (input, init) => {
+	const policy = readLocalInferencePolicy();
+	if (!policy.ok) throw new Error(policy.error);
+	if (policy.localOnly) throw new Error(LOCAL_SEARCH_REFUSAL);
+	return fetch(input, init);
+};
 
 /** The wire-callable shape the adapters close over (tests inject a stub). */
 type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
@@ -279,6 +290,8 @@ export function resolveSearchEngineFor(
  *  settings record's pin + the auth store fresh each call, so a key saved
  *  mid-session activates on the next check (no restart). */
 export function searchStatus(): SearchStatus {
+	const policy = readLocalInferencePolicy();
+	if (!policy.ok || policy.localOnly) return { available: false, engine: null, reason: policy.ok ? LOCAL_SEARCH_REFUSAL : policy.error };
 	const { available, engine, reason } = resolveSearchEngineFor(
 		effectiveSettings().agent.search?.engine,
 		engineKeys(),
@@ -295,19 +308,21 @@ export function searchAvailable(): boolean {
  *  the tool layer (Teacher stream) calls this once per search, so key
  *  rotations take effect immediately. */
 export function searchProvider(): SearchProvider | null {
+	const policy = readLocalInferencePolicy();
+	if (!policy.ok || policy.localOnly) return null;
 	const resolved = resolveSearchEngineFor(effectiveSettings().agent.search?.engine, engineKeys());
 	if (!resolved.available || !resolved.key) return null;
 	switch (resolved.engine) {
 		case "tavily":
-			return tavilyProvider(resolved.key);
+			return tavilyProvider(resolved.key, paidSearchFetch);
 		case "brave":
-			return braveProvider(resolved.key);
+			return braveProvider(resolved.key, paidSearchFetch);
 		case "exa":
-			return exaProvider(resolved.key);
+			return exaProvider(resolved.key, paidSearchFetch);
 		case "firecrawl":
-			return firecrawlProvider(resolved.key);
+			return firecrawlProvider(resolved.key, paidSearchFetch);
 		case "ollama":
-			return ollamaProvider(resolved.key);
+			return ollamaProvider(resolved.key, paidSearchFetch);
 		default:
 			return null;
 	}

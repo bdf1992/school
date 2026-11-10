@@ -7,6 +7,7 @@ import { Hint } from "@/components/ui/hint";
 import { deepgramListenUrl, type DictationLanguage } from "@/src/core";
 import { useDictationLanguage } from "@/components/dictation-preference";
 import { setDictationActive } from "@/components/dictation-state";
+import { onSettingsSaved } from "@/components/settings-signal";
 export { isDictationActive } from "@/components/dictation-state";
 
 /**
@@ -126,6 +127,17 @@ async function mintFreshToken(): Promise<string> {
 	return data.token;
 }
 
+/** A warmed token can outlive its policy. Check locally before every new
+ * socket, including reconnects; this endpoint never mints a hosted token. */
+async function checkDictationPermission(): Promise<void> {
+	const res = await fetch("/api/stt/token?check=1", { cache: "no-store" });
+	const data = await res.json() as { allowed?: boolean; message?: string };
+	if (!res.ok || data.allowed !== true) {
+		if (res.status === 503) throw new Error(DICTATION_KEYLESS);
+		throw new Error(data.message ?? "Dictation is unavailable.");
+	}
+}
+
 /** Warm-token cache (mitigation D, owner 2026-09-27): the click path takes
  *  the cached promise instead of a remote mint. TTL keeps a cached token
  *  from going stale (self-heal anyway: a rejected handshake rides the
@@ -135,7 +147,7 @@ async function mintFreshToken(): Promise<string> {
  *  failures are silently tolerated (a keyless pre-mint just doesn't warm). */
 export const WARM_TOKEN_TTL_MS = 3 * 60_000;
 
-export type WarmMinter = { mint: () => Promise<string>; refresh: () => void };
+export type WarmMinter = { mint: () => Promise<string>; refresh: () => void; invalidate: () => void };
 
 export function createWarmMinter(
 	mint: () => Promise<string>,
@@ -158,6 +170,7 @@ export function createWarmMinter(
 			warm = null;
 			m.mint().catch(() => {}); // background best-effort
 		},
+		invalidate: () => { warm = null; },
 	};
 	return m;
 }
@@ -368,63 +381,70 @@ export function useDictation({ append }: { append: (text: string) => void }): Di
 	/** Open the Deepgram socket and wire its messages. `gen` guards staleness. */
 	const openSocket = useCallback(
 		(gen: number, token: string, language: DictationLanguage) => {
-			// Minted JWTs authenticate via the "bearer" subprotocol — ["token",
-			// jwt] is rejected at the handshake (verified live; "token" is for
-			// raw API keys only, as in the owner's pi dictate extension).
-			const ws = new WebSocket(deepgramListenUrl(language), ["bearer", token]);
-			wsRef.current = ws;
+			void checkDictationPermission().then(() => {
+				if (gen !== genRef.current) return;
+				// Minted JWTs authenticate via the "bearer" subprotocol — ["token",
+				// jwt] is rejected at the handshake (verified live; "token" is for
+				// raw API keys only, as in the owner's pi dictate extension).
+				const ws = new WebSocket(deepgramListenUrl(language), ["bearer", token]);
+				wsRef.current = ws;
 
-			ws.addEventListener("open", () => {
+				ws.addEventListener("open", () => {
+					if (gen !== genRef.current) return;
+					// Mitigation A: everything captured during the handshake (or a
+					// reconnect gap) goes out now, in order — Deepgram accepts
+					// faster-than-realtime sends.
+					for (const frame of pendingRef.current) ws.send(frame);
+					pendingRef.current = [];
+					setPhase("recording");
+				});
+				ws.addEventListener("message", (ev) => {
+					if (gen !== genRef.current) return;
+					let msg: any;
+					try {
+						msg = JSON.parse(ev.data as string);
+					} catch {
+						return;
+					}
+					if (msg.type === "Results") {
+						const text: string | undefined = msg.channel?.alternatives?.[0]?.transcript;
+						// Only finals stream (interim_results=false). DEFERRED (owner
+						// round 2): they buffer here and reach the input once, at
+						// teardown — the meter is the only live feedback.
+						if (msg.is_final && text) bufferRef.current.push(text);
+					}
+				});
+				ws.addEventListener("close", (ev) => {
+					if (gen !== genRef.current) return;
+					if (ev.code === 1000) {
+						// Our own CloseStream landing: finalize now — the stop path's
+						// safety net stays as the no-close backstop only.
+						cleanup();
+						return;
+					}
+					// Abnormal close mid-run: ONE reconnect with a fresh token (the
+					// research pass: resume is our job, no SDK to lean on).
+					if (reconnectsRef.current < 1) {
+						reconnectsRef.current++;
+						mintFreshToken() // always FRESH — a stale warm token is the likely culprit
+							.then((t) => {
+								if (gen === genRef.current) openSocket(gen, t, language);
+							})
+							.catch(() => {
+								if (gen === genRef.current) {
+									setError("Deepgram reconnect failed");
+									cleanup();
+								}
+							});
+					} else {
+						setError(`Deepgram connection lost (${ev.code})`);
+						cleanup();
+					}
+				});
+			}).catch((error: unknown) => {
 				if (gen !== genRef.current) return;
-				// Mitigation A: everything captured during the handshake (or a
-				// reconnect gap) goes out now, in order — Deepgram accepts
-				// faster-than-realtime sends.
-				for (const frame of pendingRef.current) ws.send(frame);
-				pendingRef.current = [];
-				setPhase("recording");
-			});
-			ws.addEventListener("message", (ev) => {
-				if (gen !== genRef.current) return;
-				let msg: any;
-				try {
-					msg = JSON.parse(ev.data as string);
-				} catch {
-					return;
-				}
-				if (msg.type === "Results") {
-					const text: string | undefined = msg.channel?.alternatives?.[0]?.transcript;
-					// Only finals stream (interim_results=false). DEFERRED (owner
-					// round 2): they buffer here and reach the input once, at
-					// teardown — the meter is the only live feedback.
-					if (msg.is_final && text) bufferRef.current.push(text);
-				}
-			});
-			ws.addEventListener("close", (ev) => {
-				if (gen !== genRef.current) return;
-				if (ev.code === 1000) {
-					// Our own CloseStream landing: finalize now — the stop path's
-					// safety net stays as the no-close backstop only.
-					cleanup();
-					return;
-				}
-				// Abnormal close mid-run: ONE reconnect with a fresh token (the
-				// research pass: resume is our job, no SDK to lean on).
-				if (reconnectsRef.current < 1) {
-					reconnectsRef.current++;
-					mintFreshToken() // always FRESH — a stale warm token is the likely culprit
-						.then((t) => {
-							if (gen === genRef.current) openSocket(gen, t, language);
-						})
-						.catch(() => {
-							if (gen === genRef.current) {
-								setError("Deepgram reconnect failed");
-								cleanup();
-							}
-						});
-				} else {
-					setError(`Deepgram connection lost (${ev.code})`);
-					cleanup();
-				}
+				setError(error instanceof Error ? error.message : "Dictation is unavailable.");
+				cleanup(false);
 			});
 		},
 		[cleanup],
@@ -616,6 +636,9 @@ export function useDictation({ append }: { append: (text: string) => void }): Di
 		window.addEventListener("lh:kbd-cancel-dictation", cancel);
 		return () => window.removeEventListener("lh:kbd-cancel-dictation", cancel);
 	}, [cancel]);
+	useEffect(() => onSettingsSaved((section) => {
+		if (section === "keys") warmTokens.invalidate();
+	}), []);
 
 	return {
 		phase,

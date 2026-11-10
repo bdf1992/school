@@ -13,15 +13,24 @@
  * /auth/grant (their docs, token-based auth FAQ) — plain read/transcribe
  * keys return FORBIDDEN here.
  */
-import { keyValue } from "@/src/server";
+import { keyValue, readLocalInferencePolicy } from "@/src/server";
 
-export async function GET() {
+export async function GET(request?: Request) {
+	const policy = readLocalInferencePolicy();
+	if (!policy.ok || policy.localOnly) {
+		return Response.json({ message: policy.ok ? "Hosted dictation is disabled while Local Ollama only is enabled." : policy.error }, { status: 403, headers: { "Cache-Control": "no-store" } });
+	}
 	const key = keyValue("DEEPGRAM_API_KEY");
 	if (!key) {
 		return Response.json(
 			{ message: "No DEEPGRAM_API_KEY — add it to auth.json (desktop) or .env.local (dev)." },
 			{ status: 503 },
 		);
+	}
+	// The renderer checks immediately before opening a new socket. This
+	// authorizes use of an already-warmed token without another upstream mint.
+	if (request && new URL(request.url).searchParams.get("check") === "1") {
+		return Response.json({ allowed: true }, { headers: { "Cache-Control": "no-store" } });
 	}
 
 	try {
