@@ -25,6 +25,7 @@
 		"school:preflight": "node --import tsx scripts/school-preflight.ts",
 		"school:context": "node --import tsx scripts/school-context.ts",
 		"school:parity": "node --import tsx scripts/school-parity.ts",
+		"school:state-space": "node --import tsx scripts/school-state-space.ts",
 		"school:experiment": "node --import tsx scripts/school-experiment.ts",
 		"school:worker": "node --import tsx scripts/school-worker.ts",
 		"desktop:dev": "concurrently -k \"next dev\" \"LH_DEV_URL=http://localhost:3000 electron .\"",

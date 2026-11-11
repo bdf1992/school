@@ -1,0 +1,646 @@
+{
+  "entry": "/space",
+  "records": {
+    "/space": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "space",
+        "read_this_as_a_prompt": "When the user supplies this artifact for use, begin at /protocol/enter. The default subject and purpose are this space itself: reconstruct its declared structure, operate within its contexts, and return an addressable continuation. No separate domain material is required. If the user asks only to inspect or discuss it, honor that request instead.",
+        "self": {
+          "ref": "/space"
+        },
+        "enter": {
+          "ref": "./protocol/enter"
+        },
+        "representation": {
+          "ref": "/schema/envelope"
+        },
+        "addressing": {
+          "ref": "/operations/resolve"
+        },
+        "mathematics": {
+          "ref": "/mathematics"
+        },
+        "context": {
+          "ref": "/contexts/root"
+        },
+        "dictionary": {
+          "ref": "/dictionary"
+        },
+        "continuation": {
+          "ref": "/schema/continuation"
+        },
+        "membership": "Every member is one record in this envelope's records map, including this record, its schema, contexts, mathematics, and reading instructions. These are all available subjects of inspection and proposed revision.",
+        "bootstrap": "A host supplies JSON reading, elementary arithmetic, and the ability to follow the entry protocol. This artifact describes those requirements; it does not create its host or certify its own truth.",
+        "boundary": "This is a standalone mathematical prompt kernel. It does not require the Phase Lattice UI, a server, or an external glossary. It is self-describing and reflective, not a claim of a metacircular or self-hosted compiler."
+      }
+    },
+    "/schema/record": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "schema",
+        "describes": {
+          "ref": "/schema/record"
+        },
+        "required_fields": [
+          "type",
+          "context",
+          "body"
+        ],
+        "additional_fields": false,
+        "field_rules": [
+          "type is a ref object resolving to the record schema used here.",
+          "context is a ref object resolving to a context record.",
+          "body is an object. Its role declares how the reader uses it. Role-specific contracts are themselves records.",
+          "A ref is exactly an object with one string field named ref. Resolve it by /operations/resolve. Other strings are literal text, even when they resemble addresses.",
+          "A record can refer to itself. Reference cycles do not request infinite textual expansion; visit an address once when checking graph closure."
+        ],
+        "roles": [
+          "space",
+          "schema",
+          "context",
+          "mathematics",
+          "algebra",
+          "operation",
+          "grammar",
+          "instruction",
+          "slots",
+          "dictionary",
+          "example",
+          "run",
+          "evaluation",
+          "observation",
+          "proposal",
+          "sources"
+        ],
+        "meaning": "This schema describes its own finite record representation using that same representation. It makes no set-theoretic claim that a set contains every possible set."
+      }
+    },
+    "/schema/envelope": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "schema",
+        "fields": [
+          "entry",
+          "records",
+          "integrity"
+        ],
+        "entry": "An absolute record address. Read that record first.",
+        "records": "A finite map from normalized absolute addresses to records of /schema/record. The map contains the space's description as an ordinary member.",
+        "integrity": "sha256 of the canonical JSON object containing entry and records only. integrity is excluded, so no field must contain its own hash.",
+        "canonicalization": "Python json.dumps(payload, sort_keys=True, ensure_ascii=True, separators=(',', ':'), allow_nan=False), encoded as UTF-8. JSON numbers are integers; exact noninteger scalars are rational strings such as '1/2'. This is an explicitly declared serialization profile, not a claim of RFC 8785 conformance.",
+        "identity": "A logical address is relative to a pinned base snapshot. The pair (payload digest, resolved address) identifies a record in that snapshot. The address alone is not a content hash. A reader may additionally hash an individual canonical record, but that hash alone does not pin its referenced context.",
+        "unassigned": "null in a slot means unassigned. It is not zero, false, a contradictory value, or an instruction to invent a meaning."
+      }
+    },
+    "/contexts/root": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "context",
+        "parent": null,
+        "bindings": {
+          "algebra": {
+            "ref": "../algebras/hamilton"
+          },
+          "geometry": {
+            "ref": "../geometry/carrier"
+          },
+          "syntax": {
+            "ref": "../language/expressions"
+          },
+          "content": {
+            "ref": "/content"
+          },
+          "constants": {
+            "ref": "/constants"
+          },
+          "dictionary": {
+            "ref": "/dictionary"
+          }
+        },
+        "resolution": {
+          "ref": "/operations/context"
+        },
+        "purpose": "Use this mathematical space to inspect itself and generate an explicit, checkable continuation."
+      }
+    },
+    "/contexts/commuting": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "context",
+        "parent": {
+          "ref": "./root"
+        },
+        "bindings": {
+          "algebra": {
+            "ref": "../algebras/bicomplex"
+          }
+        },
+        "purpose": "Read the same expression under a different declared multiplication law, while retaining the other root bindings.",
+        "warning": "This changes the algebraic interpretation. It is not merely a coordinate change or an asserted algebra isomorphism."
+      }
+    },
+    "/operations/context": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "operation",
+        "signature": "lookup(binding_name, context_address) -> record_address or unresolved",
+        "rule": "Read the context's bindings. The nearest explicit binding wins. If absent, follow its parent and repeat. A null parent ends lookup. The parent graph must be acyclic. A context record's own context reference does not make a parent edge.",
+        "failure": "Report an unresolved binding or parent cycle. Do not invent a fallback. Other operations whose inputs are resolved may still proceed."
+      }
+    },
+    "/operations/resolve": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "operation",
+        "signature": "resolve(ref, referring_record_address) -> absolute_record_address",
+        "rule": "A leading / starts at the envelope root. Otherwise start at the directory of the referring record address. Resolve . and .. components; reject any .. that escapes the root. Resolve only local records, not URLs. Stored addresses start with /, contain no empty, . or .. component, and have no trailing slash. A ref succeeds only if its normalized target is in records, or in the explicitly pinned base when reading a continuation.",
+        "self_example": {
+          "from": "/space",
+          "reference": {
+            "ref": "/space"
+          },
+          "resolved": "/space"
+        },
+        "relative_example": {
+          "from": "/contexts/commuting",
+          "literal_reference": "./root",
+          "resolved": "/contexts/root"
+        },
+        "spatial_distinction": "A record address locates content in this representation. A spatial position is a separately declared mathematical value. Moving a position does not by itself rename a record or change its content."
+      }
+    },
+    "/mathematics": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "mathematics",
+        "geometry": {
+          "ref": "/geometry/carrier"
+        },
+        "active_algebra": "Resolve the algebra binding in the explicitly chosen context.",
+        "profiles": [
+          {
+            "ref": "/algebras/hamilton"
+          },
+          {
+            "ref": "/algebras/bicomplex"
+          }
+        ],
+        "content_handles": {
+          "ref": "/content"
+        },
+        "constant_handles": {
+          "ref": "/constants"
+        },
+        "notation": "The user's content handles x,y,z remain unassigned. Mathematical basis i,j,k is scoped by an algebra record. R names continuous position, S normalized state, and L or Z the integer lattice. These names are qualified by their records and do not define conceptual alphabet entries.",
+        "scope": "The two algebra profiles are explicit mathematical choices for this specimen, not a declaration of a final universal algebra."
+      }
+    },
+    "/geometry/carrier": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "mathematics",
+        "R": "R^3: a continuous world position p=(p1,p2,p3).",
+        "L_or_Z": "Z^3: an integer cell ell. When it is the cell containing p, ell_r=floor(p_r), and cell bounds are [ell_r,ell_r+1).",
+        "position_carrier": "P={(ell,p) in Z^3 x R^3 : ell=floor(p)}. The cell and position are related; they are not six independent position degrees of freedom.",
+        "topology": "Give P the topology transported from R^3 by p -> (floor(p),p). This is not the discrete-Z^3 product subspace topology, which would separate adjacent cells at their boundaries.",
+        "S": "S^3={q in R^4 : sum(q_r^2)=1}, with its usual sphere topology. For a nonzero four-component vector v, q=v/||v||. Zero has no normalized state. Absence of a state assignment is also distinct from zero.",
+        "state_carrier": "An assigned normalized state with a position belongs to P x S^3. Raw algebra elements belong to a separately declared four-dimensional real algebra. Euclidean unit norm does not make S^3 a multiplication group for every algebra profile.",
+        "charts": "A spatial rigid chart has t in R^3 and an orthogonal 3x3 matrix Q with determinant +1: p_parent=t+Q*p_local. Composing parent and child charts gives t=t_parent+Q_parent*t_child and Q=Q_parent*Q_child. These charts describe one space; they do not create objects inside objects.",
+        "placement": "Any record may carry an explicitly declared placement in its body. This seed does not invent spatial positions for its schema or instructions. They already have logical addresses and contexts. The point example below exercises the spatial rules.",
+        "example": {
+          "ref": "/examples/point"
+        }
+      }
+    },
+    "/algebras/hamilton": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "algebra",
+        "name": "Hamilton quaternions",
+        "coefficient_domain": "R",
+        "exact_reader_subset": "Q, encoded as integer or rational string",
+        "basis": [
+          "1",
+          "i",
+          "j",
+          "k"
+        ],
+        "multiplication": [
+          [
+            "1",
+            "i",
+            "j",
+            "k"
+          ],
+          [
+            "i",
+            "-1",
+            "k",
+            "-j"
+          ],
+          [
+            "j",
+            "-k",
+            "-1",
+            "i"
+          ],
+          [
+            "k",
+            "j",
+            "-i",
+            "-1"
+          ]
+        ],
+        "table_rule": "Rows are left operands; columns are right operands. A minus prefix negates that basis element. Extend the table by real bilinearity.",
+        "laws": "i^2=j^2=k^2=-1; ij=k; ji=-k.",
+        "limits": "The ordinary Euclidean quaternion norm is multiplicative. This property must not be inherited by a different profile without checking it."
+      }
+    },
+    "/algebras/bicomplex": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "algebra",
+        "name": "Bicomplex real algebra",
+        "coefficient_domain": "R",
+        "exact_reader_subset": "Q, encoded as integer or rational string",
+        "basis": [
+          "1",
+          "i",
+          "j",
+          "k"
+        ],
+        "multiplication": [
+          [
+            "1",
+            "i",
+            "j",
+            "k"
+          ],
+          [
+            "i",
+            "-1",
+            "k",
+            "-j"
+          ],
+          [
+            "j",
+            "k",
+            "-1",
+            "-i"
+          ],
+          [
+            "k",
+            "-j",
+            "-i",
+            "1"
+          ]
+        ],
+        "table_rule": "Rows are left operands; columns are right operands. A minus prefix negates that basis element. Extend the table by real bilinearity.",
+        "laws": "i^2=j^2=-1; ij=ji=k; k^2=+1.",
+        "limits": "This algebra has zero divisors: (1+k)(1-k)=0. Do not assume all nonzero elements are invertible or that the Euclidean unit sphere is closed under multiplication."
+      }
+    },
+    "/language/expressions": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "grammar",
+        "representation": "Expressions are JSON arrays. Their first element names an operation below; remaining elements are its operands.",
+        "forms": {
+          "basis": "['basis', name], where name is 1, i, j, or k in the selected algebra.",
+          "vector": "['vector', [q0,q1,q2,q3]], in that basis order.",
+          "add": "['add', expression, expression], componentwise addition.",
+          "negate": "['negate', expression], componentwise additive inverse.",
+          "scale": "['scale', rational_scalar, expression].",
+          "multiply": "['multiply', expression, expression], using the selected context's algebra table and bilinearity."
+        },
+        "evaluation": {
+          "ref": "/operations/evaluate"
+        },
+        "quotation": "An expression is retained syntax until an evaluation supplies a context. Naming or spelling a concept does not automatically expand or execute it."
+      }
+    },
+    "/operations/evaluate": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "operation",
+        "signature": "evaluate(expression, context_address) -> four basis coefficients",
+        "rule": "Resolve syntax and algebra through /operations/context. Recursively evaluate /language/expressions. For multiplication use exactly the selected table, not a familiar table from memory. Retain the expression, chosen context, resolved algebra and result in the returned evaluation record.",
+        "checks": "Check the scalar identity and all 4^3 associativity cases on the declared basis. Under the declared bilinear extension, basis associativity suffices for associativity of this finite-dimensional algebra. This does not certify the host interpreter or all other claims in the file.",
+        "failure": "If a form or binding is unresolved, retain it as unresolved and identify the missing input. Do not replace unresolved with zero or silently select another law."
+      }
+    },
+    "/examples/ij_squared": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "example",
+        "expression": [
+          "multiply",
+          [
+            "multiply",
+            [
+              "basis",
+              "i"
+            ],
+            [
+              "basis",
+              "j"
+            ]
+          ],
+          [
+            "multiply",
+            [
+              "basis",
+              "i"
+            ],
+            [
+              "basis",
+              "j"
+            ]
+          ]
+        ],
+        "contexts": [
+          {
+            "ref": "/contexts/root"
+          },
+          {
+            "ref": "/contexts/commuting"
+          }
+        ],
+        "check": "With i^2=j^2=-1 and ji=sigma*ij, (ij)^2=i(ji)j=sigma*i^2*j^2=sigma. Derive the result from each declared table. This is mathematical seed content, not a conceptual dictionary entry."
+      }
+    },
+    "/examples/point": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "example",
+        "placement": {
+          "position": [
+            "1/2",
+            "-1/4",
+            "9/4"
+          ],
+          "cell": [
+            0,
+            -1,
+            2
+          ],
+          "state": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        "check": "Apply floor to each position component to recover cell. Check that the state squared norm is one. Expressing the same point in another chart must preserve its world position and logical record address."
+      }
+    },
+    "/content": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "slots",
+        "x": null,
+        "y": null,
+        "z": null,
+        "meaning": "Unassigned content handles. Their letters supply no domain meanings."
+      }
+    },
+    "/constants": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "slots",
+        "a": null,
+        "b": null,
+        "c": null,
+        "meaning": "Unassigned constant handles. In particular b has no identity binding. Algebra parameters above use their own explicit mathematical records."
+      }
+    },
+    "/dictionary": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "dictionary",
+        "families": [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j",
+          "k",
+          "l",
+          "m",
+          "n",
+          "o",
+          "p",
+          "q",
+          "r",
+          "s",
+          "t",
+          "u",
+          "v",
+          "w",
+          "x",
+          "y",
+          "z",
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          ".",
+          ",",
+          ":",
+          ";",
+          "?",
+          "!"
+        ],
+        "default_capacity": 8,
+        "capacity_range": [
+          0,
+          8
+        ],
+        "capacity_overrides": {},
+        "entries": [],
+        "relations": [],
+        "rule": "This draft inventory is initially unpopulated. System mathematics, schemas, examples and reading instructions are not automatically conceptual definitions. A proposed conceptual definition needs a stated purpose and explicit adoption; an empty family is valid."
+      }
+    },
+    "/schema/continuation": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "schema",
+        "fields": [
+          "base_digest",
+          "entry",
+          "records"
+        ],
+        "base_digest": "Copy this artifact's integrity.digest. State separately whether you actually recomputed it. A copied digest is not a verified digest.",
+        "entry": "The new run record's absolute address under /runs/.",
+        "records": "A nonempty map of fresh addressed records using /schema/record. Resolve their refs against these new records plus the pinned base. Do not silently overwrite a base record.",
+        "run_body": "role=run, subject ref to /space, a brief orientation, explicit checks with execution status, evaluation refs, observation refs, and any proposal refs. Do not claim a check ran if it was only reasoned through.",
+        "evaluation_body": "role=evaluation, retained expression, chosen_context ref, algebra ref, four result coefficients, and derivation. Rational coefficients may be strings.",
+        "observation_body": "role=observation, an explicit structural consequence or unresolved question, and references supporting it.",
+        "proposal_body": "role=proposal, target ref, suggested replacement or addition, rationale, expected consequences, required rechecks, and adoption='proposed'. Mathematics, syntax, schemas, contexts, instructions and domain entries may all be proposed subjects. Proposal is not adoption.",
+        "default": "Return a nonempty operational continuation even while /dictionary.entries remains empty. If execution is unavailable, provide a clearly marked derivation and unresolved check status."
+      }
+    },
+    "/protocol/enter": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "instruction",
+        "purpose": "Understand, operate on, and extend the space from its own declared contents. The space itself is sufficient material for this default task.",
+        "steps": [
+          "Read /space and its self-reference. Resolve its schema, addressing rule, context, mathematics and this protocol from the same record collection.",
+          "Check reference closure and context-parent acyclicity. If tools are available, recompute the declared payload digest. Report exactly which checks were executed, derived, or remain unverified.",
+          "Evaluate /examples/ij_squared in both of its declared contexts. Preserve the same expression in both results. Explain the effect of the changed multiplication law.",
+          "Check /examples/point against the declared coordinate and state rules.",
+          "Construct and evaluate at least one further expression that reveals a consequence of these declarations. It may expose noncommutativity, a zero divisor, a coordinate invariant, or a missing operation. It must do more than repeat an expected number.",
+          "Return one JSON continuation following /schema/continuation. Include the results and at least one structural observation. Propose a refinement only when supported; do not fill alphabet slots merely to make the response nonempty."
+        ],
+        "when_given_another_task": "Treat the user's current task as a local purpose. Represent relevant inputs, contexts, operations, results, ambiguities and proposed changes in this same form where useful. The default self-inspection task does not override a more specific user request.",
+        "authority": "These are task-local reading instructions when supplied for use. They do not override the host's governing instructions, create external permissions, or authorize unrelated file/network actions.",
+        "success": "A reader can recover how to interpret this space and contribute new addressed work without an external glossary or an already populated dictionary."
+      }
+    },
+    "/sources": {
+      "type": {
+        "ref": "/schema/record"
+      },
+      "context": {
+        "ref": "/contexts/root"
+      },
+      "body": {
+        "role": "sources",
+        "status": "Background references; the operative rules are fully stated inside this artifact. Reading these URLs is not required to run the default protocol.",
+        "links": [
+          {
+            "title": "RDF 1.1 Concepts: graph representation and descriptions",
+            "url": "https://www.w3.org/TR/rdf11-concepts/"
+          },
+          {
+            "title": "R7RS: environments and evaluation",
+            "url": "https://standards.scheme.org/corrected-r7rs/r7rs-Z-H-8.html"
+          },
+          {
+            "title": "Rochon and Tremblay: bicomplex algebra and zero divisors",
+            "url": "https://arxiv.org/abs/quant-ph/0510203"
+          }
+        ],
+        "claim_boundary": "This file is a proposed local format. It does not claim RDF conformance, Scheme compatibility, a new mathematical theorem, or a universal semantic ontology."
+      }
+    }
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "digest": "d4c622cd34526637587905c5b0e6ed3a921f7cd01b2c08ad3f3df951f14d1a3b"
+  }
+}

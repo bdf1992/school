@@ -14,7 +14,7 @@ export interface SchoolCurriculumUnit {
 export interface SchoolCurriculum { id: string; revision: string; title: string; units: SchoolCurriculumUnit[] }
 export interface SchoolClassSession { id: string; unitId: string; startsAt: string; endsAt: string }
 export type SchoolClassSchedule = { mode: "self-paced" } | { mode: "scheduled"; sessions: SchoolClassSession[] };
-export interface SchoolClassAssessment { evaluator: "trimmed-exact-v1"; scale: "case-count" }
+export interface SchoolClassAssessment { evaluator: "trimmed-exact-v1" | "all-cases-pass-and-strict-improvement/v1"; scale: "case-count" }
 export interface SchoolClassDefinition {
 	version: 1;
 	id: string;
@@ -158,10 +158,11 @@ export function parseSchoolClass(value: unknown): SchoolClassDefinition {
 		schedule = { mode: "scheduled", sessions };
 	} else invalid("Schedule mode must be self-paced or scheduled");
 	const assessment = object(row.assessment, ["evaluator", "scale"], "assessment");
-	if (assessment.evaluator !== "trimmed-exact-v1" || assessment.scale !== "case-count") invalid("Assessment must use trimmed-exact-v1 with the case-count scale");
+	const evaluator = assessment.evaluator;
+	if ((evaluator !== "trimmed-exact-v1" && evaluator !== "all-cases-pass-and-strict-improvement/v1") || assessment.scale !== "case-count") invalid("Unknown assessment evaluator or scale");
 	const peerPolicy = object(row.peerPolicy, ["work"], "peerPolicy");
 	if (peerPolicy.work !== "private") invalid("This runner requires private peer work");
-	const definition: SchoolClassDefinition = { version: 1, id: schoolClassIdentifier(row.id, "class.id"), revision: schoolClassIdentifier(row.revision, "class.revision"), title: text(row.title, "class.title"), roster, curriculum, schedule, assessment: { evaluator: "trimmed-exact-v1", scale: "case-count" }, peerPolicy: { work: "private" } };
+	const definition: SchoolClassDefinition = { version: 1, id: schoolClassIdentifier(row.id, "class.id"), revision: schoolClassIdentifier(row.revision, "class.revision"), title: text(row.title, "class.title"), roster, curriculum, schedule, assessment: { evaluator, scale: "case-count" }, peerPolicy: { work: "private" } };
 	boundedJson(definition);
 	return frozen(definition);
 }

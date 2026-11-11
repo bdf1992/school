@@ -70,6 +70,7 @@ export async function runSchoolEpisode(raw: unknown, options: SchoolEpisodeOptio
 	if (manifest.version !== 2) throw new SchoolEpisodeError("CLASS_REQUIRED", "New episodes require version 2 and an explicit class/unit reference. Historical version 1 records remain readable and replayable.");
 	const definition = (options.classStore ?? schoolClasses).get(manifest.class.classId, manifest.class.revision);
 	if (!definition) throw new SchoolClassError("CLASS_NOT_FOUND", "Register the referenced class revision before starting an episode", 404);
+	if (definition.assessment.evaluator !== "trimmed-exact-v1") throw new SchoolClassError("CLASS_EVALUATOR_MISMATCH", "This episode runner requires the trimmed-exact-v1 class evaluator");
 	const now = (options.now?.() ?? new Date()).toISOString();
 	const admission = admitSchoolClassEpisode(definition, manifest.class, { learnerId: manifest.learner.id, teacherId: manifest.teacher.id, world: manifest.world, now });
 	const classContext = { ...admission, definitionSha256: schoolClassSha256(definition) };
