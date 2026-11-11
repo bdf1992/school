@@ -18,22 +18,35 @@ env:
 
 jobs:
   quality:
-    name: Typecheck, tests, lint
+    name: Typecheck, changed tests, lint
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          # pr_tests.py diffs against the base branch, so it needs history.
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: "26"
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
+      # D-0136: only the tests this change touches, stopped at 60 s. The
+      # whole suite runs in scripts/release.py; the three-OS matrix runs on main and v* tags.
+      - name: Tests this change touches
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/pr_tests.py --base origin/${{ github.base_ref }}
+      - name: Tests the last commit touches
+        if: github.event_name != 'pull_request'
+        run: python3 scripts/pr_tests.py --base HEAD~1
       - run: npm run lint
 
   standalone:
     name: Standalone (${{ matrix.platform }})
+    # D-0136: not on pull requests. On main it keeps the macOS 15 build/boot coverage
+    # tests/desktop-platform.test.ts requires; release.yml runs the same steps on a v* tag.
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
