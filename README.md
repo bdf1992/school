@@ -116,6 +116,9 @@ npm run lint
 npm test               # fixtures and fake providers; no paid inference required
 ```
 
+Pull requests run `python scripts/pr_tests.py`: only the tests the change touches, stopped at 60 s.
+Releases run `python scripts/release.py vX.Y.Z`: the whole suite on this PC, then the version tag.
+
 See [Development](docs/development.md), [Architecture](docs/architecture.md), [Getting started](docs/getting-started.md), and [Desktop builds and releases](docs/desktop-release.md).
 
 Use [School issues](https://github.com/bdf1992/school/issues) for this fork. Report vulnerabilities through the process in [SECURITY.md](SECURITY.md). Upstream maintainers and services are not School's support channel.

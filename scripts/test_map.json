@@ -1,0 +1,41 @@
+{
+  "*": [
+    "tests/call-ids.test.ts",
+    "tests/chat-kind.test.ts",
+    "tests/settings-pure.test.ts",
+    "tests/settings.test.ts"
+  ],
+  "_about": "Read by scripts/pr_tests.py (D-0136). For each changed file: convention first (tests/<basename>.test.ts(x), tests that import it, tests whose source names it); then the first glob here that matches; then nothing if it matches no_tests (docs and images no test reads, checked after the lookups above); else '*', a smoke set measured at 0.5-2.4 s per file on 2026-11-10. release_only: tests known to run over the 60 s ceiling; scripts/release.py runs them. fnmatch globs: * crosses folders.",
+  "electron/main.cjs": [
+    "tests/automatic-updates.test.ts",
+    "tests/desktop-api.test.ts",
+    "tests/desktop-platform.test.ts"
+  ],
+  "electron/preload.cjs": [
+    "tests/desktop-api.test.ts",
+    "tests/file-path-preload.test.ts"
+  ],
+  "no_tests": [
+    "*.gif",
+    "*.icns",
+    "*.ico",
+    "*.jpeg",
+    "*.jpg",
+    "*.md",
+    "*.png",
+    "*.webp",
+    "LICENSE",
+    "docs/*"
+  ],
+  "release_only": [],
+  "src/*.md": [
+    "tests/practice-agents.test.ts",
+    "tests/prompt-overrides.test.ts"
+  ],
+  "tests/fixtures/*": [
+    "tests/call-ids.test.ts",
+    "tests/chat-kind.test.ts",
+    "tests/settings-pure.test.ts",
+    "tests/settings.test.ts"
+  ]
+}
