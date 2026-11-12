@@ -128,3 +128,18 @@ Use [School issues](https://github.com/bdf1992/school/issues) for this fork. Rep
 ## License and attribution
 
 [AGPL-3.0-only](LICENSE). School builds on LearnHarness by Amos Blomqvist and its contributors. Historical designs, teaching-method notes, and inherited artwork retain their attribution; their inclusion does not establish measured learning outcomes or a School release qualification.
+
+## Dataspace camera episodes
+
+Use a trusted AUM checkout containing the active camera episode and install its Dataspace render dependencies.
+The School CLI admits the local learner to the `dataspace` class, revision `2`, before starting the episode.
+Run with an installed vision-capable Ollama model and a fresh run directory.
+
+```powershell
+npm run school:dataspace -- run RUN AUM_CHECKOUT MODEL
+npm run school:dataspace -- verify RUN AUM_CHECKOUT MODEL
+```
+
+The run retains the class admission, evaluator source fingerprint, model requests, pixel-tool receipt,
+typed proposal, and standalone `school-grade.json`. Verification reproduces the grade from those records
+without inference. The existing Classroom gradebook covers its own episode format.
