@@ -17,7 +17,14 @@ const help = `npm run school:state-space -- <command> <school-root> <foundation-
   run <operation-id> <learner> <good|bad|local|body> [state-revision or body.json]
   invoke <operation-id> <learner> <input.json>
   adopt <operation-id> <learner> <assessment-ref> <expected-binding-ref>
-  continue <operation-id> <learner>`;
+  continue <operation-id> <learner>
+  learn-prepare <episode> <learner> <square-of-sum|ordered-difference>
+  learn-view | learn-status <episode>
+  learn-resolve <episode> <snapshot> <address>
+  learn-use <episode> [context-address]
+  learn-submit <episode> <body.json>
+  learn-local <episode> <attempt> <state-revision>
+  learn-adopt <episode> <assessment-ref>`;
 
 interface Inspection {
 	snapshot: string;
@@ -83,6 +90,11 @@ async function main(): Promise<void> {
 	const school = path.resolve(schoolArg), runtime = path.resolve(runtimeArg);
 	const classes = new SchoolClassStore(path.join(school, "classes"));
 	const request = <T = unknown>(input: object) => foundation<T>(school, runtime, input);
+	if (command.startsWith("learn-")) {
+		const { learningCommand } = await import("./school-space-learning.ts");
+		console.log(JSON.stringify(await learningCommand(command, args, { school, classes, request, readInput })));
+		return;
+	}
 	if (command === "init" && !args.length) {
 		mkdirSync(school, { recursive: true, mode: 0o700 });
 		const initialized = request({ action: "init" });

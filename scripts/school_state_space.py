@@ -210,7 +210,11 @@ def main():
             world = json.loads(row[0])
             if world["foundation"] != profile:
                 raise ValueError("Foundation runtime differs from the pinned runtime")
-            result = dispatch(db, Runtime(db), world, request)
+            if request["action"].startswith("learn-"):
+                from school_space_learning import dispatch_learning
+                result = dispatch_learning(db, Runtime(db), world, request)
+            else:
+                result = dispatch(db, Runtime(db), world, request)
         print(encode(result))
 
 

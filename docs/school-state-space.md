@@ -53,3 +53,5 @@ python scripts/pr_tests.py
 ```
 
 The supervised School tests exercise the CLI with real SQLite and Foundation when the archive path is supplied. The external-runtime test reports a skip when that path is absent. It does not call a model.
+
+For prepared episodes that a fresh process can resume, two task families, and the configured-model cohort, see the [learning workflow evaluation](school-state-space-evaluation.md).
