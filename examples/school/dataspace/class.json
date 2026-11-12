@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "id": "dataspace",
+  "revision": "2",
+  "title": "Dataspace",
+  "roster": [
+    {
+      "participantId": "local-learner",
+      "roles": [
+        "learner"
+      ]
+    },
+    {
+      "participantId": "teacher",
+      "roles": [
+        "teacher"
+      ]
+    }
+  ],
+  "curriculum": {
+    "id": "dataspace",
+    "revision": "2",
+    "title": "Dataspace",
+    "units": [
+      {
+        "id": "camera-edit",
+        "title": "Find and change an object through the camera",
+        "objectives": [
+          "Resolve a learner-selected pixel against a pinned scene.",
+          "Submit a typed edit and check its effect."
+        ],
+        "prerequisites": [],
+        "world": {
+          "id": "dataspace-camera",
+          "revision": "1"
+        }
+      }
+    ]
+  },
+  "schedule": {
+    "mode": "self-paced"
+  },
+  "assessment": {
+    "evaluator": "dataspace-active-camera-v1",
+    "scale": "case-count"
+  },
+  "peerPolicy": {
+    "work": "private"
+  }
+}
