@@ -16,9 +16,18 @@ export const SCHOOL_TEACHER_PROMPT = "Write one concise, reusable lesson for the
 export async function runSchoolParticipant(engine: PiEngine, input: {
 	systemPrompt: string; view: unknown; callId: string;
 	maxOutputTokens: number; timeoutMs: number; signal: AbortSignal;
+	ollamaJson?: boolean;
 }): Promise<{ reply: AssistantMessage; text: string }> {
 	input.signal.throwIfAborted();
 	const options: SimpleStreamOptions = { signal: input.signal, sessionId: input.callId, maxTokens: input.maxOutputTokens, timeoutMs: input.timeoutMs, maxRetries: 0, reasoning: engine.level === "off" ? undefined : engine.level };
+	if (input.ollamaJson) {
+		options.onPayload = (payload) => {
+			if (!payload || typeof payload !== "object") throw new Error("Expected an Ollama chat request object");
+			const { max_completion_tokens: _alternateLimit, ...request } = payload as Record<string, unknown>;
+			const effort = !engine.level || engine.level === "off" ? "none" : engine.level;
+			return { ...request, max_tokens: input.maxOutputTokens, reasoning_effort: effort, response_format: { type: "json_object" } };
+		};
+	}
 	const stream = engine.streamFn(engine.model, normalizeContext({
 		systemPrompt: input.systemPrompt,
 		messages: [{ role: "user", content: JSON.stringify(input.view), timestamp: Date.now() }],

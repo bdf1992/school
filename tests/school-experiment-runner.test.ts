@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { after, test } from "node:test";
 import type { SchoolCallRecord, SchoolEpisodeRecord } from "../src/core/school-episode.ts";
 import { generateSchoolExperiment, schoolExposureForCall, validateSchoolExperimentEvidence, type SchoolExperimentCondition, type SchoolExperimentManifest } from "../src/core/school-experiment.ts";
@@ -268,7 +269,7 @@ test("the CLI generates, checks, runs and replays production fixtures including 
 	const root = path.join(scratch, "cli-school"), filename = path.join(scratch, "cli-factorized.json");
 	const noNetwork = path.join(scratch, "no-network.mjs");
 	writeFileSync(noNetwork, 'globalThis.fetch = async () => { throw new Error("CLOSED: no CLI fixture network"); };\n');
-	const command = (...args: string[]) => spawnSync(process.execPath, ["--import", noNetwork, "--import", "tsx", "scripts/school-experiment.ts", ...args], { cwd: process.cwd(), encoding: "utf8", timeout: 15000, env: { ...process.env, NODE_ENV: "test" } });
+	const command = (...args: string[]) => spawnSync(process.execPath, ["--import", pathToFileURL(noNetwork).href, "--import", "tsx", "scripts/school-experiment.ts", ...args], { cwd: process.cwd(), encoding: "utf8", timeout: 15000, env: { ...process.env, NODE_ENV: "test" } });
 	const run = (...args: string[]): Record<string, unknown> => {
 		const child = command(...args); assert.equal(child.status, 0, child.stderr); return JSON.parse(child.stdout);
 	};

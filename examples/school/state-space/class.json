@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "id": "state-space",
+  "revision": "1",
+  "title": "State Space Programming",
+  "roster": [
+    { "participantId": "local-learner", "roles": ["learner"] },
+    { "participantId": "teacher", "roles": ["teacher"] }
+  ],
+  "curriculum": {
+    "id": "state-space-programming",
+    "revision": "1",
+    "title": "Programming addressed operations",
+    "units": [
+      {
+        "id": "square-of-sum",
+        "title": "Repair an operation under two algebra contexts",
+        "objectives": ["Resolve the environment's instructions and revise its stored square_of_sum operation."],
+        "prerequisites": [],
+        "world": { "id": "state-space", "revision": "1" }
+      }
+    ]
+  },
+  "schedule": { "mode": "self-paced" },
+  "assessment": { "evaluator": "all-cases-pass-and-strict-improvement/v1", "scale": "case-count" },
+  "peerPolicy": { "work": "private" }
+}

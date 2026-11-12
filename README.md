@@ -50,6 +50,8 @@ npm run school:preflight -- --participant local-learner --state base --school /a
 
 The [preflight](docs/school-preflight.md) makes a bounded model-list request and saves a receipt. It performs no generation and does not verify loaded weights, reasoning settings, answer quality or inference latency. Use a new output path for every observation. A successful preflight is followed by one explicitly started [queued episode](docs/school-runs.md), with the learner and teacher each bound to their intended state.
 
+The [headless state-space episode](docs/school-state-space.md) imports the addressed SPACE specimen and uses State Database Foundation v0.2.0 to run, assess, and explicitly adopt revisions to a stored operation.
+
 The [parity artifact checker](docs/school-parity.md) accepts a finite-state machine as JSON, validates its structure, and tests its behavior on all 256 bytes and a declared set of additional bit strings:
 
 ```sh
