@@ -1,0 +1,141 @@
+{
+  "format": "school.prize-study-plan/1",
+  "cycle": 2,
+  "frozen_on": "2026-11-17",
+  "question": "Does weighing several context lengths together, with a model of repeated strings, give a smaller archive and a smaller complete size than DEFLATE on real structured input?",
+  "hypothesis": [
+    "(a) mix+match archive bytes are smaller than DEFLATE archive bytes on english-prose, typescript-source and json-lockfile.",
+    "(b) mix+match total_declared_bytes is smaller than DEFLATE total_declared_bytes on json-lockfile."
+  ],
+  "prediction_not_part_of_the_hypothesis": "mix+match loses to DEFLATE in total_declared_bytes on english-prose and typescript-source, because its 9,207-byte program is charged twice (18,414) against 2,590 for the DEFLATE worker, whose compressor lives uncounted in the Node runtime.",
+  "defeated_if": "(a) fails on any of the three real inputs, or (b) fails, or any variant fails exact recovery on any input.",
+  "baseline": {
+    "variant": "deflate",
+    "note": "scripts/prize-codec-worker.mjs, Node zlib level 9"
+  },
+  "candidate": {
+    "variant": "mixmatch",
+    "feature_disabled_variant": "mix: the same program with the repeated-string input switched off"
+  },
+  "carried_reference": "order1: the cycle 1 candidate, unchanged file",
+  "evaluator": "src/core/school-prize.ts gradePrizeBundle and comparePrizeBundles, unchanged from c415ef861fc6066a3e741eaf0009992d6332d7bd",
+  "cost_definition": "shared-program form: 2 * program bytes + archive bytes + option file bytes. mix and mixmatch are one program file. The Node runtime is not counted for any variant (program_format unqualified-source).",
+  "exposure": "Before this plan was frozen the codec was run only on two files outside the study: docs/architecture.md and tests/extraction.test.ts at c415ef8 (archive 7,487 and 23,349 bytes with mix+match; DEFLATE 8,950 and 30,082), and on an empty file. No parameter was changed after those runs. The nine study inputs were seen in cycle 1 with other programs; this codec had not been run on them.",
+  "negative_controls": [
+    "deterministic-noise and already-deflated-noise: expansion expected",
+    "empty and short: fixed overhead dominates",
+    "one flipped archive bit must make the decoder exit non-zero with no output"
+  ],
+  "limits": {
+    "input_bytes_per_case": "1048576",
+    "child_timeout_ms": 60000,
+    "cumulative_ms": 600000,
+    "provider_calls": 0,
+    "gpu": false
+  },
+  "variants": [
+    {
+      "id": "deflate",
+      "program": "scripts/prize-codec-worker.mjs",
+      "argument": "deflate"
+    },
+    {
+      "id": "order1",
+      "program": "scripts/prize-predictor-codec.mjs",
+      "argument": "1"
+    },
+    {
+      "id": "mix",
+      "program": "scripts/prize-mix-codec.mjs",
+      "argument": "mix"
+    },
+    {
+      "id": "mixmatch",
+      "program": "scripts/prize-mix-codec.mjs",
+      "argument": "mix+match"
+    }
+  ],
+  "comparisons": [
+    [
+      "deflate",
+      "mixmatch"
+    ],
+    [
+      "deflate",
+      "mix"
+    ],
+    [
+      "mix",
+      "mixmatch"
+    ],
+    [
+      "order1",
+      "mixmatch"
+    ]
+  ],
+  "inputs": [
+    {
+      "name": "empty",
+      "bytes": "0",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "edge control"
+    },
+    {
+      "name": "short",
+      "bytes": "20",
+      "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "edge control"
+    },
+    {
+      "name": "repeated",
+      "bytes": "53600",
+      "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "structured, synthetic"
+    },
+    {
+      "name": "synthetic-markup",
+      "bytes": "55690",
+      "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "structured, synthetic"
+    },
+    {
+      "name": "deterministic-noise",
+      "bytes": "32768",
+      "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "negative control: no structure to predict"
+    },
+    {
+      "name": "already-deflated-noise",
+      "bytes": "32786",
+      "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "negative control: no structure to predict"
+    },
+    {
+      "name": "english-prose",
+      "bytes": "40537",
+      "sha256": "acb101b2b831497dea90f3043789af6a290f1b3b3fed1d1151875110e972c73c",
+      "source": "git show c415ef861fc6066a3e741eaf0009992d6332d7bd:docs/archive/vision.md",
+      "role": "structured, real"
+    },
+    {
+      "name": "typescript-source",
+      "bytes": "117575",
+      "sha256": "199446cae1d9a34eea3f9706cd71489deb8e408cff61032f139f43f469b341bc",
+      "source": "git show c415ef861fc6066a3e741eaf0009992d6332d7bd:components/chat.tsx",
+      "role": "structured, real"
+    },
+    {
+      "name": "json-lockfile",
+      "bytes": "599412",
+      "sha256": "91a8f651f0be96530d98ff85bc8ee447b1e20d6c4db002f8826607e52b662daa",
+      "source": "git show c415ef861fc6066a3e741eaf0009992d6332d7bd:package-lock.json",
+      "role": "structured, real"
+    }
+  ]
+}

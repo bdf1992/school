@@ -1,0 +1,95 @@
+{
+  "format": "school.prize-study-plan/1",
+  "frozen_on": "2026-11-17",
+  "question": "Held to one coder, framing and update rule, does predicting each byte from the previous byte lower the complete declared size compared with predicting from byte frequency alone?",
+  "hypothesis": "Order 1 gives a smaller total_declared_bytes than order 0 on each of the three real structured inputs, and does not on the two noise inputs.",
+  "defeated_if": "Order 1 total_declared_bytes is greater than or equal to order 0 on any of english-prose, typescript-source or json-lockfile; or either order fails exact recovery on any input.",
+  "baseline": {
+    "variant": "order0",
+    "parent_revision": "c415ef861fc6066a3e741eaf0009992d6332d7bd"
+  },
+  "candidate": {
+    "variant": "order1",
+    "feature_disabled_variant": "order0 is the same program with the context switched off"
+  },
+  "outside_reference": "deflate: scripts/prize-codec-worker.mjs, Node zlib level 9, a different program, reported for scale only",
+  "evaluator": "src/core/school-prize.ts gradePrizeBundle and comparePrizeBundles, unchanged from the parent revision",
+  "cost_definition": "shared-program form: 2 * program bytes + archive bytes + option file bytes. Both orders are one program file, so the context feature's code is charged to both sides and the difference between them is archive bytes only. The Node runtime is not counted (program_format unqualified-source).",
+  "negative_controls": [
+    "deterministic-noise and already-deflated-noise: expansion expected for both orders",
+    "empty and short: fixed overhead dominates",
+    "one flipped archive byte must not restore the original"
+  ],
+  "limits": {
+    "input_bytes_per_case": "1048576",
+    "child_timeout_ms": 60000,
+    "cumulative_ms": 600000,
+    "provider_calls": 0,
+    "gpu": false
+  },
+  "inputs": [
+    {
+      "name": "empty",
+      "bytes": "0",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "edge control"
+    },
+    {
+      "name": "short",
+      "bytes": "20",
+      "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "edge control"
+    },
+    {
+      "name": "repeated",
+      "bytes": "53600",
+      "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "structured, synthetic"
+    },
+    {
+      "name": "synthetic-markup",
+      "bytes": "55690",
+      "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "structured, synthetic"
+    },
+    {
+      "name": "deterministic-noise",
+      "bytes": "32768",
+      "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "negative control: no structure to predict"
+    },
+    {
+      "name": "already-deflated-noise",
+      "bytes": "32786",
+      "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+      "source": "smoke fixture, scripts/school-prize.ts fixtures()",
+      "role": "negative control: no structure to predict"
+    },
+    {
+      "name": "english-prose",
+      "bytes": "40537",
+      "sha256": "acb101b2b831497dea90f3043789af6a290f1b3b3fed1d1151875110e972c73c",
+      "source": "git show c415ef861fc6066a3e741eaf0009992d6332d7bd:docs/archive/vision.md",
+      "role": "structured, real"
+    },
+    {
+      "name": "typescript-source",
+      "bytes": "117575",
+      "sha256": "199446cae1d9a34eea3f9706cd71489deb8e408cff61032f139f43f469b341bc",
+      "source": "git show c415ef861fc6066a3e741eaf0009992d6332d7bd:components/chat.tsx",
+      "role": "structured, real"
+    },
+    {
+      "name": "json-lockfile",
+      "bytes": "599412",
+      "sha256": "91a8f651f0be96530d98ff85bc8ee447b1e20d6c4db002f8826607e52b662daa",
+      "source": "git show c415ef861fc6066a3e741eaf0009992d6332d7bd:package-lock.json",
+      "role": "structured, real"
+    }
+  ]
+}

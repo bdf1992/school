@@ -1,0 +1,41 @@
+{
+  "format": "school.prize-study-plan/1",
+  "cycle": 4,
+  "frozen_on": "2026-11-17",
+  "question": "On enwik8, do word contexts, gap contexts, a second weight selector, calibration tables, seven context lengths and faster-adapting counters give a smaller archive than the cycle 3 codec?",
+  "hypothesis": [
+    "(a) mix2 archive bytes are smaller than the mixmatch archive bytes on enwik8 (cycle 3 measured mixmatch at 22,162,276).",
+    "(b) mix2 archive bytes are below 24,810,180, the best built-in baseline the cycle 3 check found (Brotli quality 11, large window), cited and not rerun here."
+  ],
+  "prediction_not_part_of_the_hypothesis": "The mix2 archive lands between 20,000,000 and 20,900,000 bytes. On the first 10,000,000 bytes it was 2,161,722 against 2,357,698 for mixmatch, a ratio of 0.917.",
+  "defeated_if": "(a) or (b) fails, or either variant fails exact recovery.",
+  "baseline": { "variant": "mixmatch", "note": "scripts/prize-mix-codec.mjs mix+match-large, the cycle 3 candidate, rerun here so both bundles are graded together" },
+  "candidate": { "variant": "mix2", "argument": "all-large", "program": "scripts/prize-mix2-codec.mjs" },
+  "evaluator": "src/core/school-prize.ts gradePrizeBundle and comparePrizeBundles, unchanged from c415ef861fc6066a3e741eaf0009992d6332d7bd, proxy track with a 100,000,000-byte inspection limit",
+  "cost_definition": "shared-program form: 2 * program bytes + archive bytes + option file bytes. The Node runtime is not counted (program_format unqualified-source).",
+  "exposure": "This cycle was developed on the first 10,000,000 bytes of enwik8 itself, so the full-file result is partly tuned to its own data; the prize rules allow tuning to the corpus, and no claim of transfer is made. Three settings were chosen there: the counter cap (16, after trying 6, 10, 16, 30, 60, 255, 1023), the context lengths (1-6 and 8, against 1-4 and 6) and the mixer learning rate (doubled, against halved and unchanged). An initial weight of half the default was tried and not adopted. The four switchable features were designed before any slice run. Slice figures with cap 30 and seven lengths, for development only and not graded evidence: all 2,179,393; without word contexts 2,234,995; without the second weight selector 2,200,180; without calibration tables 2,194,904; without gap contexts 2,184,382. The remaining 90,000,000 bytes had been run through the cycle 3 programs only.",
+  "negative_controls": ["one flipped bit in the middle of each archive must make the decoder exit non-zero with no output"],
+  "not_established_here": [
+    "the feature ablations were run on the 10 MB slice only, not on the full file",
+    "this is enwik8, a 10% prefix of the prize file enwik9, and no enwik9 figure follows from it",
+    "the program is unqualified source on the Node runtime; time, memory and isolation are not held to the prize rules"
+  ],
+  "damaged_archive_controls": true,
+  "limits": { "input_bytes_per_case": "100000000", "child_timeout_ms": 2400000, "cumulative_ms": 10800000, "provider_calls": 0, "gpu": false },
+  "variants": [
+    { "id": "mixmatch", "program": "scripts/prize-mix-codec.mjs", "argument": "mix+match-large" },
+    { "id": "mix2", "program": "scripts/prize-mix2-codec.mjs", "argument": "all-large" }
+  ],
+  "comparisons": [["mixmatch", "mix2"]],
+  "inputs": [
+    {
+      "name": "enwik8",
+      "bytes": "100000000",
+      "sha256": "2b49720ec4d78c3c9fabaee6e4179a5e997302b3a70029f30f2d582218c024a8",
+      "md5": "a1fa5ffddb56f4953e226637dabbb36a",
+      "sha1": "57b8363b814821dc9d47aa4d41f58733519076b2",
+      "source": "https://mattmahoney.net/dc/enwik8.zip (36,445,475 bytes), MD5 and SHA-1 equal to those published at https://mattmahoney.net/dc/textdata.html",
+      "role": "first 10^8 bytes of the English Wikipedia dump of 2006-03-03"
+    }
+  ]
+}
