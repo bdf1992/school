@@ -12,11 +12,14 @@ import { comparePrizeBundles, gradePrizeBundle, PRIZE_PROFILE, SMOKE_LIMIT, type
 const root = path.resolve(import.meta.dirname, "..");
 const digest = (bytes: Buffer | string) => createHash("sha256").update(bytes).digest("hex");
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
-const CHILD_MS = 60_000, TOTAL_MS = 600_000;
+// Defaults for studies under the smoke limit; a plan may raise them up to the hard ceilings.
+const DEFAULT_CHILD_MS = 60_000, DEFAULT_TOTAL_MS = 600_000, MAX_CHILD_MS = 3_600_000, MAX_TOTAL_MS = 14_400_000, MAX_INPUT = 100_000_000;
+const REFERENCE_WORKERS = ["scripts/prize-codec-worker.mjs", "scripts/prize-baseline-worker.mjs"];
 type Variant = { id: string; program: string; argument: string };
 const PROGRAMS: Record<string, string[]> = {
 	"scripts/prize-predictor-codec.mjs": ["0", "1"],
-	"scripts/prize-mix-codec.mjs": ["mix", "mix+match"],
+	"scripts/prize-mix-codec.mjs": ["mix", "mix+match", "mix-large", "mix+match-large"],
+	"scripts/prize-baseline-worker.mjs": ["deflate", "brotli", "zstd"],
 	"scripts/prize-codec-worker.mjs": ["deflate", "raw"],
 };
 const CYCLE_ONE: Variant[] = [
@@ -24,7 +27,7 @@ const CYCLE_ONE: Variant[] = [
 	{ id: "order1", program: "scripts/prize-predictor-codec.mjs", argument: "1" },
 	{ id: "deflate", program: "scripts/prize-codec-worker.mjs", argument: "deflate" },
 ];
-type Plan = { format: string; inputs: { name: string; bytes: string; sha256: string }[]; variants?: Variant[]; comparisons?: [string, string][] };
+type Plan = { format: string; inputs: { name: string; bytes: string; sha256: string }[]; variants?: Variant[]; comparisons?: [string, string][]; damaged_archive_controls?: boolean; limits?: { input_bytes_per_case?: string; child_timeout_ms?: number; cumulative_ms?: number } };
 
 function run(planFile: string, inputDirectory: string, outputDirectory: string) {
 	const started = performance.now(), output = path.resolve(outputDirectory);
@@ -36,12 +39,16 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 		if (!/^[a-z0-9]{1,24}$/.test(variant.id) || !PROGRAMS[variant.program]?.includes(variant.argument)) throw new Error(`plan names a variant outside the fixed codecs: ${variant.id}`);
 	}
 	if (new Set(variants.map(variant => variant.id)).size !== variants.length) throw new Error("duplicate variant id");
+	const bounded = (value: unknown, fallback: number, ceiling: number) => { if (value === undefined) return fallback; if (!Number.isSafeInteger(value) || (value as number) <= 0 || (value as number) > ceiling) throw new Error("plan limit is outside the runner's ceiling"); return value as number; };
+	const CHILD_MS = bounded(plan.limits?.child_timeout_ms, DEFAULT_CHILD_MS, MAX_CHILD_MS), TOTAL_MS = bounded(plan.limits?.cumulative_ms, DEFAULT_TOTAL_MS, MAX_TOTAL_MS);
+	const INPUT_LIMIT = bounded(plan.limits?.input_bytes_per_case === undefined ? undefined : Number(plan.limits.input_bytes_per_case), SMOKE_LIMIT, MAX_INPUT);
+	const withControls = plan.damaged_archive_controls ?? true;
 	for (const pair of comparisons) if (pair.length !== 2 || pair.some(id => !variants.some(variant => variant.id === id))) throw new Error("comparison names an unknown variant");
 	// Every input is checked against the frozen plan before any codec runs.
 	const inputs = plan.inputs.map(entry => {
 		if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(entry.name)) throw new Error(`invalid input name: ${entry.name}`);
 		const bytes = readFileSync(path.join(inputDirectory, `${entry.name}.bin`));
-		if (bytes.length > SMOKE_LIMIT || String(bytes.length) !== entry.bytes || digest(bytes) !== entry.sha256) throw new Error(`input does not match the frozen plan: ${entry.name}`);
+		if (bytes.length > INPUT_LIMIT || String(bytes.length) !== entry.bytes || digest(bytes) !== entry.sha256) throw new Error(`input does not match the frozen plan: ${entry.name}`);
 		return { name: entry.name, bytes };
 	});
 	mkdirSync(output, { recursive: true });
@@ -77,7 +84,7 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 			return { directory, attempt };
 		});
 		// Damaged-archive control: one flipped bit must not restore the original. The DEFLATE worker is not under study.
-		const controls = variants.filter(variant => variant.program !== "scripts/prize-codec-worker.mjs").map(variant => {
+		const controls = !withControls ? [] : variants.filter(variant => !REFERENCE_WORKERS.includes(variant.program)).map(variant => {
 			const directory = path.join(output, input.name, variant.id), archive = readFileSync(path.join(directory, "archive.bin"));
 			const damaged = Buffer.from(archive); damaged[Math.floor(damaged.length / 2)]! ^= 0x10;
 			const work = path.join(directory, "control-work"); mkdirSync(work);
@@ -89,8 +96,8 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 		const bundle = (id: string) => bundles[variants.findIndex(variant => variant.id === id)]!;
 		return {
 			name: input.name, executions, damaged_archive_controls: controls,
-			archive_bytes: Object.fromEntries(bundles.map((item, index) => [variants[index]!.id, gradePrizeBundle(item.directory, item.attempt).accounting.archive_bytes])),
-			...Object.fromEntries(comparisons.map(([from, to]) => [`${from}_to_${to}`, comparePrizeBundles(bundle(from), bundle(to))])),
+			archive_bytes: Object.fromEntries(bundles.map((item, index) => [variants[index]!.id, gradePrizeBundle(item.directory, item.attempt, INPUT_LIMIT).accounting.archive_bytes])),
+			...Object.fromEntries(comparisons.map(([from, to]) => [`${from}_to_${to}`, comparePrizeBundles(bundle(from), bundle(to), INPUT_LIMIT)])),
 		};
 	});
 	return {
@@ -99,7 +106,7 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 		host: { node: process.version, platform: platform(), release: release(), arch: arch(), cpu: cpus()[0]?.model ?? "unknown", logical_cpus: cpus().length, total_memory_bytes: totalmem() },
 		variants, comparisons,
 		programs: [...new Set(variants.map(variant => variant.program)), "src/core/school-prize.ts", "scripts/school-prize-predictors.ts"].map(file => ({ path: file, sha256: digest(readFileSync(path.join(root, file))) })),
-		budget: { control_children: cases.reduce((sum, item) => sum + item.damaged_archive_controls.length, 0), maximum_input_bytes_per_case: SMOKE_LIMIT, child_timeout_ms: CHILD_MS, cumulative_ms: TOTAL_MS, elapsed_ms: Math.round(performance.now() - started), provider_calls: 0, gpu_calls: 0 },
+		budget: { control_children: cases.reduce((sum, item) => sum + item.damaged_archive_controls.length, 0), maximum_input_bytes_per_case: INPUT_LIMIT, child_timeout_ms: CHILD_MS, cumulative_ms: TOTAL_MS, elapsed_ms: Math.round(performance.now() - started), provider_calls: 0, gpu_calls: 0 },
 		claims: { decoder_execution: "OBSERVED_FIXED_CODEC_CHILD_PROCESSES", decoder_independence: "NOT_ESTABLISHED", ram_disk_limits: "PEAK_RSS_SELF_REPORTED_BY_CHILD", package_qualification: "NOT_ESTABLISHED", generalization: "NOT_ESTABLISHED", official_prize_result: "NOT_ESTABLISHED", award_eur: null },
 		cases,
 	};

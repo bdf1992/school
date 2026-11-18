@@ -1,0 +1,63 @@
+{
+  "format": "school.prize-study-plan/1",
+  "cycle": 3,
+  "frozen_on": "2026-11-17",
+  "question": "On 100,000,000 bytes of the prize corpus, does the cycle 2 method give a smaller archive and a smaller complete size than the strongest compressors already inside the Node runtime?",
+  "hypothesis": [
+    "(a) mixmatch archive bytes are smaller than both the brotli and the zstd archive bytes on enwik8.",
+    "(b) mixmatch total_declared_bytes is smaller than both the brotli and the zstd totals on enwik8."
+  ],
+  "prediction_not_part_of_the_hypothesis": "The mixmatch archive lands between 21,000,000 and 25,000,000 bytes. Published figures for scale, not run here: gzip -9 gives 36,445,248; lpaq1, the design this follows without its nibble hashing or secondary estimation, about 19.8 million; the leading prize programs about 15 million.",
+  "defeated_if": "(a) or (b) fails against either baseline, or any variant fails exact recovery.",
+  "baseline": {
+    "variants": ["brotli", "zstd"],
+    "note": "scripts/prize-baseline-worker.mjs: brotli quality 11 with a 16 MiB window, zstd level 19; deflate level 9 is carried for scale"
+  },
+  "candidate": {
+    "variant": "mixmatch",
+    "argument": "mix+match-large",
+    "feature_disabled_variant": "mix (mix-large): the same program with the repeated-string input switched off"
+  },
+  "evaluator": "src/core/school-prize.ts gradePrizeBundle and comparePrizeBundles, unchanged from c415ef861fc6066a3e741eaf0009992d6332d7bd, proxy track with a 100,000,000-byte inspection limit",
+  "cost_definition": "shared-program form: 2 * program bytes + archive bytes + option file bytes. The Node runtime is not counted for any variant (program_format unqualified-source).",
+  "exposure": "enwik8 was downloaded and checksummed before this plan was frozen and was not run through any program here. The large modes (100,000,000-byte limit, 2^26 slots per context table, 2^24 match slots) were chosen and then run once, for timing and exact recovery, on 5,071,786 bytes of this repository's source outside the earlier study inputs: mix+match-large 898,960 bytes, brotli 1,026,586, zstd 1,048,470, deflate 1,406,105. No parameter was changed after that run. The model itself is the cycle 2 model, frozen in df6c951.",
+  "negative_controls": [
+    "one flipped bit in the middle of the mix and mixmatch archives must not yield the original"
+  ],
+  "not_established_here": [
+    "this is enwik8, a 10% prefix of the prize file enwik9, and no enwik9 figure follows from it",
+    "the program is unqualified source on the Node runtime; time, memory and isolation are not held to the prize rules"
+  ],
+  "damaged_archive_controls": true,
+  "limits": {
+    "input_bytes_per_case": "100000000",
+    "child_timeout_ms": 1800000,
+    "cumulative_ms": 7200000,
+    "provider_calls": 0,
+    "gpu": false
+  },
+  "variants": [
+    { "id": "deflate", "program": "scripts/prize-baseline-worker.mjs", "argument": "deflate" },
+    { "id": "zstd", "program": "scripts/prize-baseline-worker.mjs", "argument": "zstd" },
+    { "id": "brotli", "program": "scripts/prize-baseline-worker.mjs", "argument": "brotli" },
+    { "id": "mix", "program": "scripts/prize-mix-codec.mjs", "argument": "mix-large" },
+    { "id": "mixmatch", "program": "scripts/prize-mix-codec.mjs", "argument": "mix+match-large" }
+  ],
+  "comparisons": [
+    ["brotli", "mixmatch"],
+    ["zstd", "mixmatch"],
+    ["deflate", "mixmatch"],
+    ["mix", "mixmatch"]
+  ],
+  "inputs": [
+    {
+      "name": "enwik8",
+      "bytes": "100000000",
+      "sha256": "2b49720ec4d78c3c9fabaee6e4179a5e997302b3a70029f30f2d582218c024a8",
+      "md5": "a1fa5ffddb56f4953e226637dabbb36a",
+      "sha1": "57b8363b814821dc9d47aa4d41f58733519076b2",
+      "source": "https://mattmahoney.net/dc/enwik8.zip (36,445,475 bytes), MD5 and SHA-1 equal to those published at https://mattmahoney.net/dc/textdata.html",
+      "role": "first 10^8 bytes of the English Wikipedia dump of 2006-03-03"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 // Fixed study codec, cycle 2: bitwise context mixing with an optional repeated-string model.
-// usage: prize-mix-codec.mjs encode|decode mix|mix+match INPUT OUTPUT
+// usage: prize-mix-codec.mjs encode|decode mix|mix+match|mix-large|mix+match-large INPUT OUTPUT
+// The -large modes are the same model with a 100,000,000-byte limit and 16 times the table slots.
 // Each bit is predicted by counters for the last 0, 1, 2, 3, 4 and 6 bytes; a small
 // integer network weighs them. "mix+match" adds one more input: the bit that followed
 // the most recent earlier occurrence of the last five bytes. Everything is integer
@@ -10,8 +11,9 @@
 import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { crc32 } from "node:zlib";
 
-const LIMIT = 1_048_576, TABLE_BITS = 22, ORDERS = [1, 2, 3, 4, 6], INPUTS = ORDERS.length + 2;
-const MATCH_MIN = 5, MATCH_BITS = 20, MATCH_CAP = 31, COUNT_CAP = 255, START = 2 ** 31;
+let LIMIT = 1_048_576, TABLE_BITS = 22, MATCH_BITS = 20;
+const ORDERS = [1, 2, 3, 4, 6], INPUTS = ORDERS.length + 2;
+const MATCH_MIN = 5, MATCH_CAP = 31, COUNT_CAP = 255, START = 2 ** 31;
 const SQUASH = [1, 2, 3, 6, 10, 16, 27, 45, 73, 120, 194, 310, 488, 747, 1101, 1546, 2047, 2549, 2994, 3348, 3607, 3785, 3901, 3975, 4024, 4050, 4068, 4079, 4085, 4089, 4092, 4093, 4094];
 // squash maps a log-odds value in -2047..2047 to a 12-bit probability; STRETCH is its inverse.
 function squash(value) {
@@ -144,14 +146,15 @@ function decode(archive, useMatch) {
 
 try {
 	const [operation, mode, input, output, ...extra] = process.argv.slice(2);
-	if (extra.length || !["encode", "decode"].includes(operation) || !["mix", "mix+match"].includes(mode) || !input || !output) {
-		throw new Error("usage: prize-mix-codec.mjs encode|decode mix|mix+match INPUT OUTPUT");
+	if (extra.length || !["encode", "decode"].includes(operation) || !["mix", "mix+match", "mix-large", "mix+match-large"].includes(mode) || !input || !output) {
+		throw new Error("usage: prize-mix-codec.mjs encode|decode mix|mix+match|mix-large|mix+match-large INPUT OUTPUT");
 	}
+	if (mode.endsWith("-large")) { LIMIT = 100_000_000; TABLE_BITS = 26; MATCH_BITS = 24; }
 	const maximumInput = operation === "encode" ? LIMIT : LIMIT * 2;
 	if (!statSync(input).isFile() || statSync(input).size > maximumInput) throw new Error("input exceeds study limit");
 	const bytes = readFileSync(input);
 	if (bytes.length > maximumInput) throw new Error("input exceeds study limit");
-	const result = operation === "encode" ? encode(bytes, mode === "mix+match") : decode(bytes, mode === "mix+match");
+	const result = operation === "encode" ? encode(bytes, mode.startsWith("mix+match")) : decode(bytes, mode.startsWith("mix+match"));
 	writeFileSync(output, result, { flag: "wx" });
 	process.stdout.write(`${JSON.stringify({ peak_rss_kb: process.resourceUsage().maxRSS })}\n`);
 } catch (error) {
