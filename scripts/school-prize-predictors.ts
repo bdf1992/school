@@ -1,6 +1,6 @@
-// Predictor study runner: frequency (order 0) against previous-byte context (order 1)
-// through one fixed coder, with the smoke DEFLATE worker as an outside reference.
-// It executes only the two checked-in codec files, never a program named by a manifest.
+// Predictor study runner. A frozen plan names the inputs and, from cycle 2 on, the variants
+// and comparisons; without them it runs cycle 1 (order 0, order 1, DEFLATE reference).
+// It executes only the checked-in codec files listed below, never any other program.
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -13,18 +13,30 @@ const root = path.resolve(import.meta.dirname, "..");
 const digest = (bytes: Buffer | string) => createHash("sha256").update(bytes).digest("hex");
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 const CHILD_MS = 60_000, TOTAL_MS = 600_000;
-const variants = [
+type Variant = { id: string; program: string; argument: string };
+const PROGRAMS: Record<string, string[]> = {
+	"scripts/prize-predictor-codec.mjs": ["0", "1"],
+	"scripts/prize-mix-codec.mjs": ["mix", "mix+match"],
+	"scripts/prize-codec-worker.mjs": ["deflate", "raw"],
+};
+const CYCLE_ONE: Variant[] = [
 	{ id: "order0", program: "scripts/prize-predictor-codec.mjs", argument: "0" },
 	{ id: "order1", program: "scripts/prize-predictor-codec.mjs", argument: "1" },
 	{ id: "deflate", program: "scripts/prize-codec-worker.mjs", argument: "deflate" },
 ];
-type Plan = { format: string; inputs: { name: string; bytes: string; sha256: string }[] };
+type Plan = { format: string; inputs: { name: string; bytes: string; sha256: string }[]; variants?: Variant[]; comparisons?: [string, string][] };
 
 function run(planFile: string, inputDirectory: string, outputDirectory: string) {
 	const started = performance.now(), output = path.resolve(outputDirectory);
 	if (existsSync(output)) throw new Error("output directory must not already exist");
 	const planBytes = readFileSync(planFile), plan = JSON.parse(planBytes.toString("utf8")) as Plan;
 	if (plan.format !== "school.prize-study-plan/1" || !Array.isArray(plan.inputs) || !plan.inputs.length) throw new Error("unsupported plan");
+	const variants = plan.variants ?? CYCLE_ONE, comparisons = plan.comparisons ?? [["order0", "order1"], ["deflate", "order1"]];
+	for (const variant of variants) {
+		if (!/^[a-z0-9]{1,24}$/.test(variant.id) || !PROGRAMS[variant.program]?.includes(variant.argument)) throw new Error(`plan names a variant outside the fixed codecs: ${variant.id}`);
+	}
+	if (new Set(variants.map(variant => variant.id)).size !== variants.length) throw new Error("duplicate variant id");
+	for (const pair of comparisons) if (pair.length !== 2 || pair.some(id => !variants.some(variant => variant.id === id))) throw new Error("comparison names an unknown variant");
 	// Every input is checked against the frozen plan before any codec runs.
 	const inputs = plan.inputs.map(entry => {
 		if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(entry.name)) throw new Error(`invalid input name: ${entry.name}`);
@@ -35,6 +47,7 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 	mkdirSync(output, { recursive: true });
 	const cases = inputs.map(input => {
 		const executions: { variant: string; phase: string; wall_ms: number; peak_rss_kb: number | null; exit_code: number }[] = [];
+		const left = () => { const remaining = Math.floor(TOTAL_MS - (performance.now() - started)); if (remaining <= 0) throw new Error("cumulative study budget exhausted"); return Math.min(CHILD_MS, remaining); };
 		const bundles = variants.map(variant => {
 			const directory = path.join(output, input.name, variant.id);
 			mkdirSync(path.join(directory, "encode-work"), { recursive: true });
@@ -44,12 +57,10 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 			writeFileSync(path.join(directory, "compress.args"), `encode ${variant.argument}`, { flag: "wx" });
 			writeFileSync(path.join(directory, "decompress.args"), `decode ${variant.argument}`, { flag: "wx" });
 			for (const phase of ["encode", "decode"]) {
-				const remaining = Math.floor(TOTAL_MS - (performance.now() - started));
-				if (remaining <= 0) throw new Error("cumulative study budget exhausted");
 				const source = path.join(directory, phase === "encode" ? "original.bin" : "archive.bin");
 				const target = path.join(directory, phase === "encode" ? "archive.bin" : "restored.bin");
 				const before = performance.now();
-				const result = spawnSync(process.execPath, [path.join(directory, "codec.mjs"), phase, variant.argument, source, target], { cwd: path.join(directory, `${phase}-work`), encoding: "utf8", timeout: Math.min(CHILD_MS, remaining), maxBuffer: 65_536 });
+				const result = spawnSync(process.execPath, [path.join(directory, "codec.mjs"), phase, variant.argument, source, target], { cwd: path.join(directory, `${phase}-work`), encoding: "utf8", timeout: left(), maxBuffer: 65_536 });
 				const wall = Math.round((performance.now() - before) * 1000) / 1000;
 				if (result.error || result.status !== 0) throw new Error(`${input.name}/${variant.id}/${phase}: ${result.error?.message ?? result.stderr}`);
 				let rss: number | null = null;
@@ -65,30 +76,30 @@ function run(planFile: string, inputDirectory: string, outputDirectory: string) 
 			writeFileSync(path.join(directory, "attempt.json"), json(attempt), { flag: "wx" });
 			return { directory, attempt };
 		});
-		// Damaged-archive control: one flipped byte must not restore the original through either order.
-		const controls = variants.slice(0, 2).map(variant => {
+		// Damaged-archive control: one flipped bit must not restore the original. The DEFLATE worker is not under study.
+		const controls = variants.filter(variant => variant.program !== "scripts/prize-codec-worker.mjs").map(variant => {
 			const directory = path.join(output, input.name, variant.id), archive = readFileSync(path.join(directory, "archive.bin"));
 			const damaged = Buffer.from(archive); damaged[Math.floor(damaged.length / 2)]! ^= 0x10;
 			const work = path.join(directory, "control-work"); mkdirSync(work);
 			writeFileSync(path.join(work, "damaged.bin"), damaged, { flag: "wx" });
-			const result = spawnSync(process.execPath, [path.join(directory, "codec.mjs"), "decode", variant.argument, path.join(work, "damaged.bin"), path.join(work, "restored.bin")], { cwd: work, encoding: "utf8", timeout: CHILD_MS, maxBuffer: 65_536 });
+			const result = spawnSync(process.execPath, [path.join(directory, "codec.mjs"), "decode", variant.argument, path.join(work, "damaged.bin"), path.join(work, "restored.bin")], { cwd: work, encoding: "utf8", timeout: left(), maxBuffer: 65_536 });
 			const restored = result.status === 0 && existsSync(path.join(work, "restored.bin")) ? readFileSync(path.join(work, "restored.bin")) : null;
 			return { variant: variant.id, decoder_exit_code: result.status, restored_equals_original: restored !== null && restored.equals(input.bytes) };
 		});
-		const [order0, order1, deflate] = bundles as [typeof bundles[0], typeof bundles[0], typeof bundles[0]];
+		const bundle = (id: string) => bundles[variants.findIndex(variant => variant.id === id)]!;
 		return {
 			name: input.name, executions, damaged_archive_controls: controls,
-			archive_bytes: Object.fromEntries(bundles.map((bundle, index) => [variants[index]!.id, gradePrizeBundle(bundle.directory, bundle.attempt).accounting.archive_bytes])),
-			order0_to_order1: comparePrizeBundles(order0, order1),
-			deflate_to_order1: comparePrizeBundles(deflate, order1),
+			archive_bytes: Object.fromEntries(bundles.map((item, index) => [variants[index]!.id, gradePrizeBundle(item.directory, item.attempt).accounting.archive_bytes])),
+			...Object.fromEntries(comparisons.map(([from, to]) => [`${from}_to_${to}`, comparePrizeBundles(bundle(from), bundle(to))])),
 		};
 	});
 	return {
 		format: "school.prize-predictor-study/1", observed_at: new Date().toISOString(), profile: PRIZE_PROFILE,
 		plan: { path: path.basename(planFile), sha256: digest(planBytes) },
 		host: { node: process.version, platform: platform(), release: release(), arch: arch(), cpu: cpus()[0]?.model ?? "unknown", logical_cpus: cpus().length, total_memory_bytes: totalmem() },
+		variants, comparisons,
 		programs: [...new Set(variants.map(variant => variant.program)), "src/core/school-prize.ts", "scripts/school-prize-predictors.ts"].map(file => ({ path: file, sha256: digest(readFileSync(path.join(root, file))) })),
-		budget: { maximum_input_bytes_per_case: SMOKE_LIMIT, child_timeout_ms: CHILD_MS, cumulative_ms: TOTAL_MS, elapsed_ms: Math.round(performance.now() - started), provider_calls: 0, gpu_calls: 0 },
+		budget: { control_children: cases.reduce((sum, item) => sum + item.damaged_archive_controls.length, 0), maximum_input_bytes_per_case: SMOKE_LIMIT, child_timeout_ms: CHILD_MS, cumulative_ms: TOTAL_MS, elapsed_ms: Math.round(performance.now() - started), provider_calls: 0, gpu_calls: 0 },
 		claims: { decoder_execution: "OBSERVED_FIXED_CODEC_CHILD_PROCESSES", decoder_independence: "NOT_ESTABLISHED", ram_disk_limits: "PEAK_RSS_SELF_REPORTED_BY_CHILD", package_qualification: "NOT_ESTABLISHED", generalization: "NOT_ESTABLISHED", official_prize_result: "NOT_ESTABLISHED", award_eur: null },
 		cases,
 	};
