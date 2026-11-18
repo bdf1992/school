@@ -438,8 +438,12 @@ mixer learns twice as fast. The archive format is unchanged.
 This cycle was developed on the first 10,000,000 bytes of enwik8, and the three
 settings were chosen there, so the full-file result is partly tuned to its own
 data. The prize rules allow that; no claim of transfer is made. The
-[plan](../evidence/prizes/predictor-study-2026-11-17-cycle4-plan.json) records
-every setting tried and was committed with the codec before the full run.
+[plan](../evidence/prizes/predictor-study-2026-11-17-cycle4-plan.json) names
+every setting tried and was committed with the codec before the full run; the
+[slice figures](../evidence/prizes/predictor-study-2026-11-17-cycle4-slice.txt)
+give each result. The counter cap of 16 was not the smallest on the slice: caps
+of 10 and 6 were 0.25% smaller. I kept 16 on the judgement, untested, that a
+file ten times longer favours counters that settle more.
 
 | Variant | Archive bytes | Complete declared bytes | Encode | Decode | Peak memory |
 |---|---:|---:|---:|---:|---:|
@@ -457,12 +461,16 @@ What this shows, and no more:
 - With one flipped bit in the middle of each archive, both decoders exited
   non-zero and wrote nothing.
 - The gain costs time and memory: about 10 minutes each way and 3.1 GiB when
-  encoding, against 4 minutes and 2.0 GiB.
-- Development figures from the 10 MB slice, with a counter cap of 30 and not
-  graded: removing word contexts cost 2.6%, the second weight selector 1.0%,
-  the calibration tables 0.7% and gap contexts 0.2%. Lowering the counter cap
-  from 255 to 16 was worth about as much as word contexts. These ablations were
-  not run on the full file.
+  encoding, against 4 to 5 minutes and 2.0 GiB.
+- A damaged archive is refused when the damage changes the decoded bits. As in
+  cycle 2, flips in the four trailing flush bytes can pass with correct output.
+- Development figures from the 10 MB slice, not graded: with a counter cap of
+  30 and the undoubled learning rate, removing word contexts cost 2.6%, the
+  second weight selector 1.0%, the calibration tables 0.7% and gap contexts
+  0.2%. In a different configuration, with five context lengths, lowering the
+  counter cap from 255 to 16 saved 58,498 bytes, close to the 55,602 that word
+  contexts were worth. None of these was run on the full file or at the final
+  configuration.
 - For scale, from published tables and not run here: lpaq1 reaches about
   19.8 million bytes on enwik8 and the leading prize programs about 15 million.
   This codec still lacks lpaq1's bit-history states and collision checks.
