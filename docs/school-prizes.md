@@ -420,3 +420,55 @@ NTFS ids above 2^53 can round to the same value. It fails toward refusal, and a
 rerun in a new directory passes; the fix belongs with the inspector. The
 [retained report](../evidence/prizes/predictor-study-2026-11-17-cycle3.json)
 holds every measurement.
+
+## Fourth predictor study: a second-generation mixer on enwik8 (2026-11-17)
+
+Question: on enwik8, do word contexts, gap contexts, a second weight selector,
+calibration tables, seven context lengths and faster-adapting counters give a
+smaller archive than the cycle 3 codec?
+
+`scripts/prize-mix2-codec.mjs` is the cycle 2 model with four switchable
+additions and three changed settings. Word contexts key on the current run of
+letters and the run before it, with no word list. Gap contexts skip a byte. A
+second weight set is chosen by the previous byte and averaged with the first.
+Two adaptive tables correct the mixed probability before coding. Context
+lengths are 1 to 6 and 8; counters stop slowing after 16 observations; the
+mixer learns twice as fast. The archive format is unchanged.
+
+This cycle was developed on the first 10,000,000 bytes of enwik8, and the three
+settings were chosen there, so the full-file result is partly tuned to its own
+data. The prize rules allow that; no claim of transfer is made. The
+[plan](../evidence/prizes/predictor-study-2026-11-17-cycle4-plan.json) records
+every setting tried and was committed with the codec before the full run.
+
+| Variant | Archive bytes | Complete declared bytes | Encode | Decode | Peak memory |
+|---|---:|---:|---:|---:|---:|
+| Cycle 3 mix+match | 22,162,276 | 22,181,318 | 232 s | 281 s | 2.0 GiB |
+| Cycle 4 mix2 | 20,268,761 | 20,293,063 | 590 s | 609 s | 3.1 GiB |
+
+What this shows, and no more:
+
+- Both variants restored all 100,000,000 bytes. Both parts of the hypothesis
+  held: mix2 is 1,893,515 archive bytes (8.5%) smaller than the cycle 3 codec,
+  and 18.3% below 24,810,180, the best built-in baseline the cycle 3 check
+  found, which was not rerun here. The archive landed inside the predicted
+  range.
+- The cycle 3 archive came out at the same 22,162,276 bytes as in cycle 3.
+- With one flipped bit in the middle of each archive, both decoders exited
+  non-zero and wrote nothing.
+- The gain costs time and memory: about 10 minutes each way and 3.1 GiB when
+  encoding, against 4 minutes and 2.0 GiB.
+- Development figures from the 10 MB slice, with a counter cap of 30 and not
+  graded: removing word contexts cost 2.6%, the second weight selector 1.0%,
+  the calibration tables 0.7% and gap contexts 0.2%. Lowering the counter cap
+  from 255 to 16 was worth about as much as word contexts. These ablations were
+  not run on the full file.
+- For scale, from published tables and not run here: lpaq1 reaches about
+  19.8 million bytes on enwik8 and the leading prize programs about 15 million.
+  This codec still lacks lpaq1's bit-history states and collision checks.
+
+Nothing here concerns enwik9, the prize threshold, the official time and memory
+limits or decoder isolation. The run took 39 minutes on Windows x64 with Node
+24.11.1; peak memory is each child's own figure. The
+[retained report](../evidence/prizes/predictor-study-2026-11-17-cycle4.json)
+holds every measurement.
