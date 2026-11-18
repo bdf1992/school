@@ -318,7 +318,16 @@ What this shows, and no more:
 - The plan's prediction also held: on prose and TypeScript the smaller archive
   does not pay for the program. The program costs 15,824 more declared bytes
   than the DEFLATE worker, whose compressor is inside the uncounted Node
-  runtime. That comparison favours DEFLATE by construction.
+  runtime. That comparison favours DEFLATE by construction. On empty and short
+  the table difference is 15,829: four bytes of longer option files and one of
+  archive.
+- The complete-cost win does not survive a stronger built-in baseline. Brotli
+  at quality 11 is in the same uncounted runtime. Measured after the run, on
+  the same three inputs, its archives are 14,208, 33,356 and 118,090 bytes.
+  Mix+match still has the smallest archive on all three, but a Brotli worker
+  the size of the DEFLATE one would cost about 120,708 complete bytes on the
+  JSON lockfile, below 132,821. Brotli was not a variant in the frozen plan,
+  so that total is an estimate and the archive sizes are a later measurement.
 - The repeated-string input earns its place only on the large file: 11,360
   archive bytes on the JSON lockfile, 845 on TypeScript, 116 on prose. Without
   it, `mix` loses to DEFLATE in complete cost on all nine inputs.
@@ -326,7 +335,17 @@ What this shows, and no more:
 - Damaged-archive control: with one flipped bit the mixing decoder exited
   non-zero and wrote nothing on eight inputs in both modes. On the empty input
   the flipped bit fell in a flush byte no data uses and the decoder restored the
-  empty file; the control failed there. Order 1 is unchanged from cycle 1.
+  empty file; the control failed there. The same slack exists in every archive:
+  the independent check found that 11 to 32 of the 32 flush bits can flip and
+  the decoder still exits 0 with the correct bytes. In about 1,500 damaged
+  archives it never accepted wrong bytes. The property this format has is that
+  damage does not yield wrong output, which is weaker than the plan's control.
+  Order 1 is unchanged from cycle 1.
+- The plan's exposure note gives the mix+match trial figures; `mix` was run on
+  the same two outside files as well (7,531 and 25,286 bytes).
+- Two archives of one input can both be valid: the length header accepts a
+  non-minimal form, and on noise and empty input the two modes write identical
+  archives.
 - The slowest child took 0.8 s and the largest self-reported peak memory was
   143.2 MiB, on Windows x64 with Node 24.11.1. The 27 control children ran
   inside the time budget and are counted apart from the 72.

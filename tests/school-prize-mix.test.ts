@@ -71,7 +71,7 @@ test("a flipped bit, a truncated archive and appended bytes are refused with a r
 	assert.equal(longer.status, 1); assert.equal(longer.restored, null);
 });
 
-test("an archive made with one mode does not restore through the other", () => {
+test("an archive of repeating text made with one mode does not restore through the other", () => {
 	const result = decode(encode(cases[7]![1], "mix+match"), "mix");
 	assert.equal(result.status, 1); assert.equal(result.restored, null);
 });
