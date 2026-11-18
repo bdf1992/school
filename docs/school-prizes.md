@@ -257,3 +257,83 @@ in both runs.
 This is a nine-file study under 1 MiB per case with an unqualified program on
 the host's Node runtime. It establishes nothing about enwik9, decoder isolation
 or a prize.
+
+## Second predictor study: mixing context lengths (2026-11-17)
+
+Question: does weighing several context lengths together, with a model of
+repeated strings, give a smaller archive and a smaller complete size than
+DEFLATE on real structured input?
+
+`scripts/prize-mix-codec.mjs` predicts one bit at a time. Counters for the last
+0, 1, 2, 3, 4 and 6 bytes each give a probability, and a small integer network
+weighs them. The `mix+match` mode adds one input: the bit that followed the most
+recent earlier occurrence of the last five bytes. `mix` is the same program with
+that input off. The archive carries a length, the coded bits and a CRC-32 of the
+original, so the decoder refuses a result that fails the checksum. The method is
+Mahoney's context mixing as in lpaq1; the code is written here.
+
+The [plan](../evidence/prizes/predictor-study-2026-11-17-cycle2-plan.json) was
+committed with the codec, the runner change and the tests before any grade
+existed. It names the same nine inputs, DEFLATE as the baseline, and what the
+codec had been run on beforehand: two repository files outside the study and an
+empty file. The runner now reads variants and comparisons from the plan and
+accepts only the three checked-in codec files; the cycle 1 plan gives identical
+numbers through it.
+
+Archive bytes alone:
+
+| Input | Original | DEFLATE | Order 1 | Mix | Mix+match |
+|---|---:|---:|---:|---:|---:|
+| Empty | 0 | 8 | 2 | 9 | 9 |
+| Short | 20 | 24 | 19 | 24 | 25 |
+| Repeated text | 53,600 | 267 | 11,944 | 119 | 94 |
+| Synthetic markup | 55,690 | 3,270 | 11,709 | 2,193 | 1,662 |
+| Deterministic noise | 32,768 | 32,786 | 39,031 | 33,070 | 33,070 |
+| Already-deflated noise | 32,786 | 32,805 | 39,049 | 33,088 | 33,089 |
+| English prose | 40,537 | 16,839 | 19,684 | 13,888 | 13,772 |
+| TypeScript source | 117,575 | 39,508 | 55,023 | 31,434 | 30,589 |
+| JSON lockfile | 599,412 | 140,611 | 268,933 | 125,735 | 114,375 |
+
+Complete declared bytes, shared-program form. The mixing program is 9,207 bytes,
+charged twice (18,414); the DEFLATE worker is 1,295, charged twice (2,590).
+
+| Input | DEFLATE | Mix | Mix+match | Mix+match against DEFLATE |
+|---|---:|---:|---:|---:|
+| Empty | 2,626 | 18,443 | 18,455 | −15,829 |
+| Short | 2,642 | 18,458 | 18,471 | −15,829 |
+| Repeated text | 2,885 | 18,553 | 18,540 | −15,655 |
+| Synthetic markup | 5,888 | 20,627 | 20,108 | −14,220 |
+| Deterministic noise | 35,404 | 51,504 | 51,516 | −16,112 |
+| Already-deflated noise | 35,423 | 51,522 | 51,535 | −16,112 |
+| English prose | 19,457 | 32,322 | 32,218 | −12,761 |
+| TypeScript source | 42,126 | 49,868 | 49,035 | −6,909 |
+| JSON lockfile | 143,229 | 144,169 | 132,821 | 10,408 |
+
+What this shows, and no more:
+
+- All 36 round trips restored every byte (9 inputs, 4 variants of 3 program
+  files, 72 child processes). Both parts of the hypothesis held: the mix+match
+  archive is smaller than DEFLATE's on the three real inputs (by 18%, 23% and
+  19%), and its complete cost is smaller on the JSON lockfile, by 10,408 bytes.
+- The plan's prediction also held: on prose and TypeScript the smaller archive
+  does not pay for the program. The program costs 15,824 more declared bytes
+  than the DEFLATE worker, whose compressor is inside the uncounted Node
+  runtime. That comparison favours DEFLATE by construction.
+- The repeated-string input earns its place only on the large file: 11,360
+  archive bytes on the JSON lockfile, 845 on TypeScript, 116 on prose. Without
+  it, `mix` loses to DEFLATE in complete cost on all nine inputs.
+- On noise both modes expand by under 1% of the input, against 19% for order 1.
+- Damaged-archive control: with one flipped bit the mixing decoder exited
+  non-zero and wrote nothing on eight inputs in both modes. On the empty input
+  the flipped bit fell in a flush byte no data uses and the decoder restored the
+  empty file; the control failed there. Order 1 is unchanged from cycle 1.
+- The slowest child took 0.8 s and the largest self-reported peak memory was
+  143.2 MiB, on Windows x64 with Node 24.11.1. The 27 control children ran
+  inside the time budget and are counted apart from the 72.
+
+The table sizes, counter limits and learning rate were set once from the
+published design and not varied; the program's comments are counted in its
+bytes. Nine files under 1 MiB do not predict behaviour on enwik9, and nothing
+here concerns decoder isolation, the official resource limits or a prize. The
+[retained report](../evidence/prizes/predictor-study-2026-11-17-cycle2.json)
+holds every measurement.
