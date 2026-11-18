@@ -162,7 +162,13 @@ and selects `tests/school-prize.test.ts`. On this host its tsx CLI exits before
 running tests because its Unix IPC listener receives `listen EPERM`. This is a
 blocked required gate, not a passing gate. The supported-loader result above is
 separate evidence. No CLI patch, gate change or permission escalation was used.
-The documented Node 26 CI environment still needs to run the required gate.
+The documented Node 26 CI environment has now run that gate successfully.
+
+[GitHub CI run 44219469912](https://github.com/bdf1992/school/actions/runs/44219469912)
+checked implementation commit `5d247cd656f5afab0e2aeb181e8dddee642854c5`
+on Node **26.13.1**. The normal required gate passed **28 tests in 1.2 seconds**;
+the full project typecheck and lint also passed. This paragraph records the later
+remote result without changing the retained local failure or its interpretation.
 
 Independent review found and corrected two defects: a final smoke child could
 outlive the cumulative allowance, and a manifest's length was checked only after
