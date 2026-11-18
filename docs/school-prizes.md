@@ -219,11 +219,19 @@ bytes, charged twice to both orders; the DEFLATE worker is 1,295 bytes.
 
 What this shows, and no more:
 
-- All 27 round trips restored every byte (9 inputs, 3 programs, 54 child
-  processes). The hypothesis held: order 1 is smaller on the three real
-  structured inputs and larger on both noise inputs.
-- Order 1 loses to DEFLATE on all nine inputs, in archive bytes as well as in
-  complete cost. A previous-byte context does not find repeated strings.
+- All 27 round trips restored every byte (9 inputs, 3 variants of 2 program
+  files, 54 child processes). The hypothesis held: order 1 is smaller on the
+  three real structured inputs and larger on both noise inputs.
+- Order 1 loses to DEFLATE in complete cost on all nine inputs. In archive
+  bytes alone it loses on seven; on the empty and short inputs its archive is
+  smaller (2 against 8 bytes, 19 against 24) and its larger program decides
+  the total. A previous-byte context does not find repeated strings.
+- The stream has no length or checksum. The decoder stops at the end symbol,
+  ignores anything after it, and turns any bit string into some output. In the
+  18 damaged-archive controls, 9 decoders exited 0 with wrong bytes. Exact
+  recovery is established by the inspector's comparison, not by the codec.
+- The increment of 24 and the cap of 65,536 are fixed in the codec and were not
+  varied. Whether the result depends on them is untested.
 - The context costs something where there is nothing to predict: 5,929 more
   bytes on 32 KiB of noise, because 256 tables each have to learn.
 - Because both orders are one program, the code for the context is charged to
@@ -232,13 +240,16 @@ What this shows, and no more:
   two-byte archive still decodes to empty after one flipped bit; that control
   says nothing there.
 - The slowest child took 0.3 s and the largest self-reported peak memory was
-  73 MB, on Windows x64 with Node 24.11.1. Peak memory is the child's own
-  figure, not an enforced limit.
+  71.8 MiB, on Windows x64 with Node 24.11.1. Peak memory is the child's own
+  figure, not an enforced limit; the 18 DEFLATE children report none. The 18
+  damaged-archive control children are outside the count of 54 and the
+  cumulative time budget.
 
 The DEFLATE column reproduces the six totals of the smoke run above on a
 different operating system and Node version. A first run on a checkout whose
-line endings had been converted counted 23 extra bytes in the DEFLATE worker;
-it is retained as `predictor-study-2026-11-17-superseded-crlf.json`, and the
+line endings had been converted counted 23 extra bytes in the DEFLATE worker
+and ran an inspector file whose hash differed from the committed one for the
+same reason; it is retained as `predictor-study-2026-11-17-superseded-crlf.json`, and the
 [retained report](../evidence/prizes/predictor-study-2026-11-17.json) records
 program hashes equal to the committed files. The predictor numbers are the same
 in both runs.
