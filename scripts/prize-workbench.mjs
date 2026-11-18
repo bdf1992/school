@@ -47,6 +47,73 @@ const OPERATIONS = {
 			return Buffer.concat(out);
 		},
 	},
+	// Frequent words become short codes built from byte values the input never uses, so no escape is
+	// needed. The word list is derived from the input itself and travels at the head of the stream,
+	// where the codec that follows pays for it. Codes: one byte for the top words, then a lead byte
+	// plus one or two bytes from 0x80-0xBF. A word is a maximal run of ASCII letters, matched exactly.
+	"word-codes": {
+		describes: "replace frequent words with short codes made of unused byte values",
+		streams: ["coded"],
+		forward(input) {
+			const used = new Uint8Array(256); for (let index = 0; index < input.length; index++) used[input[index]] = 1;
+			const free = []; for (let value = 0; value < 256; value++) if (!used[value]) free.push(value);
+			const high = free.filter(value => value >= 128), low = free.filter(value => value < 128);
+			if (high.length < 2 || low.length < 1) throw new Error("word-codes needs unused byte values below and above 128");
+			const one = low, three = [high[high.length - 1]], two = high.slice(0, -1);
+			const letter = value => (value >= 65 && value <= 90) || (value >= 97 && value <= 122);
+			const counts = new Map();
+			for (let at = 0; at < input.length;) {
+				if (!letter(input[at])) { at++; continue; }
+				let end = at + 1; while (end < input.length && letter(input[end])) end++;
+				if (end - at >= 2 && end - at <= 32) { const word = input.latin1Slice(at, end); counts.set(word, (counts.get(word) ?? 0) + 1); }
+				at = end;
+			}
+			const ranked = [...counts].filter(([, count]) => count >= 4).sort((a, b) => b[1] * (b[0].length - 1) - a[1] * (a[0].length - 1) || (a[0] < b[0] ? -1 : 1));
+			const capacity = [one.length, two.length * 64, three.length * 4096], tiers = [[], [], []];
+			for (const [word] of ranked) {
+				const tier = tiers.findIndex((list, index) => list.length < capacity[index] && word.length > index + 1);
+				if (tier >= 0) tiers[tier].push(word);
+				if (tiers.every((list, index) => list.length >= capacity[index])) break;
+			}
+			const codes = new Map();
+			tiers[0].forEach((word, index) => codes.set(word, Buffer.from([one[index]])));
+			tiers[1].forEach((word, index) => codes.set(word, Buffer.from([two[index >> 6], 128 + (index & 63)])));
+			tiers[2].forEach((word, index) => codes.set(word, Buffer.from([three[0], 128 + (index >> 6), 128 + (index & 63)])));
+			const head = Buffer.from(`${[one, two, three].map(set => set.join(",")).join(";")}\n${tiers.map(list => list.join(" ")).join("\n")}\n`, "latin1");
+			const out = Buffer.alloc(head.length + input.length); head.copy(out); let used2 = head.length;
+			for (let at = 0; at < input.length;) {
+				if (!letter(input[at])) { out[used2++] = input[at++]; continue; }
+				let end = at + 1; while (end < input.length && letter(input[end])) end++;
+				const code = end - at <= 32 ? codes.get(input.latin1Slice(at, end)) : undefined;
+				if (code) { code.copy(out, used2); used2 += code.length; } else { input.copy(out, used2, at, end); used2 += end - at; }
+				at = end;
+			}
+			return { coded: out.subarray(0, used2) };
+		},
+		inverse({ coded }) {
+			const lines = []; let at = 0;
+			for (let line = 0; line < 4; line++) { const end = coded.indexOf(10, at); if (end < 0) throw new Error("word-codes head is damaged"); lines.push(coded.latin1Slice(at, end)); at = end + 1; }
+			const [one, two, three] = lines[0].split(";").map(set => set === "" ? [] : set.split(",").map(Number));
+			const tiers = lines.slice(1).map(line => line === "" ? [] : line.split(" ").map(word => Buffer.from(word, "latin1")));
+			const kind = new Uint8Array(256), base = new Int32Array(256);
+			one.forEach((value, index) => { kind[value] = 1; base[value] = index; });
+			two.forEach((value, index) => { kind[value] = 2; base[value] = index << 6; });
+			three.forEach(value => { kind[value] = 3; });
+			const parts = []; let plain = at;
+			const word = (list, index) => { const found = list[index]; if (!found) throw new Error("word-codes stream names a word outside its list"); return found; };
+			while (at < coded.length) {
+				const value = coded[at], which = kind[value];
+				if (which === 0) { at++; continue; }
+				if (plain < at) parts.push(coded.subarray(plain, at));
+				if (which === 1) { parts.push(word(tiers[0], base[value])); at += 1; }
+				else if (which === 2) { parts.push(word(tiers[1], base[value] + (coded[at + 1] - 128))); at += 2; }
+				else { parts.push(word(tiers[2], ((coded[at + 1] - 128) << 6) + (coded[at + 2] - 128))); at += 3; }
+				plain = at;
+			}
+			if (plain < coded.length) parts.push(coded.subarray(plain));
+			return Buffer.concat(parts);
+		},
+	},
 };
 
 function operation(name) { const found = OPERATIONS[name]; if (!found) throw new Error(`unknown operation: ${name}; known: ${Object.keys(OPERATIONS).join(", ")}`); return found; }

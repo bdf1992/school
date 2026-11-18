@@ -43,3 +43,31 @@ test("the workbench refuses an input with a zero byte, an unknown operation and 
 		assert.equal(tampered.status, 1); assert.match(tampered.stderr, /fewer bodies/);
 	} finally { rmSync(directory, { recursive: true, force: true }); }
 });
+
+test("word-codes shortens repeated words and rebuilds the input exactly", () => {
+	const directory = mkdtempSync(path.join(tmpdir(), "prize-bench-"));
+	try {
+		const input = path.join(directory, "in.txt"), out = path.join(directory, "out"), back = path.join(directory, "back");
+		const content = Buffer.concat([Buffer.from("The river crosses the town; the town keeps the river. ".repeat(40)), Buffer.from([0xc3, 0xa9, 0x20]), Buffer.from("Zebra xylophone quartz. the")]);
+		writeFileSync(input, content);
+		const applied = run("apply", "word-codes", input, out);
+		assert.equal(applied.status, 0, applied.stderr);
+		const coded = readFileSync(path.join(out, "coded.bin"));
+		assert.ok(coded.length < content.length);
+		assert.equal(run("invert", "word-codes", out, back).status, 0);
+		assert.ok(readFileSync(back).equals(content));
+		writeFileSync(path.join(out, "coded.bin"), Buffer.concat([coded, Buffer.from([255, 0xbf, 0xbf])]));
+		const tampered = run("invert", "word-codes", out, path.join(directory, "back2"));
+		assert.equal(tampered.status, 1); assert.match(tampered.stderr, /outside its list/);
+	} finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test("word-codes refuses an input that uses every byte value", () => {
+	const directory = mkdtempSync(path.join(tmpdir(), "prize-bench-"));
+	try {
+		const input = path.join(directory, "all.bin");
+		writeFileSync(input, Buffer.from(Array.from({ length: 256 }, (_, index) => index)));
+		const refused = run("apply", "word-codes", input, path.join(directory, "out"));
+		assert.equal(refused.status, 1); assert.match(refused.stderr, /unused byte values/);
+	} finally { rmSync(directory, { recursive: true, force: true }); }
+});
