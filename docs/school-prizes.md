@@ -371,8 +371,8 @@ SHA-1 equal the published values. It is not in this repository; the
 [plan](../evidence/prizes/predictor-study-2026-11-17-cycle3-plan.json) pins its
 identity. The codec's `-large` modes are the cycle 2 model with a 100,000,000-byte
 limit, 2^26 slots per context table and 2^24 match slots. Before the plan was
-frozen they ran once, on 5 MB of this repository's source, and enwik8 had only
-been checksummed. `scripts/prize-baseline-worker.mjs` runs DEFLATE level 9,
+frozen `mix+match-large` ran once, on 5 MB of this repository's source, and
+enwik8 had only been checksummed. `scripts/prize-baseline-worker.mjs` runs DEFLATE level 9,
 Brotli quality 11 with a 16 MiB window and zstd level 19.
 
 | Variant | Archive bytes | Complete declared bytes | Encode | Decode | Peak memory |
@@ -390,8 +390,17 @@ What this shows, and no more:
   (17.7%) below zstd. The archive landed inside the range the plan predicted.
 - At this size the program is 0.09% of the total, so the result is the archive.
 - The repeated-string input is worth 1,476,722 archive bytes (6.2%).
-- With one flipped bit in the middle of the archive, both mixing decoders ran to
-  the end, failed the checksum, exited non-zero and wrote nothing.
+- The baselines as run are not the strongest settings in the runtime. The
+  independent check measured, after the run and through the same `node:zlib`,
+  zstd level 22 at 25,273,899 bytes and Brotli quality 11 with its large window
+  at 24,810,180. Against that best figure mix+match is 2,647,904 archive bytes
+  smaller, 10.7% and not 13.8%. The hypothesis as frozen named the settings in
+  the table; the conclusion holds against the stronger ones with a smaller
+  margin.
+- With one flipped bit in the middle of the archive, both mixing decoders exited
+  non-zero and wrote nothing. The independent check reran the mix+match control:
+  the decoder stopped after about two thirds of a full decode with "archive
+  ended before its data". The report keeps only the exit code.
 - The cost is time and memory: decoding takes as long as encoding, about 2.2
   microseconds per byte, and peaks near 2 GiB. Brotli and zstd decode in about a
   second.
@@ -404,6 +413,10 @@ What this shows, and no more:
 enwik8 is a tenth of the prize file. No enwik9 figure, prize threshold, timing
 on the reference machine, memory qualification or decoder isolation follows from
 this run. The whole study took 24 minutes on Windows x64 with Node 24.11.1; peak
-memory is each child's own figure. The
+memory is each child's own figure for encoding, and decoding peaks at 1.5 to
+1.6 GiB. No test covers the large modes or the baseline worker. On Windows the
+inspector can refuse a valid bundle: it compares file ids as doubles, and two
+NTFS ids above 2^53 can round to the same value. It fails toward refusal, and a
+rerun in a new directory passes; the fix belongs with the inspector. The
 [retained report](../evidence/prizes/predictor-study-2026-11-17-cycle3.json)
 holds every measurement.
