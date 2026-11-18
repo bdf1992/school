@@ -355,4 +355,55 @@ published design and not varied; the program's comments are counted in its
 bytes. Nine files under 1 MiB do not predict behaviour on enwik9, and nothing
 here concerns decoder isolation, the official resource limits or a prize. The
 [retained report](../evidence/prizes/predictor-study-2026-11-17-cycle2.json)
+holds every measurement. Its figures are for the 9,207-byte program at commit
+c3d0a0f; the program later gained the large modes below and is 9,499 bytes, and
+the cycle 2 plan still yields identical archives through it.
+
+## Third predictor study: enwik8 (2026-11-17)
+
+Question: on 100,000,000 bytes of the prize corpus, does the cycle 2 method give
+a smaller archive and a smaller complete size than the strongest compressors
+already inside the Node runtime?
+
+The input is enwik8, the first 10^8 bytes of the 2006 English Wikipedia dump,
+downloaded from mattmahoney.net with the owner's approval. Its size, MD5 and
+SHA-1 equal the published values. It is not in this repository; the
+[plan](../evidence/prizes/predictor-study-2026-11-17-cycle3-plan.json) pins its
+identity. The codec's `-large` modes are the cycle 2 model with a 100,000,000-byte
+limit, 2^26 slots per context table and 2^24 match slots. Before the plan was
+frozen they ran once, on 5 MB of this repository's source, and enwik8 had only
+been checksummed. `scripts/prize-baseline-worker.mjs` runs DEFLATE level 9,
+Brotli quality 11 with a 16 MiB window and zstd level 19.
+
+| Variant | Archive bytes | Complete declared bytes | Encode | Decode | Peak memory |
+|---|---:|---:|---:|---:|---:|
+| DEFLATE 9 | 36,470,474 | 36,474,556 | 4 s | 1 s | 0.3 GiB |
+| zstd 19 | 26,942,150 | 26,946,226 | 100 s | 1 s | 0.3 GiB |
+| Brotli 11 | 25,742,001 | 25,746,081 | 199 s | under 1 s | 0.4 GiB |
+| Mix | 23,638,998 | 23,658,028 | 173 s | 190 s | 2.1 GiB |
+| Mix+match | 22,162,276 | 22,181,318 | 234 s | 216 s | 2.0 GiB |
+
+What this shows, and no more:
+
+- All five variants restored all 100,000,000 bytes. Both parts of the hypothesis
+  held: mix+match is 3,564,763 complete bytes (13.8%) below Brotli and 4,764,908
+  (17.7%) below zstd. The archive landed inside the range the plan predicted.
+- At this size the program is 0.09% of the total, so the result is the archive.
+- The repeated-string input is worth 1,476,722 archive bytes (6.2%).
+- With one flipped bit in the middle of the archive, both mixing decoders ran to
+  the end, failed the checksum, exited non-zero and wrote nothing.
+- The cost is time and memory: decoding takes as long as encoding, about 2.2
+  microseconds per byte, and peaks near 2 GiB. Brotli and zstd decode in about a
+  second.
+- For scale, from published tables and not run here: lpaq1, the design this
+  follows without its nibble hashing or secondary estimation, reaches about
+  19.8 million bytes on enwik8, and the leading prize programs about 15 million.
+  This codec is a plain instance of a 2005-era method and sits where that
+  predicts.
+
+enwik8 is a tenth of the prize file. No enwik9 figure, prize threshold, timing
+on the reference machine, memory qualification or decoder isolation follows from
+this run. The whole study took 24 minutes on Windows x64 with Node 24.11.1; peak
+memory is each child's own figure. The
+[retained report](../evidence/prizes/predictor-study-2026-11-17-cycle3.json)
 holds every measurement.
