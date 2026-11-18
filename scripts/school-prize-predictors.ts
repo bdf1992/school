@@ -20,6 +20,7 @@ const PROGRAMS: Record<string, string[]> = {
 	"scripts/prize-predictor-codec.mjs": ["0", "1"],
 	"scripts/prize-mix-codec.mjs": ["mix", "mix+match", "mix-large", "mix+match-large"],
 	"scripts/prize-baseline-worker.mjs": ["deflate", "brotli", "zstd"],
+	"scripts/prize-mix2-codec.mjs": ["all", "nosse", "noword", "nosparse", "nomixsel"].flatMap(mode => [mode, `${mode}-large`]),
 	"scripts/prize-codec-worker.mjs": ["deflate", "raw"],
 };
 const CYCLE_ONE: Variant[] = [

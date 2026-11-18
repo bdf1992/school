@@ -106,3 +106,35 @@ test("the runner refuses an input that differs from its frozen plan, and a varia
 	assert.equal(report.cases[0]!.deflate_to_mix.candidate.verdict, "EXACT_BYTES_OBSERVED");
 	assert.deepEqual(report.cases[0]!.damaged_archive_controls.map(control => [control.decoder_exit_code, control.restored_equals_original]), [[1, false]]);
 }));
+
+// Cycle 4 codec: same archive format, more model inputs.
+const codec2 = path.join(root, "scripts/prize-mix2-codec.mjs");
+function trip2(bytes: Buffer, mode: string, damage?: (archive: Buffer) => Buffer): { status: number | null; stderr: string; restored: Buffer | null; archive: Buffer } {
+	return scratch(directory => {
+		const at = (name: string) => path.join(directory, name);
+		writeFileSync(at("original"), bytes);
+		const made = spawnSync(process.execPath, [codec2, "encode", mode, at("original"), at("archive")], { encoding: "utf8", timeout: 30_000 });
+		assert.equal(made.status, 0, made.stderr);
+		const archive = readFileSync(at("archive"));
+		if (damage) writeFileSync(at("archive"), damage(archive));
+		const done = spawnSync(process.execPath, [codec2, "decode", mode, at("archive"), at("restored")], { encoding: "utf8", timeout: 30_000 });
+		return { status: done.status, stderr: done.stderr, restored: existsSync(at("restored")) ? readFileSync(at("restored")) : null, archive };
+	});
+}
+for (const mode of ["all", "nosse", "noword", "nosparse", "nomixsel"]) for (const [name, bytes] of [cases[0]!, cases[3]!, cases[5]!, cases[7]!]) {
+	test(`cycle 4 codec, ${mode}, restores ${name} exactly`, () => {
+		const result = trip2(bytes, mode);
+		assert.equal(result.status, 0, result.stderr);
+		assert.ok(result.restored!.equals(bytes));
+	});
+}
+test("cycle 4 codec: word contexts shorten text, and a flipped bit is refused", () => {
+	assert.ok(trip2(text, "all").archive.length < trip2(text, "noword").archive.length);
+	const damaged = trip2(text, "all", archive => { const copy = Buffer.from(archive); copy[Math.floor(copy.length / 2)]! ^= 0x10; return copy; });
+	assert.equal(damaged.status, 1); assert.equal(damaged.restored, null);
+});
+test("cycle 4 codec refuses an unknown mode with usage text", () => scratch(directory => {
+	writeFileSync(path.join(directory, "original"), "abc");
+	const done = spawnSync(process.execPath, [codec2, "encode", "everything", path.join(directory, "original"), path.join(directory, "archive")], { encoding: "utf8" });
+	assert.equal(done.status, 1); assert.match(done.stderr, /usage/);
+}));
