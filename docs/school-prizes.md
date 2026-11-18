@@ -177,3 +177,72 @@ checks the deadline after execution and before returning; manifest admission now
 checks regular-file status and size before reading. Focused tests cover both
 boundaries. The retained smoke report was regenerated after those corrections;
 its implementation hashes match the reviewed source.
+
+## First predictor study (2026-11-17)
+
+Question: held to one coder, one framing and one update rule, does predicting
+each byte from the previous byte give a smaller complete size than predicting
+from byte frequency alone?
+
+`scripts/prize-predictor-codec.mjs` is one program with both predictors. Order 0
+keeps one adaptive frequency table; order 1 keeps one table per previous byte.
+Both use the same 32-bit integer arithmetic coder, an end symbol in place of a
+length header, counts that start at 1, grow by 24 and halve past 65,536.
+`scripts/school-prize-predictors.ts` runs each order and the smoke DEFLATE worker
+in fresh child processes, then grades every bundle with the unchanged inspector.
+
+```sh
+node scripts/school-prize-predictors.ts --plan evidence/prizes/predictor-study-2026-11-17-plan.json --inputs INPUT_DIRECTORY --out NEW_DIRECTORY --report NEW_FILE
+```
+
+The [plan](../evidence/prizes/predictor-study-2026-11-17-plan.json) names the
+hypothesis, the result that would defeat it, nine inputs with their SHA-256 and
+the cost rule. It was committed with the codec and runner before any grade
+existed. The runner refuses an input that differs from the plan. Six inputs are
+the smoke fixtures; three are files of this repository read with `git show` at
+the parent revision (prose, TypeScript, JSON).
+
+Complete declared bytes, shared-program form. The predictor program is 5,271
+bytes, charged twice to both orders; the DEFLATE worker is 1,295 bytes.
+
+| Input | Original | Order 0 | Order 1 | Order 1 saves | DEFLATE |
+|---|---:|---:|---:|---:|---:|
+| Empty | 0 | 10,560 | 10,560 | 0 | 2,626 |
+| Short | 20 | 10,576 | 10,577 | −1 | 2,642 |
+| Repeated text | 53,600 | 36,960 | 22,502 | 14,458 | 2,885 |
+| Synthetic markup | 55,690 | 42,721 | 22,267 | 20,454 | 5,888 |
+| Deterministic noise | 32,768 | 43,660 | 49,589 | −5,929 | 35,404 |
+| Already-deflated noise | 32,786 | 43,678 | 49,607 | −5,929 | 35,423 |
+| English prose | 40,537 | 34,967 | 30,242 | 4,725 | 19,457 |
+| TypeScript source | 117,575 | 84,656 | 65,581 | 19,075 | 42,126 |
+| JSON lockfile | 599,412 | 422,848 | 279,491 | 143,357 | 143,229 |
+
+What this shows, and no more:
+
+- All 27 round trips restored every byte (9 inputs, 3 programs, 54 child
+  processes). The hypothesis held: order 1 is smaller on the three real
+  structured inputs and larger on both noise inputs.
+- Order 1 loses to DEFLATE on all nine inputs, in archive bytes as well as in
+  complete cost. A previous-byte context does not find repeated strings.
+- The context costs something where there is nothing to predict: 5,929 more
+  bytes on 32 KiB of noise, because 256 tables each have to learn.
+- Because both orders are one program, the code for the context is charged to
+  both sides. The difference between them is archive bytes only.
+- The damaged-archive control held on eight inputs. On the empty input the
+  two-byte archive still decodes to empty after one flipped bit; that control
+  says nothing there.
+- The slowest child took 0.3 s and the largest self-reported peak memory was
+  73 MB, on Windows x64 with Node 24.11.1. Peak memory is the child's own
+  figure, not an enforced limit.
+
+The DEFLATE column reproduces the six totals of the smoke run above on a
+different operating system and Node version. A first run on a checkout whose
+line endings had been converted counted 23 extra bytes in the DEFLATE worker;
+it is retained as `predictor-study-2026-11-17-superseded-crlf.json`, and the
+[retained report](../evidence/prizes/predictor-study-2026-11-17.json) records
+program hashes equal to the committed files. The predictor numbers are the same
+in both runs.
+
+This is a nine-file study under 1 MiB per case with an unqualified program on
+the host's Node runtime. It establishes nothing about enwik9, decoder isolation
+or a prize.
