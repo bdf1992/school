@@ -1,0 +1,1494 @@
+{
+  "format": "school.prize-smoke/1",
+  "observed_at": "2026-11-18T01:53:47.805Z",
+  "profile": "hutter-enwik9/rules-2026-11-17",
+  "host": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "release": "6.18.57",
+    "arch": "x64"
+  },
+  "worker": {
+    "path": "scripts/prize-codec-worker.mjs",
+    "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859"
+  },
+  "implementation": [
+    {
+      "path": "src/core/school-prize.ts",
+      "sha256": "a46ff365322a79c060571158bed5b4c0f9575e482985e0ed26d403807a0e8a24"
+    },
+    {
+      "path": "scripts/school-prize.ts",
+      "sha256": "a129f7417f1da1d9d5f5b8ec747b3059fefc31bc60937b2dfc3baab7497f2f42"
+    }
+  ],
+  "budget": {
+    "maximum_input_bytes": 1048576,
+    "actual_unique_input_bytes": 174864,
+    "provider_calls": 0,
+    "gpu_calls": 0
+  },
+  "claims": {
+    "decoder_execution": "OBSERVED_FIXED_WORKER_CHILD_PROCESSES",
+    "decoder_independence": "NOT_ESTABLISHED",
+    "ram_disk_limits": "NOT_MEASURED",
+    "package_qualification": "NOT_ESTABLISHED",
+    "generalization": "NOT_ESTABLISHED",
+    "official_prize_result": "NOT_ESTABLISHED",
+    "award_eur": null
+  },
+  "cases": [
+    {
+      "name": "empty",
+      "executions": [
+        {
+          "codec": "raw",
+          "phase": "encode",
+          "wall_ms": 104.822,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "raw",
+          "phase": "decode",
+          "wall_ms": 91.457,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "encode",
+          "wall_ms": 66.864,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "decode",
+          "wall_ms": 97.402,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        }
+      ],
+      "comparison": {
+        "format": "school.prize-comparison/1",
+        "baseline": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "empty-raw",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "0",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "0",
+            "option_bytes": "20",
+            "total_declared_bytes": "2610",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "0",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "md5": "d41d8cd98f00b204e9800998ecf8427e",
+              "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "0",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "md5": "d41d8cd98f00b204e9800998ecf8427e",
+              "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "0",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "md5": "d41d8cd98f00b204e9800998ecf8427e",
+              "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "10",
+              "sha256": "82f9fdbe8d2154a371f7f8ec22786a84fb25fae69fb0a7875595746319ee02de",
+              "md5": "70f43d9bbeb696908c0d4b173f20e198",
+              "sha1": "dd97e0cdafadca81015b708fbfa3f9559821e315"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "10",
+              "sha256": "c266ee298601bcca692407748df4a99170e2c004ae0f6305eb3bff798c691c76",
+              "md5": "d0538c2bec3d221744a7b848a90445fb",
+              "sha1": "cfd61ad8646a808a899d58cc301439e6f3c18100"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "candidate": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "empty-deflate",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "0",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "8",
+            "option_bytes": "28",
+            "total_declared_bytes": "2626",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "0",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "md5": "d41d8cd98f00b204e9800998ecf8427e",
+              "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "0",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "md5": "d41d8cd98f00b204e9800998ecf8427e",
+              "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "8",
+              "sha256": "b171e283c6145acf2b923098dbbc40ffc39b4f1db0212928f9869747376c4ac8",
+              "md5": "3b0f2d77e15beb3b85e8ef752d6a3bd3",
+              "sha1": "9a39f2dd186749fea11b84e53cfa77194eed88d3"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "14",
+              "sha256": "420be27858a9c026dc9d6016792e1f308ceac6001f5f4c89982e850f0ca84c35",
+              "md5": "b44a82b1743ac6a7e5a68d6a32d4d539",
+              "sha1": "c6cced03aa1a3f49e709cb7091ec3e96a0eb2f6c"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "14",
+              "sha256": "3e0d0c625782a6517242adbb0a42d8111ca280f81d11e29170b2c592cf8aff1d",
+              "md5": "b42defb175f0b760b421fb46903635e8",
+              "sha1": "54124fb179d7e7f249b24346d00e019d74737d04"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "saving_bytes": "-16",
+        "improvement_percent": {
+          "numerator": "-1600",
+          "denominator": "2610"
+        },
+        "at_least_one_percent_on_this_input": false,
+        "external_prize_improvement": "NOT_ESTABLISHED",
+        "award_eur": null
+      }
+    },
+    {
+      "name": "short",
+      "executions": [
+        {
+          "codec": "raw",
+          "phase": "encode",
+          "wall_ms": 96.98,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "raw",
+          "phase": "decode",
+          "wall_ms": 73.88,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "encode",
+          "wall_ms": 67.97,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "decode",
+          "wall_ms": 67.19,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        }
+      ],
+      "comparison": {
+        "format": "school.prize-comparison/1",
+        "baseline": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "short-raw",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "20",
+            "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "20",
+            "option_bytes": "20",
+            "total_declared_bytes": "2630",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "20",
+              "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+              "md5": "42c74e43ba9ccae8e19a59a5bd7ea0a0",
+              "sha1": "f24f270f35bbae9a8a82639a2bb702a7a557284f"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "20",
+              "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+              "md5": "42c74e43ba9ccae8e19a59a5bd7ea0a0",
+              "sha1": "f24f270f35bbae9a8a82639a2bb702a7a557284f"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "20",
+              "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+              "md5": "42c74e43ba9ccae8e19a59a5bd7ea0a0",
+              "sha1": "f24f270f35bbae9a8a82639a2bb702a7a557284f"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "10",
+              "sha256": "82f9fdbe8d2154a371f7f8ec22786a84fb25fae69fb0a7875595746319ee02de",
+              "md5": "70f43d9bbeb696908c0d4b173f20e198",
+              "sha1": "dd97e0cdafadca81015b708fbfa3f9559821e315"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "10",
+              "sha256": "c266ee298601bcca692407748df4a99170e2c004ae0f6305eb3bff798c691c76",
+              "md5": "d0538c2bec3d221744a7b848a90445fb",
+              "sha1": "cfd61ad8646a808a899d58cc301439e6f3c18100"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "candidate": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "short-deflate",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "20",
+            "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "24",
+            "option_bytes": "28",
+            "total_declared_bytes": "2642",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "20",
+              "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+              "md5": "42c74e43ba9ccae8e19a59a5bd7ea0a0",
+              "sha1": "f24f270f35bbae9a8a82639a2bb702a7a557284f"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "20",
+              "sha256": "0e8b19c88c74e9945293cca3e6d1b1fbccee50b3d4e8b9f493f44cd7353cdbd8",
+              "md5": "42c74e43ba9ccae8e19a59a5bd7ea0a0",
+              "sha1": "f24f270f35bbae9a8a82639a2bb702a7a557284f"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "24",
+              "sha256": "f0030dd75df3ec3bc12ced55ac993281fa8a202ca6e1fe5360ae1616f621c128",
+              "md5": "865dfe835a5ee56027be62b96ca1bf53",
+              "sha1": "8d005c53eebd29b580312bc1d3c2bf7e39c53909"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "14",
+              "sha256": "420be27858a9c026dc9d6016792e1f308ceac6001f5f4c89982e850f0ca84c35",
+              "md5": "b44a82b1743ac6a7e5a68d6a32d4d539",
+              "sha1": "c6cced03aa1a3f49e709cb7091ec3e96a0eb2f6c"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "14",
+              "sha256": "3e0d0c625782a6517242adbb0a42d8111ca280f81d11e29170b2c592cf8aff1d",
+              "md5": "b42defb175f0b760b421fb46903635e8",
+              "sha1": "54124fb179d7e7f249b24346d00e019d74737d04"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "saving_bytes": "-12",
+        "improvement_percent": {
+          "numerator": "-1200",
+          "denominator": "2630"
+        },
+        "at_least_one_percent_on_this_input": false,
+        "external_prize_improvement": "NOT_ESTABLISHED",
+        "award_eur": null
+      }
+    },
+    {
+      "name": "repeated",
+      "executions": [
+        {
+          "codec": "raw",
+          "phase": "encode",
+          "wall_ms": 64.902,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "raw",
+          "phase": "decode",
+          "wall_ms": 80.011,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "encode",
+          "wall_ms": 65.046,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "decode",
+          "wall_ms": 106.323,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        }
+      ],
+      "comparison": {
+        "format": "school.prize-comparison/1",
+        "baseline": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "repeated-raw",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "53600",
+            "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "53600",
+            "option_bytes": "20",
+            "total_declared_bytes": "56210",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "53600",
+              "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+              "md5": "37f3b6cc11afa703ea27b4749e2470d4",
+              "sha1": "25207bdff36d5d39648f1207f760f3e86b946e91"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "53600",
+              "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+              "md5": "37f3b6cc11afa703ea27b4749e2470d4",
+              "sha1": "25207bdff36d5d39648f1207f760f3e86b946e91"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "53600",
+              "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+              "md5": "37f3b6cc11afa703ea27b4749e2470d4",
+              "sha1": "25207bdff36d5d39648f1207f760f3e86b946e91"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "10",
+              "sha256": "82f9fdbe8d2154a371f7f8ec22786a84fb25fae69fb0a7875595746319ee02de",
+              "md5": "70f43d9bbeb696908c0d4b173f20e198",
+              "sha1": "dd97e0cdafadca81015b708fbfa3f9559821e315"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "10",
+              "sha256": "c266ee298601bcca692407748df4a99170e2c004ae0f6305eb3bff798c691c76",
+              "md5": "d0538c2bec3d221744a7b848a90445fb",
+              "sha1": "cfd61ad8646a808a899d58cc301439e6f3c18100"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "candidate": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "repeated-deflate",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "53600",
+            "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "267",
+            "option_bytes": "28",
+            "total_declared_bytes": "2885",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "53600",
+              "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+              "md5": "37f3b6cc11afa703ea27b4749e2470d4",
+              "sha1": "25207bdff36d5d39648f1207f760f3e86b946e91"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "53600",
+              "sha256": "8c9a4d4322778c6df9f216edc03785cf775c950187dfdfc0f01fc07231235227",
+              "md5": "37f3b6cc11afa703ea27b4749e2470d4",
+              "sha1": "25207bdff36d5d39648f1207f760f3e86b946e91"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "267",
+              "sha256": "384df9d3a41b75049fd64eb3c814d41fd1acd353b64965de8dddf1d227787442",
+              "md5": "c6addb6985f8db9fc2c46e964a5a4aad",
+              "sha1": "54a05890a0179b92c8aaa03cd8a64dac73f79814"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "14",
+              "sha256": "420be27858a9c026dc9d6016792e1f308ceac6001f5f4c89982e850f0ca84c35",
+              "md5": "b44a82b1743ac6a7e5a68d6a32d4d539",
+              "sha1": "c6cced03aa1a3f49e709cb7091ec3e96a0eb2f6c"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "14",
+              "sha256": "3e0d0c625782a6517242adbb0a42d8111ca280f81d11e29170b2c592cf8aff1d",
+              "md5": "b42defb175f0b760b421fb46903635e8",
+              "sha1": "54124fb179d7e7f249b24346d00e019d74737d04"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "saving_bytes": "53325",
+        "improvement_percent": {
+          "numerator": "5332500",
+          "denominator": "56210"
+        },
+        "at_least_one_percent_on_this_input": true,
+        "external_prize_improvement": "NOT_ESTABLISHED",
+        "award_eur": null
+      }
+    },
+    {
+      "name": "synthetic-markup",
+      "executions": [
+        {
+          "codec": "raw",
+          "phase": "encode",
+          "wall_ms": 92.445,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "raw",
+          "phase": "decode",
+          "wall_ms": 92.413,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "encode",
+          "wall_ms": 58.961,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "decode",
+          "wall_ms": 57.417,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        }
+      ],
+      "comparison": {
+        "format": "school.prize-comparison/1",
+        "baseline": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "synthetic-markup-raw",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "55690",
+            "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "55690",
+            "option_bytes": "20",
+            "total_declared_bytes": "58300",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "55690",
+              "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+              "md5": "be1ff47dc88e5f0d8f86a75d4c16d3f4",
+              "sha1": "b216b90f92418dead05a259a87cc196019e9fb23"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "55690",
+              "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+              "md5": "be1ff47dc88e5f0d8f86a75d4c16d3f4",
+              "sha1": "b216b90f92418dead05a259a87cc196019e9fb23"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "55690",
+              "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+              "md5": "be1ff47dc88e5f0d8f86a75d4c16d3f4",
+              "sha1": "b216b90f92418dead05a259a87cc196019e9fb23"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "10",
+              "sha256": "82f9fdbe8d2154a371f7f8ec22786a84fb25fae69fb0a7875595746319ee02de",
+              "md5": "70f43d9bbeb696908c0d4b173f20e198",
+              "sha1": "dd97e0cdafadca81015b708fbfa3f9559821e315"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "10",
+              "sha256": "c266ee298601bcca692407748df4a99170e2c004ae0f6305eb3bff798c691c76",
+              "md5": "d0538c2bec3d221744a7b848a90445fb",
+              "sha1": "cfd61ad8646a808a899d58cc301439e6f3c18100"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "candidate": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "synthetic-markup-deflate",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "55690",
+            "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "3270",
+            "option_bytes": "28",
+            "total_declared_bytes": "5888",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "55690",
+              "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+              "md5": "be1ff47dc88e5f0d8f86a75d4c16d3f4",
+              "sha1": "b216b90f92418dead05a259a87cc196019e9fb23"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "55690",
+              "sha256": "ef6442ff507df60cabad32b442c4f2d89a87abea1cf3301c00e07be78043afc2",
+              "md5": "be1ff47dc88e5f0d8f86a75d4c16d3f4",
+              "sha1": "b216b90f92418dead05a259a87cc196019e9fb23"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "3270",
+              "sha256": "7a5f6d87050264630be9cc85b32abf5ff0b9cc1333cfd0009df59c71444e4934",
+              "md5": "eded06bc4ea0e762f18921901ed10d7a",
+              "sha1": "4a51a5c1ca902c045f8a1e3eaeba01f5760afecc"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "14",
+              "sha256": "420be27858a9c026dc9d6016792e1f308ceac6001f5f4c89982e850f0ca84c35",
+              "md5": "b44a82b1743ac6a7e5a68d6a32d4d539",
+              "sha1": "c6cced03aa1a3f49e709cb7091ec3e96a0eb2f6c"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "14",
+              "sha256": "3e0d0c625782a6517242adbb0a42d8111ca280f81d11e29170b2c592cf8aff1d",
+              "md5": "b42defb175f0b760b421fb46903635e8",
+              "sha1": "54124fb179d7e7f249b24346d00e019d74737d04"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "saving_bytes": "52412",
+        "improvement_percent": {
+          "numerator": "5241200",
+          "denominator": "58300"
+        },
+        "at_least_one_percent_on_this_input": true,
+        "external_prize_improvement": "NOT_ESTABLISHED",
+        "award_eur": null
+      }
+    },
+    {
+      "name": "deterministic-noise",
+      "executions": [
+        {
+          "codec": "raw",
+          "phase": "encode",
+          "wall_ms": 68.119,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "raw",
+          "phase": "decode",
+          "wall_ms": 71.08,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "encode",
+          "wall_ms": 112.08,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "decode",
+          "wall_ms": 70.434,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        }
+      ],
+      "comparison": {
+        "format": "school.prize-comparison/1",
+        "baseline": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "deterministic-noise-raw",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "32768",
+            "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "32768",
+            "option_bytes": "20",
+            "total_declared_bytes": "35378",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "32768",
+              "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+              "md5": "fce3190014213f4ae53578662abbc2fc",
+              "sha1": "f603303299a3222a6b773d442c24b2e77b55d92f"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "32768",
+              "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+              "md5": "fce3190014213f4ae53578662abbc2fc",
+              "sha1": "f603303299a3222a6b773d442c24b2e77b55d92f"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "32768",
+              "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+              "md5": "fce3190014213f4ae53578662abbc2fc",
+              "sha1": "f603303299a3222a6b773d442c24b2e77b55d92f"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "10",
+              "sha256": "82f9fdbe8d2154a371f7f8ec22786a84fb25fae69fb0a7875595746319ee02de",
+              "md5": "70f43d9bbeb696908c0d4b173f20e198",
+              "sha1": "dd97e0cdafadca81015b708fbfa3f9559821e315"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "10",
+              "sha256": "c266ee298601bcca692407748df4a99170e2c004ae0f6305eb3bff798c691c76",
+              "md5": "d0538c2bec3d221744a7b848a90445fb",
+              "sha1": "cfd61ad8646a808a899d58cc301439e6f3c18100"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "candidate": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "deterministic-noise-deflate",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "32768",
+            "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "32786",
+            "option_bytes": "28",
+            "total_declared_bytes": "35404",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "32768",
+              "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+              "md5": "fce3190014213f4ae53578662abbc2fc",
+              "sha1": "f603303299a3222a6b773d442c24b2e77b55d92f"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "32768",
+              "sha256": "75bc4b4015eca575a6537c88418d557d8691c23f27a9381a4c5f234aec088344",
+              "md5": "fce3190014213f4ae53578662abbc2fc",
+              "sha1": "f603303299a3222a6b773d442c24b2e77b55d92f"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "32786",
+              "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+              "md5": "980ef182b9c69e947f282b49eb90073d",
+              "sha1": "0c9a553da2c0febb872f3719fc0dd5004f9a290f"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "14",
+              "sha256": "420be27858a9c026dc9d6016792e1f308ceac6001f5f4c89982e850f0ca84c35",
+              "md5": "b44a82b1743ac6a7e5a68d6a32d4d539",
+              "sha1": "c6cced03aa1a3f49e709cb7091ec3e96a0eb2f6c"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "14",
+              "sha256": "3e0d0c625782a6517242adbb0a42d8111ca280f81d11e29170b2c592cf8aff1d",
+              "md5": "b42defb175f0b760b421fb46903635e8",
+              "sha1": "54124fb179d7e7f249b24346d00e019d74737d04"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "saving_bytes": "-26",
+        "improvement_percent": {
+          "numerator": "-2600",
+          "denominator": "35378"
+        },
+        "at_least_one_percent_on_this_input": false,
+        "external_prize_improvement": "NOT_ESTABLISHED",
+        "award_eur": null
+      }
+    },
+    {
+      "name": "already-deflated-noise",
+      "executions": [
+        {
+          "codec": "raw",
+          "phase": "encode",
+          "wall_ms": 57.695,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "raw",
+          "phase": "decode",
+          "wall_ms": 66.649,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "encode",
+          "wall_ms": 68.905,
+          "exit_code": 0,
+          "cwd": "encode-work"
+        },
+        {
+          "codec": "deflate",
+          "phase": "decode",
+          "wall_ms": 77.52,
+          "exit_code": 0,
+          "cwd": "decode-work"
+        }
+      ],
+      "comparison": {
+        "format": "school.prize-comparison/1",
+        "baseline": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "already-deflated-noise-raw",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "32786",
+            "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "32786",
+            "option_bytes": "20",
+            "total_declared_bytes": "35396",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "32786",
+              "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+              "md5": "980ef182b9c69e947f282b49eb90073d",
+              "sha1": "0c9a553da2c0febb872f3719fc0dd5004f9a290f"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "32786",
+              "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+              "md5": "980ef182b9c69e947f282b49eb90073d",
+              "sha1": "0c9a553da2c0febb872f3719fc0dd5004f9a290f"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "32786",
+              "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+              "md5": "980ef182b9c69e947f282b49eb90073d",
+              "sha1": "0c9a553da2c0febb872f3719fc0dd5004f9a290f"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "10",
+              "sha256": "82f9fdbe8d2154a371f7f8ec22786a84fb25fae69fb0a7875595746319ee02de",
+              "md5": "70f43d9bbeb696908c0d4b173f20e198",
+              "sha1": "dd97e0cdafadca81015b708fbfa3f9559821e315"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "10",
+              "sha256": "c266ee298601bcca692407748df4a99170e2c004ae0f6305eb3bff798c691c76",
+              "md5": "d0538c2bec3d221744a7b848a90445fb",
+              "sha1": "cfd61ad8646a808a899d58cc301439e6f3c18100"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "candidate": {
+          "format": "school.prize-grade/1",
+          "profile": "hutter-enwik9/rules-2026-11-17",
+          "attempt_id": "already-deflated-noise-deflate",
+          "track": "smoke",
+          "verdict": "EXACT_BYTES_OBSERVED",
+          "errors": [],
+          "corpus": {
+            "bytes": "32786",
+            "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+            "matches_pin": true,
+            "canonical_enwik9": false
+          },
+          "recovery": {
+            "exact_bytes": true,
+            "method": "length, SHA-256, and byte-for-byte comparison"
+          },
+          "accounting": {
+            "score_form": "shared-program",
+            "program_format": "unqualified-source",
+            "compressor_bytes": "1295",
+            "decompressor_bytes": "1295",
+            "archive_bytes": "32805",
+            "option_bytes": "28",
+            "total_declared_bytes": "35423",
+            "coverage": "DECLARED_FILES_ONLY"
+          },
+          "files": [
+            {
+              "role": "original",
+              "path": "original.bin",
+              "bytes": "32786",
+              "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+              "md5": "980ef182b9c69e947f282b49eb90073d",
+              "sha1": "0c9a553da2c0febb872f3719fc0dd5004f9a290f"
+            },
+            {
+              "role": "restored",
+              "path": "restored.bin",
+              "bytes": "32786",
+              "sha256": "2aa0f3d99b89477cce68036a3ac27efed487b49fdb4e1e156d0ca6959df30d81",
+              "md5": "980ef182b9c69e947f282b49eb90073d",
+              "sha1": "0c9a553da2c0febb872f3719fc0dd5004f9a290f"
+            },
+            {
+              "role": "compressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "archive",
+              "path": "archive.bin",
+              "bytes": "32805",
+              "sha256": "22bb067b1951c7db76e3d30f1bd89467668e3aaaf2e192bba639114cc8f1a40c",
+              "md5": "a8e854e98ab2a7dd1f5c221930f59c3f",
+              "sha1": "c35cc710d652438346b96b33ecb0d99ea3485a5f"
+            },
+            {
+              "role": "decompressor",
+              "path": "codec.mjs",
+              "bytes": "1295",
+              "sha256": "d31a1533bf5d6559aa57eab9cf44728fa4e08ddcbdf4e578491f8d086ffd2859",
+              "md5": "0cd8f117b8f97b9eb393d56e0739550d",
+              "sha1": "f51626f64329c48dc0d9aefb1bfc65ce5a9cb2e3"
+            },
+            {
+              "role": "options:compress",
+              "path": "compress.args",
+              "bytes": "14",
+              "sha256": "420be27858a9c026dc9d6016792e1f308ceac6001f5f4c89982e850f0ca84c35",
+              "md5": "b44a82b1743ac6a7e5a68d6a32d4d539",
+              "sha1": "c6cced03aa1a3f49e709cb7091ec3e96a0eb2f6c"
+            },
+            {
+              "role": "options:decompress",
+              "path": "decompress.args",
+              "bytes": "14",
+              "sha256": "3e0d0c625782a6517242adbb0a42d8111ca280f81d11e29170b2c592cf8aff1d",
+              "md5": "b42defb175f0b760b421fb46903635e8",
+              "sha1": "54124fb179d7e7f249b24346d00e019d74737d04"
+            }
+          ],
+          "proof": {
+            "decoder_execution": "NOT_OBSERVED",
+            "decoder_independence": "NOT_ESTABLISHED",
+            "complete_dependencies": "NOT_ESTABLISHED",
+            "executable_qualification": "NOT_ESTABLISHED",
+            "time_ram_disk": "NOT_MEASURED",
+            "license_and_source": "NOT_REVIEWED",
+            "generalization": "NOT_ESTABLISHED"
+          },
+          "prize": {
+            "standing": "NOT_SUBMITTED",
+            "award_eur": null
+          }
+        },
+        "saving_bytes": "-27",
+        "improvement_percent": {
+          "numerator": "-2700",
+          "denominator": "35396"
+        },
+        "at_least_one_percent_on_this_input": false,
+        "external_prize_improvement": "NOT_ESTABLISHED",
+        "award_eur": null
+      }
+    }
+  ]
+}

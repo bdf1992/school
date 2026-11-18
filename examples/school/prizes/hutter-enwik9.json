@@ -1,0 +1,58 @@
+{
+  "format": "school.prize-profile/1",
+  "id": "hutter-enwik9/rules-2026-11-17",
+  "observed_date": "2026-11-17",
+  "family": "exact-lossless-compression",
+  "corpus": {
+    "name": "enwik9",
+    "bytes": "1000000000",
+    "md5": "e206c3450ac99950df65bf70ef61a12d",
+    "sha1": "2996e86fb978f93cca8f566cc56998923e7fe581",
+    "downloaded_for_this_work": false
+  },
+  "score_forms": {
+    "self-extracting": "C + A + required option bytes; A includes decoder",
+    "separate": "C + 2*D + A + required option bytes",
+    "shared-program": "2*C + A + required option bytes; identical compressor/decompressor program"
+  },
+  "standing": {
+    "accepted_reference": { "name": "fx2-cmix-T", "total_bytes": "100424672", "status": "AWARDED_SOURCE_RECORD" },
+    "pending_comparator": { "name": "cmix-neif 2.0", "total_bytes": "93388956", "status": "PENDING_SOURCE_REPORT" },
+    "must_refresh_before_full_run": true
+  },
+  "threshold": {
+    "minimum_relative_improvement": "1/100",
+    "formula_cutoff_bytes_from_accepted": "99420425",
+    "conservative_target_bytes_from_printed_strict_row": "99420424",
+    "conditional_cutoff_if_pending_becomes_reference": "92455066",
+    "award_formula": "EUR 500000 * (eligible_previous_total - eligible_new_total) / eligible_previous_total",
+    "award_authority": "prize organizer",
+    "local_grader_can_award": false
+  },
+  "qualification": {
+    "official_ram_wording": "at most 10GB",
+    "official_temporary_disk_wording": "100GB",
+    "runtime_per_program_hours": "less than 70000/T, T is reference-machine Geekbench 5 score",
+    "gpu_at_runtime": false,
+    "external_files_and_network": false,
+    "official_source_and_license_review_required": true,
+    "judge_worker_unit_note": "Judge assistant uses a 10GiB RSS ceiling inside a 16GiB worker; reconcile this with official 10GB wording on the pinned judging host."
+  },
+  "local_lane": {
+    "artifact_inspection": true,
+    "fixed_worker_execution": "smoke command only",
+    "untrusted_entrant_execution": false,
+    "decoder_isolation": "NOT_ESTABLISHED",
+    "prize_qualification": "NOT_ESTABLISHED",
+    "funding_booked_eur": "0"
+  },
+  "sources": [
+    "https://hutter1.net/prize/index.htm",
+    "https://www.hutter1.net/prize/hrules.htm",
+    "https://mattmahoney.net/dc/text.html",
+    "https://mattmahoney.net/dc/textdata.html",
+    "https://github.com/marwoelk/cmix-neif-2.0",
+    "https://github.com/jabowery/HutterPrizeJudgingAssistant",
+    "https://github.com/jabowery/HutterPrizeJudgingAssistant/blob/main/ENTRANT_INSTRUCTIONS.md"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "format": "school.external-research-owner/1",
+  "role": "AUM prize research lead",
+  "requested_model": "claude-fable-5-2",
+  "requested_effort": "high",
+  "minimum_claude_code_version": "2.1.321",
+  "actual_model": null,
+  "launch_state": "PREPARED_NOT_LAUNCHED",
+  "host_observation": "Claude Code executable (claude) is absent on the inspected cloud host; the user's own computer was not inspected.",
+  "execution_mode": "external interactive coding session",
+  "school_participant_provider_changed": false,
+  "billing": {
+    "route_verified": false,
+    "additional_spend_cap": "0",
+    "paid_fallback_allowed": false,
+    "api_key_fallback_allowed": false,
+    "headless_launch_allowed": false,
+    "preflight": "Confirm the exact model, signed-in account and included usage interactively. Requires usage credits is outside this zero-additional-spend assignment. Absence of a prompt does not prove free usage."
+  },
+  "assignment": "docs/prompts/fable-prize-research.md",
+  "launch_template": "claude --model claude-fable-5-2 --effort high --append-system-prompt-file docs/prompts/fable-prize-research.md",
+  "budget_for_next_authorized_session": {
+    "cumulative_wall_minutes": 60,
+    "max_candidate_cycles": 3,
+    "max_input_bytes_per_case": 1048576,
+    "gpu_training": false,
+    "full_corpus_download": false,
+    "prize_submission": false,
+    "cloud_provisioning": false
+  },
+  "sources": [
+    "https://platform.claude.com/docs/en/models/fable-5-2/overview",
+    "https://code.claude.com/docs/en/model-config",
+    "https://code.claude.com/docs/en/cli-reference"
+  ]
+}
