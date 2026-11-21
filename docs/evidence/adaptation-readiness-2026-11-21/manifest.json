@@ -1,0 +1,74 @@
+{
+  "purpose": "Integrity manifest for retained observations; not an executable trainer or adoption receipt.",
+  "school_source_ref": "a64ab5c277f98b0408f5e1ab69f71e3fda91deaa",
+  "files": [
+    {
+      "path": "readiness-summary.json",
+      "bytes": 2362,
+      "sha256": "cf0d9bc819d72a15072c79ae4a16cc652127fc340772cd29db8913ac31c3217b"
+    },
+    {
+      "path": "core-baseline.tap",
+      "bytes": 13357,
+      "sha256": "db815cc3f31d02e30fb5c3a132cdc216d092458b75ed001070481429cdd6c969"
+    },
+    {
+      "path": "core-baseline.json",
+      "bytes": 733,
+      "sha256": "f16df7d0b23e24bae759fba1eb59d02760c46ae75fe1ba979aa20199d1bb40f4"
+    },
+    {
+      "path": "independent-oracle.json",
+      "bytes": 2454,
+      "sha256": "2fa6a102806dbe7e16a74343c78198555f461fc5bf90bed5bdd2425491b1f357"
+    },
+    {
+      "path": "oracle-commands.json",
+      "bytes": 830,
+      "sha256": "9300ba09bb84e595d4041cf8671d2e77d634d48c55284b9bee47cc13dbfb59c0"
+    },
+    {
+      "path": "oracle-2.log",
+      "bytes": 701,
+      "sha256": "069cf0b7ff5d7ad831ad6966b50ab0fea1e4e684779534ef3e4d4d717f668f98"
+    },
+    {
+      "path": "provider-baseline-dependencies.tap",
+      "bytes": 8430,
+      "sha256": "f507b58323c10f42cc7f8114f04fd079551d9914d44b6a5f4fa27afde7fddc01"
+    },
+    {
+      "path": "provider-baseline-dependencies.json",
+      "bytes": 852,
+      "sha256": "f74a6c05a380db8db1d8f979684c515ede8200c7c75c754f58d6ab7c7cd07823"
+    },
+    {
+      "path": "provider-baseline-blocked.tap",
+      "bytes": 10449,
+      "sha256": "2210ff311269d11256218add37a41bb47f864c8e3e0a0217c55dd57d43a02ee2"
+    },
+    {
+      "path": "provider-baseline-blocked.json",
+      "bytes": 854,
+      "sha256": "34b9ea83b767ad8dad0f5875458ac04f5ca9c641418a27a90876fa52863e71fb"
+    },
+    {
+      "path": "restored-files.json",
+      "bytes": 4072,
+      "sha256": "5da84a1cedfab43f037d00a35ec3707a793d486c47a1dc72112134c6c72b1d68"
+    },
+    {
+      "path": "tested-source-hashes.json",
+      "bytes": 4470,
+      "sha256": "aabfe14506fcf0a40bdf97ca258f80068c9bfb6a0b3cb8cbef1c72ee55d9c64b"
+    }
+  ],
+  "regenerable_input": {
+    "path_in_original_run": "independent-cases.json",
+    "sha256": "f69837aebf52adae67e3ed813c85039a80749e5ef34a891fcaabbe508d8cfc4b",
+    "bytes": 463193,
+    "retained_in_repository": false,
+    "reproduce_with": "node --import tsx docs/evidence/school-oracle-input.mjs OUTPUT.json",
+    "reason": "Deterministic generated input; source hash and exact commands retained."
+  }
+}

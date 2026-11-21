@@ -1,0 +1,352 @@
+TAP version 13
+# Subtest: class definitions retain a shared curriculum while participant projections exclude the private roster
+ok 1 - class definitions retain a shared curriculum while participant projections exclude the private roster
+  ---
+  duration_ms: 11.359404
+  type: 'test'
+  ...
+# Subtest: class parsing rejects unrecognized fields, model bindings, answer keys, and undeclared sharing
+ok 2 - class parsing rejects unrecognized fields, model bindings, answer keys, and undeclared sharing
+  ---
+  duration_ms: 1.416876
+  type: 'test'
+  ...
+# Subtest: class identities, memberships, and roles are explicit and unambiguous
+ok 3 - class identities, memberships, and roles are explicit and unambiguous
+  ---
+  duration_ms: 0.892532
+  type: 'test'
+  ...
+# Subtest: curriculum prerequisites resolve across units and reject cycles or missing identities
+ok 4 - curriculum prerequisites resolve across units and reject cycles or missing identities
+  ---
+  duration_ms: 1.828017
+  type: 'test'
+  ...
+# Subtest: admission binds enrolled roles, class revision, unit, and the unit's world revision
+ok 5 - admission binds enrolled roles, class revision, unit, and the unit's world revision
+  ---
+  duration_ms: 0.988189
+  type: 'test'
+  ...
+# Subtest: dated sessions normalize timezones and admit only within the selected [start, end) window
+ok 6 - dated sessions normalize timezones and admit only within the selected [start, end) window
+  ---
+  duration_ms: 1.150308
+  type: 'test'
+  ...
+# Subtest: schedules reject timezone ambiguity, invalid dates, unknown units, and reversed windows
+ok 7 - schedules reject timezone ambiguity, invalid dates, unknown units, and reversed windows
+  ---
+  duration_ms: 0.559481
+  type: 'test'
+  ...
+# Subtest: self-paced classes still require valid admission time and cannot invent dated sessions
+ok 8 - self-paced classes still require valid admission time and cannot invent dated sessions
+  ---
+  duration_ms: 0.372973
+  type: 'test'
+  ...
+# Subtest: numeric and Date admission clocks produce timestamps that can be admitted again
+ok 9 - numeric and Date admission clocks produce timestamps that can be admitted again
+  ---
+  duration_ms: 0.707726
+  type: 'test'
+  ...
+# Subtest: class storage is idempotent, survives reopening, and keeps every explicit revision
+ok 10 - class storage is idempotent, survives reopening, and keeps every explicit revision
+  ---
+  duration_ms: 4.103671
+  type: 'test'
+  ...
+# Subtest: changed contents under an existing class revision are refused without overwriting its record
+ok 11 - changed contents under an existing class revision are refused without overwriting its record
+  ---
+  duration_ms: 1.770006
+  type: 'test'
+  ...
+# Subtest: equivalent timezone encodings and object key order retain the class definition digest
+ok 12 - equivalent timezone encodings and object key order retain the class definition digest
+  ---
+  duration_ms: 1.569524
+  type: 'test'
+  ...
+# Subtest: incomplete claims and corrupted definitions fail explicitly and are never replaced
+ok 13 - incomplete claims and corrupted definitions fail explicitly and are never replaced
+  ---
+  duration_ms: 2.822933
+  type: 'test'
+  ...
+# Subtest: storage refuses files in class or revision directory positions and bounds definitions
+ok 14 - storage refuses files in class or revision directory positions and bounds definitions
+  ---
+  duration_ms: 2.230557
+  type: 'test'
+  ...
+# Subtest: dangling links occupy class identities and revisions instead of appearing absent
+ok 15 - dangling links occupy class identities and revisions instead of appearing absent
+  ---
+  duration_ms: 1.317769
+  type: 'test'
+  ...
+# Subtest: equal present products can have different next steps, checked with exact fractions
+ok 16 - equal present products can have different next steps, checked with exact fractions
+  ---
+  duration_ms: 2.291446
+  type: 'test'
+  ...
+# Subtest: the direct-update checker agrees with the independently expanded generator across seeds
+ok 17 - the direct-update checker agrees with the independently expanded generator across seeds
+  ---
+  duration_ms: 81.065732
+  type: 'test'
+  ...
+# Subtest: the semantic checker refuses a well-formed but wrong answer artifact and key
+ok 18 - the semantic checker refuses a well-formed but wrong answer artifact and key
+  ---
+  duration_ms: 1.240215
+  type: 'test'
+  ...
+# Subtest: task identity ignores renamed observations, exchanged factors, and irrelevant product parameters
+ok 19 - task identity ignores renamed observations, exchanged factors, and irrelevant product parameters
+  ---
+  duration_ms: 0.677567
+  type: 'test'
+  ...
+# Subtest: experiment parsing binds the world, keys, inventory and splits to its versioned seed
+ok 20 - experiment parsing binds the world, keys, inventory and splits to its versioned seed
+  ---
+  duration_ms: 4.39882
+  type: 'test'
+  ...
+# Subtest: rational inputs are bounded, normalized and require a positive step rate
+ok 21 - rational inputs are bounded, normalized and require a positive step rate
+  ---
+  duration_ms: 0.593186
+  type: 'test'
+  ...
+# Subtest: condition reports retain missing coverage, cold loss, fresh transfer, and harmful regressions
+ok 22 - condition reports retain missing coverage, cold loss, fresh transfer, and harmful regressions
+  ---
+  duration_ms: 1.352246
+  type: 'test'
+  ...
+# Subtest: memory is a distinct requested condition and queue budgets count every call
+ok 23 - memory is a distinct requested condition and queue budgets count every call
+  ---
+  duration_ms: 0.770634
+  type: 'test'
+  ...
+# Subtest: exposure receipts bind exact supplied views without carrying answer or memory text
+ok 24 - exposure receipts bind exact supplied views without carrying answer or memory text
+  ---
+  duration_ms: 15.874353
+  type: 'test'
+  ...
+# Subtest: generated experiments fit every planned call inside the episode limit
+ok 25 - generated experiments fit every planned call inside the episode limit
+  ---
+  duration_ms: 1.718278
+  type: 'test'
+  ...
+# Subtest: production projection copies only pending task fields, excluding nested/private extensions
+ok 26 - production projection copies only pending task fields, excluding nested/private extensions
+  ---
+  duration_ms: 3.839897
+  type: 'test'
+  ...
+# Subtest: all five native question tools project, with stable values and no display indices
+ok 27 - all five native question tools project, with stable values and no display indices
+  ---
+  duration_ms: 2.013006
+  type: 'test'
+  ...
+# Subtest: changing a valid answer commitment does not change the observation
+ok 28 - changing a valid answer commitment does not change the observation
+  ---
+  duration_ms: 0.471814
+  type: 'test'
+  ...
+# Subtest: answered, dismissed, errored, and refused questions never reopen; unanswered siblings remain
+ok 29 - answered, dismissed, errored, and refused questions never reopen; unanswered siblings remain
+  ---
+  duration_ms: 0.494601
+  type: 'test'
+  ...
+# Subtest: only the newest assistant supplies questions; old unresolved questions are not revived
+ok 30 - only the newest assistant supplies questions; old unresolved questions are not revived
+  ---
+  duration_ms: 0.235261
+  type: 'test'
+  ...
+# Subtest: exact transient question acknowledgements are ignored; saved results stay terminal
+ok 31 - exact transient question acknowledgements are ignored; saved results stay terminal
+  ---
+  duration_ms: 1.326843
+  type: 'test'
+  ...
+# Subtest: unfinished or failed latest generations cannot create a learner task
+ok 32 - unfinished or failed latest generations cannot create a learner task
+  ---
+  duration_ms: 0.774217
+  type: 'test'
+  ...
+# Subtest: task validation is strict and errors never echo the malformed/private input
+ok 33 - task validation is strict and errors never echo the malformed/private input
+  ---
+  duration_ms: 0.726111
+  type: 'test'
+  ...
+# Subtest: unknown versions, roles, custom markers and native content shapes fail closed
+ok 34 - unknown versions, roles, custom markers and native content shapes fail closed
+  ---
+  duration_ms: 0.510145
+  type: 'test'
+  ...
+# Subtest: ambiguous message/call/result identity cannot route a learner to the wrong question
+ok 35 - ambiguous message/call/result identity cannot route a learner to the wrong question
+  ---
+  duration_ms: 0.524003
+  type: 'test'
+  ...
+# Subtest: unknown unresolved tools block a sibling question; completed unrelated tool payloads are excluded
+ok 36 - unknown unresolved tools block a sibling question; completed unrelated tool payloads are excluded
+  ---
+  duration_ms: 0.240682
+  type: 'test'
+  ...
+# Subtest: practice requires a successful ack and exposes only the active statement and mode
+ok 37 - practice requires a successful ack and exposes only the active statement and mode
+  ---
+  duration_ms: 7.081295
+  type: 'test'
+  ...
+# Subtest: clean conclude closes the problem; rejected conclude preserves it; missing conclude result refuses
+ok 38 - clean conclude closes the problem; rejected conclude preserves it; missing conclude result refuses
+  ---
+  duration_ms: 0.394877
+  type: 'test'
+  ...
+# Subtest: dismissal and its deferred native conclude pair close exactly their matching problem
+ok 39 - dismissal and its deferred native conclude pair close exactly their matching problem
+  ---
+  duration_ms: 0.312248
+  type: 'test'
+  ...
+# Subtest: contradictory practice histories and malformed posed problems fail closed
+ok 40 - contradictory practice histories and malformed posed problems fail closed
+  ---
+  duration_ms: 0.552224
+  type: 'test'
+  ...
+# Subtest: refused replacement practice tools do not supersede the real active problem
+ok 41 - refused replacement practice tools do not supersede the real active problem
+  ---
+  duration_ms: 0.142555
+  type: 'test'
+  ...
+# Subtest: CLI reads one explicit file and prints the actual safe projection with no record leakage
+ok 42 - CLI reads one explicit file and prints the actual safe projection with no record leakage
+  ---
+  duration_ms: 403.901325
+  type: 'test'
+  ...
+# Subtest: a parity machine passes all 256 bytes and every declared additional string
+ok 43 - a parity machine passes all 256 bytes and every declared additional string
+  ---
+  duration_ms: 7.96822
+  type: 'test'
+  ...
+# Subtest: one valid mutated edge fails behavior and retains the exact counterexample
+ok 44 - one valid mutated edge fails behavior and retains the exact counterexample
+  ---
+  duration_ms: 2.860765
+  type: 'test'
+  ...
+# Subtest: empty input uses the initial output and labels are checked independently of names
+ok 45 - empty input uses the initial output and labels are checked independently of names
+  ---
+  duration_ms: 3.286123
+  type: 'test'
+  ...
+# Subtest: unknown or missing schema fields refuse instead of acquiring execution meaning
+ok 46 - unknown or missing schema fields refuse instead of acquiring execution meaning
+  ---
+  duration_ms: 1.231407
+  type: 'test'
+  ...
+# Subtest: states, initial state, labels and total transition targets must agree
+ok 47 - states, initial state, labels and total transition targets must agree
+  ---
+  duration_ms: 1.687292
+  type: 'test'
+  ...
+# Subtest: artifact, state, identifier and input limits are enforced
+ok 48 - artifact, state, identifier and input limits are enforced
+  ---
+  duration_ms: 2.7527
+  type: 'test'
+  ...
+# Subtest: parser copies and freezes the admitted definition
+ok 49 - parser copies and freezes the admitted definition
+  ---
+  duration_ms: 2.340063
+  type: 'test'
+  ...
+# Subtest: state IDs are ordinary names, including names inherited by JavaScript objects
+ok 50 - state IDs are ordinary names, including names inherited by JavaScript objects
+  ---
+  duration_ms: 2.162921
+  type: 'test'
+  ...
+# Subtest: CLI retains the artifact, every case, hashes and success without model claims
+ok 51 - CLI retains the artifact, every case, hashes and success without model claims
+  ---
+  duration_ms: 259.991508
+  type: 'test'
+  ...
+# Subtest: CLI writes a structurally valid failed report and exits nonzero
+ok 52 - CLI writes a structurally valid failed report and exits nonzero
+  ---
+  duration_ms: 162.650434
+  type: 'test'
+  ...
+# Subtest: CLI keeps malformed JSON and invalid structure separate from zero scores
+ok 53 - CLI keeps malformed JSON and invalid structure separate from zero scores
+  ---
+  duration_ms: 235.669483
+  type: 'test'
+  ...
+# Subtest: CLI bounds the file read and rejects invalid UTF-8 without a false full digest
+ok 54 - CLI bounds the file read and rejects invalid UTF-8 without a false full digest
+  ---
+  duration_ms: 249.924066
+  type: 'test'
+  ...
+# Subtest: CLI refuses to overwrite evidence and refuses ambiguous arguments
+ok 55 - CLI refuses to overwrite evidence and refuses ambiguous arguments
+  ---
+  duration_ms: 345.103036
+  type: 'test'
+  ...
+# Subtest: CLI rejects a named pipe without waiting for a writer
+ok 56 - CLI rejects a named pipe without waiting for a writer
+  ---
+  duration_ms: 127.353048
+  type: 'test'
+  ...
+# Subtest: SPACE imports, assesses, adopts and reopens through the School CLI
+ok 57 - SPACE imports, assesses, adopts and reopens through the School CLI # SKIP Set SCHOOL_FOUNDATION_V020 to the extracted Foundation 0.2.0 directory
+  ---
+  duration_ms: 2.662288
+  type: 'test'
+  ...
+1..57
+# tests 57
+# suites 0
+# pass 56
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 1877.823399

@@ -1,0 +1,28 @@
+{
+  "cwd": "/workspace/scratch/cc7bb19a3711/school-learning-methods",
+  "commands": [
+    {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/loader.mjs",
+        "docs/evidence/school-oracle-input.mjs",
+        "/workspace/scratch/cc7bb19a3711/readiness-checks/independent-cases.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.165,
+      "log": "oracle-1.log"
+    },
+    {
+      "command": [
+        "python3",
+        "docs/evidence/school-oracle-check.py",
+        "/workspace/scratch/cc7bb19a3711/readiness-checks/independent-cases.json",
+        "/workspace/scratch/cc7bb19a3711/readiness-checks/independent-oracle.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.118,
+      "log": "oracle-2.log"
+    }
+  ]
+}
