@@ -1,0 +1,522 @@
+{
+  "document_kind": "research_index",
+  "title": "Open-weight adaptation methods for School and AUM",
+  "verified_on": "2026-11-21",
+  "purpose": "Descriptive research reference; not runtime configuration, an executable recipe, or an approved integration design.",
+  "support_interpretation": "not_integrated means this catalog does not supply a School trainer or executor. Reusable measurement concepts do not establish integration.",
+  "target_boundary": "Neural methods require an explicitly bound open-weight learner; AUM records and symbolic operations are separate adaptation targets.",
+  "baseline_objective": "Supervised fine-tuning predicts tokens in approved demonstrations. LoRA/QLoRA supplies an update mechanism rather than the learning objective.",
+  "evaluation_caution": "Keep preference producers' and teachers' observable context explicit; exclude private verifier context and held-out answers from learner inputs and adaptation data.",
+  "phases": {
+    "P0": "Reproducible measurement and candidate/adoption evidence.",
+    "P1": "Baseline supervised adaptation, verified-trace distillation and preferences; separately measured harness proposals.",
+    "P2": "Controlled comparisons once baseline execution is verified.",
+    "P3": "Research integrations with additional compute, evaluator and candidate-management dependencies."
+  },
+  "baseline_reference": {
+    "name": "LoRA Without Regret",
+    "source": {
+      "url": "https://thinkingmachines.ai/blog/lora/",
+      "publication_date": "2025-09-29",
+      "date_certainty": "confirmed_primary",
+      "verified_on": "2026-11-21",
+      "version": null,
+      "note": "Research blog; unpinned."
+    },
+    "relevance": "Supports a carefully configured LoRA baseline in tested post-training regimes; not universal parity or a quantized-training guarantee."
+  },
+  "methods": [
+    {
+      "id": "qlora",
+      "name": "QLoRA",
+      "publication_date": {
+        "value": "2023-05-23",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "update mechanism"
+      ],
+      "target": [
+        "neural adapter over a frozen quantized base"
+      ],
+      "maturity": "Published research; established upstream implementations.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2305.14314v1",
+          "publication_date": "2023-05-23",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v1"
+        },
+        {
+          "url": "https://github.com/artidoro/qlora",
+          "publication_date": null,
+          "date_certainty": "repository; publication date belongs to the paper",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Baseline mechanism for adapting an explicitly bound neural learner used by AUM.",
+      "suggested_phase": "P1 — supervised baseline after reproducible measurement.",
+      "existing_school_support": "not_integrated",
+      "limits": "Adapter size and 4-bit storage do not establish full training cost or task quality."
+    },
+    {
+      "id": "adapter_variants",
+      "name": "DoRA, PiSSA and EVA",
+      "publication_date": {
+        "value": null,
+        "precision": "multiple",
+        "certainty": "confirmed_primary",
+        "components": {
+          "DoRA": "2024-02-14",
+          "PiSSA": "2024-04-03",
+          "EVA": "2024-10-09"
+        }
+      },
+      "category": [
+        "adapter parameterization",
+        "adapter initialization and rank allocation"
+      ],
+      "target": [
+        "neural adapter"
+      ],
+      "maturity": "Published methods with PEFT implementations; compatibility is method-specific.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2402.09353v6",
+          "publication_date": "2024-02-14",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v6",
+          "revision_date": "2024-07-09"
+        },
+        {
+          "url": "https://arxiv.org/abs/2404.02948v4",
+          "publication_date": "2024-04-03",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v4",
+          "revision_date": "2025-04-09"
+        },
+        {
+          "url": "https://arxiv.org/abs/2410.07170v5",
+          "publication_date": "2024-10-09",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v5",
+          "revision_date": "2025-10-20"
+        },
+        {
+          "url": "https://huggingface.co/docs/peft/main/package_reference/lora",
+          "publication_date": null,
+          "date_certainty": "live documentation; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Controlled alternatives to the learner's LoRA adapter, not changes to AUM symbolic records.",
+      "suggested_phase": "P2 — one-method comparisons against a fixed baseline.",
+      "existing_school_support": "not_integrated",
+      "limits": "Initialization, quantization and serving compatibility differ; no universal ranking is established."
+    },
+    {
+      "id": "lora_fa",
+      "name": "LoRA-FA",
+      "publication_date": {
+        "value": "2023-08-07",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "update mechanism",
+        "optimizer"
+      ],
+      "target": [
+        "neural adapter"
+      ],
+      "maturity": "Research method with a PEFT optimizer implementation.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2308.03303v3",
+          "publication_date": "2023-08-07",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v3",
+          "revision_date": "2026-05-09"
+        },
+        {
+          "url": "https://huggingface.co/docs/peft/main/package_reference/lora",
+          "publication_date": null,
+          "date_certainty": "live documentation; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Potential activation-memory improvement for a measured neural adaptation baseline.",
+      "suggested_phase": "P2 — when activation memory is an observed bottleneck.",
+      "existing_school_support": "not_integrated",
+      "limits": "Measure complete peak memory and wall time rather than relying on trainable parameter count."
+    },
+    {
+      "id": "q_galore",
+      "name": "Q-GaLore",
+      "publication_date": {
+        "value": "2024-07-11",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "full-parameter update mechanism"
+      ],
+      "target": [
+        "neural base weights"
+      ],
+      "maturity": "Published research with an upstream implementation.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2407.08296v1",
+          "publication_date": "2024-07-11",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v1"
+        },
+        {
+          "url": "https://github.com/VITA-Group/Q-GaLore",
+          "publication_date": null,
+          "date_certainty": "repository; publication date belongs to the paper",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Research option if adapter capacity demonstrably limits an AUM-bound neural learner.",
+      "suggested_phase": "P3 — after establishing a reason to update base weights.",
+      "existing_school_support": "not_integrated",
+      "limits": "A model fitting into VRAM does not establish inexpensive or fast end-to-end training."
+    },
+    {
+      "id": "dpo",
+      "name": "Direct Preference Optimization",
+      "publication_date": {
+        "value": "2023-05-29",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "learning objective"
+      ],
+      "target": [
+        "neural learner through adapter or full update"
+      ],
+      "maturity": "Published method with established TRL support.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2305.18290v3",
+          "publication_date": "2023-05-29",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v3",
+          "revision_date": "2024-07-29"
+        },
+        {
+          "url": "https://huggingface.co/docs/trl/dpo_trainer",
+          "publication_date": null,
+          "date_certainty": "live documentation; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Learn from independently justified preferences between comparable learner responses.",
+      "suggested_phase": "P1 — after trustworthy preference pairs are available.",
+      "existing_school_support": "not_integrated",
+      "limits": "Preference provenance and comparable context are required; preferred does not automatically mean correct."
+    },
+    {
+      "id": "grpo_rlvr",
+      "name": "GRPO and reinforcement learning with verifiable rewards",
+      "publication_date": {
+        "value": "2024-02-05",
+        "precision": "day",
+        "certainty": "confirmed_primary",
+        "note": "GRPO introduction; DeepSeek-R1 is a 2025 exemplar."
+      },
+      "category": [
+        "policy optimization algorithm",
+        "reward design"
+      ],
+      "target": [
+        "neural policy"
+      ],
+      "maturity": "Published methods with active upstream trainer implementations.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2402.03300v3",
+          "publication_date": "2024-02-05",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v3",
+          "revision_date": "2024-04-27"
+        },
+        {
+          "url": "https://arxiv.org/abs/2501.12948v2",
+          "publication_date": "2025-01-22",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v2",
+          "revision_date": "2026-01-04"
+        },
+        {
+          "url": "https://github.com/huggingface/trl",
+          "publication_date": null,
+          "date_certainty": "repository; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Train neural proposals using independently executable checks of bounded AUM tasks.",
+      "suggested_phase": "P2 — after frozen-policy and supervised baselines.",
+      "existing_school_support": "not_integrated",
+      "limits": "GRPO and RLVR are distinct; rollout cost, reward exploitation and verifier leakage require measurement."
+    },
+    {
+      "id": "verified_trace_distillation",
+      "name": "Verified-trace distillation",
+      "publication_date": {
+        "value": "2025-01-22",
+        "precision": "day",
+        "certainty": "confirmed_primary_for_exemplar",
+        "note": "DeepSeek-R1 exemplar; distillation itself predates QLoRA."
+      },
+      "category": [
+        "data construction and transfer"
+      ],
+      "target": [
+        "neural learner"
+      ],
+      "maturity": "Established approach; recent open-model exemplars.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2501.12948v2",
+          "publication_date": "2025-01-22",
+          "date_certainty": "confirmed_primary_for_exemplar",
+          "verified_on": "2026-11-21",
+          "version": "v2",
+          "revision_date": "2026-01-04"
+        },
+        {
+          "url": "https://github.com/deepseek-ai/DeepSeek-R1",
+          "publication_date": null,
+          "date_certainty": "repository; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Transfer checked teacher or search-produced behavior into a local neural learner using approved episodes.",
+      "suggested_phase": "P1 — reuse verified episodes before purchasing new generation.",
+      "existing_school_support": "not_integrated",
+      "limits": "Teacher outputs are not correctness evidence; teacher context and evaluation answers must not leak."
+    },
+    {
+      "id": "tinylora",
+      "name": "TinyLoRA",
+      "publication_date": {
+        "value": "2026-02-04",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "adapter parameterization"
+      ],
+      "target": [
+        "neural adapter coefficients and fixed reconstruction structures"
+      ],
+      "maturity": "Recent research with a PEFT implementation.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2602.04118v1",
+          "publication_date": "2026-02-04",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v1"
+        },
+        {
+          "url": "https://huggingface.co/docs/peft/en/package_reference/tinylora",
+          "publication_date": null,
+          "date_certainty": "live documentation; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Research comparison for very small RL updates to an already capable neural learner.",
+      "suggested_phase": "P2 — after a working GRPO baseline.",
+      "existing_school_support": "not_integrated",
+      "limits": "Reported learned bytes exclude the base model and fixed structures; evidence centers on math tasks."
+    },
+    {
+      "id": "mica",
+      "name": "MiCA",
+      "publication_date": {
+        "value": "2026-04-02",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "adapter mechanism for knowledge adaptation"
+      ],
+      "target": [
+        "neural base model through a constrained adapter"
+      ],
+      "maturity": "Recent preprint with an upstream PEFT example.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2604.01694v1",
+          "publication_date": "2026-04-02",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v1"
+        },
+        {
+          "url": "https://github.com/huggingface/peft/blob/main/examples/mica_finetuning/README.md",
+          "publication_date": null,
+          "date_certainty": "live repository documentation; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Controlled domain-knowledge ingestion experiment for a bound neural learner.",
+      "suggested_phase": "P2 — compare with retrieval-only and ordinary LoRA controls.",
+      "existing_school_support": "not_integrated",
+      "limits": "Limited evidence from 7B-scale models and controlled corpora; primarily continued pretraining."
+    },
+    {
+      "id": "seal",
+      "name": "SEAL",
+      "publication_date": {
+        "value": "2025-06-12",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "learned adaptation protocol"
+      ],
+      "target": [
+        "neural learner",
+        "generated training material and update directives"
+      ],
+      "maturity": "Published research with upstream code.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2506.10943",
+          "publication_date": "2025-06-12",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": null,
+          "note": "Abstract/repository inspected; exact current paper revision not pinned."
+        },
+        {
+          "url": "https://github.com/Continual-Intelligence/SEAL",
+          "publication_date": null,
+          "date_certainty": "repository; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Later research on learner-generated adaptation proposals evaluated through School.",
+      "suggested_phase": "P3 — after an ordinary candidate lifecycle is verified.",
+      "existing_school_support": "not_integrated",
+      "limits": "Nested training is costly; generated directives are proposals, not evidence of improvement."
+    },
+    {
+      "id": "ttt_discover",
+      "name": "TTT-Discover",
+      "publication_date": {
+        "value": "2026-01-22",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "problem-specific training and search protocol"
+      ],
+      "target": [
+        "neural proposal policy",
+        "solution artifact"
+      ],
+      "maturity": "Recent research with public code and reported experiments.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2601.16175",
+          "publication_date": "2026-01-22",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": null,
+          "note": "Primary abstract/project inspected; exact current paper revision not pinned."
+        },
+        {
+          "url": "https://test-time-training.github.io/discover/",
+          "publication_date": null,
+          "date_certainty": "authors' project page; unpinned",
+          "verified_on": "2026-11-21"
+        }
+      ],
+      "applicability": "Later optimization study over a bounded AUM task with independently scored solutions.",
+      "suggested_phase": "P3 — compare against frozen-policy search at matched budget.",
+      "existing_school_support": "not_integrated",
+      "limits": "Single-problem solution quality is distinct from general capability; published setup uses a hosted 120B model."
+    },
+    {
+      "id": "harness_weight_coevolution",
+      "name": "Harness and weights co-evolution",
+      "publication_date": {
+        "value": "2026",
+        "precision": "year",
+        "certainty": "year_confirmed_primary_exact_day_unverified",
+        "note": "Primary README says 2026 and still has an arXiv-link placeholder."
+      },
+      "category": [
+        "two-layer improvement protocol"
+      ],
+      "target": [
+        "harness documents",
+        "neural adapter"
+      ],
+      "maturity": "Recent research implementation with released run records.",
+      "upstream_sources": [
+        {
+          "url": "https://github.com/Brightendata/knowledge-in-the-harness/blob/main/README.md",
+          "publication_date": "2026",
+          "date_certainty": "year_confirmed_primary_exact_day_unverified",
+          "verified_on": "2026-11-21",
+          "git_blob_sha": "3a2bf0b55c1b661d3bd6362d0ec934c4359ab75d",
+          "path": "README.md",
+          "note": "Blob hash identifies inspected content, not a commit or executable recipe pin."
+        }
+      ],
+      "applicability": "Separate AUM/School harness changes from learner updates and measure their individual and joint contributions.",
+      "suggested_phase": "P1 for measurement concepts; P3 for complete research reproduction.",
+      "existing_school_support": "not_integrated",
+      "limits": "Published reproduction needs four 80GB GPUs and external services; teacher-free does not mean service-free."
+    },
+    {
+      "id": "direct_self_rewriting",
+      "name": "Direct self-rewriting of weights",
+      "publication_date": {
+        "value": "2026-11-16",
+        "precision": "day",
+        "certainty": "confirmed_primary"
+      },
+      "category": [
+        "model-generated numerical update mechanism",
+        "candidate evaluation protocol"
+      ],
+      "target": [
+        "neural weight tensors"
+      ],
+      "maturity": "Very recent preprint; exploratory evidence.",
+      "upstream_sources": [
+        {
+          "url": "https://arxiv.org/abs/2611.21885v2",
+          "publication_date": "2026-11-16",
+          "date_certainty": "confirmed_primary",
+          "verified_on": "2026-11-21",
+          "version": "v2",
+          "revision_date": "2026-11-18"
+        }
+      ],
+      "applicability": "Exploratory neural-weight proposal research; distinct from changing AUM symbolic operations.",
+      "suggested_phase": "P3 — isolated research after candidate evaluation and rollback are proven.",
+      "existing_school_support": "not_integrated",
+      "limits": "Sessions restart from base weights; the reported sequence is not cumulative training initialized from each accepted update."
+    }
+  ]
+}

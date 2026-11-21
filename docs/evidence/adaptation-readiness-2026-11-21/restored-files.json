@@ -1,0 +1,108 @@
+{
+  "repository": "bdf1992/school",
+  "ref": "a64ab5c277f98b0408f5e1ab69f71e3fda91deaa",
+  "restored": [
+    {
+      "path": "examples/school/parity-machine.json",
+      "expected_git_blob_sha": "9da2a167d6ed9bd1598dcf80f8d71f73c874f4dc",
+      "actual_git_blob_sha": "9da2a167d6ed9bd1598dcf80f8d71f73c874f4dc",
+      "matches": true
+    },
+    {
+      "path": "examples/school/parity-machine-mutated.json",
+      "expected_git_blob_sha": "85d11710e3a696100f343c0fda81b72016babd82",
+      "actual_git_blob_sha": "85d11710e3a696100f343c0fda81b72016babd82",
+      "matches": true
+    },
+    {
+      "path": "examples/school/factorized-step.json",
+      "expected_git_blob_sha": "8fee5be433761a20dafb2d00650c0e42d44b0843",
+      "actual_git_blob_sha": "8fee5be433761a20dafb2d00650c0e42d44b0843",
+      "matches": true
+    },
+    {
+      "path": "examples/school/factorized-class.json",
+      "expected_git_blob_sha": "913f1323b398a73292eb8a2c0a0739d86df3e6c4",
+      "actual_git_blob_sha": "913f1323b398a73292eb8a2c0a0739d86df3e6c4",
+      "matches": true
+    },
+    {
+      "path": "scripts/school-preflight.ts",
+      "expected_git_blob_sha": "968d17bac7cc0c01ffaccf5d94690cd24a518c38",
+      "actual_git_blob_sha": "968d17bac7cc0c01ffaccf5d94690cd24a518c38",
+      "matches": true
+    },
+    {
+      "path": "docs/evidence/school-oracle-input.mjs",
+      "expected_git_blob_sha": "0150bd94f84fcdade0be625c82bbf57df3c4f79f",
+      "actual_git_blob_sha": "0150bd94f84fcdade0be625c82bbf57df3c4f79f",
+      "matches": true
+    },
+    {
+      "path": "docs/evidence/school-oracle-check.py",
+      "expected_git_blob_sha": "b5804890e2393e99a74d1353a5c937d3e5119a5d",
+      "actual_git_blob_sha": "b5804890e2393e99a74d1353a5c937d3e5119a5d",
+      "matches": true
+    },
+    {
+      "path": "src/core/learner-view.ts",
+      "expected_git_blob_sha": "a3aab9ffc3e7965eee4586b28bba96fbc45c1aa4",
+      "actual_git_blob_sha": "a3aab9ffc3e7965eee4586b28bba96fbc45c1aa4",
+      "matches": true
+    },
+    {
+      "path": "scripts/school-learner-view.ts",
+      "expected_git_blob_sha": "7c41e67352076ea8189ef4d455d87cf4977049c6",
+      "actual_git_blob_sha": "7c41e67352076ea8189ef4d455d87cf4977049c6",
+      "matches": true
+    },
+    {
+      "path": "src/server/school-participants.ts",
+      "expected_git_blob_sha": "112bcb0c8365c83d3485471ff7d42fb0e85d96ad",
+      "actual_git_blob_sha": "112bcb0c8365c83d3485471ff7d42fb0e85d96ad",
+      "matches": true
+    },
+    {
+      "path": "examples/school/scripted-factorized.ts",
+      "expected_git_blob_sha": "dab6b4ae0751cdcc05d675626026605946b09594",
+      "actual_git_blob_sha": "dab6b4ae0751cdcc05d675626026605946b09594",
+      "matches": true
+    },
+    {
+      "path": "examples/school/scripted-parity.ts",
+      "expected_git_blob_sha": "cf8bc8617f8282d3480d6e5d84a834250ae36d64",
+      "actual_git_blob_sha": "cf8bc8617f8282d3480d6e5d84a834250ae36d64",
+      "matches": true
+    },
+    {
+      "path": "src/server/school-episodes.ts",
+      "expected_git_blob_sha": "4e27d90d3cc4780955a2c7a7ddc1b2e20dd4d1a9",
+      "actual_git_blob_sha": "4e27d90d3cc4780955a2c7a7ddc1b2e20dd4d1a9",
+      "matches": true
+    },
+    {
+      "path": "src/server/desktop-access.ts",
+      "expected_git_blob_sha": "7a53fa97ee4cd62b088749f08c3798cd3c051b27",
+      "actual_git_blob_sha": "7a53fa97ee4cd62b088749f08c3798cd3c051b27",
+      "matches": true
+    },
+    {
+      "path": "config.ts",
+      "expected_git_blob_sha": "09aa6f8e7b9ca1faa5cead364bfa790d8ce67d38",
+      "actual_git_blob_sha": "09aa6f8e7b9ca1faa5cead364bfa790d8ce67d38",
+      "matches": true
+    },
+    {
+      "path": "src/server/custom-provider-body.ts",
+      "expected_git_blob_sha": "4abac5e14d17167b02eb5128df3e14765ff844be",
+      "actual_git_blob_sha": "4abac5e14d17167b02eb5128df3e14765ff844be",
+      "matches": true
+    },
+    {
+      "path": "src/server/web-subscription-http.ts",
+      "expected_git_blob_sha": "3d5d7a956343bcebe29bb6c592f71a615c36e3d7",
+      "actual_git_blob_sha": "3d5d7a956343bcebe29bb6c592f71a615c36e3d7",
+      "matches": true
+    }
+  ]
+}

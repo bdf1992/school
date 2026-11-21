@@ -1,0 +1,63 @@
+{
+  "schema": "school-readiness-checks/1",
+  "checked_at": "2026-11-21T20:43:10.527018+00:00",
+  "repository": "bdf1992/school",
+  "source_ref": "a64ab5c277f98b0408f5e1ab69f71e3fda91deaa",
+  "source_materialization": "partial_snapshot; exact relevant main files restored and blob-verified",
+  "node": "v24.22.3",
+  "ci_node_major": 26,
+  "python": "3.12.14",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "tsx": "4.23.12",
+  "core_tests": {
+    "tests": 57,
+    "pass": 56,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0,
+    "exit_code": 0,
+    "elapsed_seconds": 2.02,
+    "log": "core-baseline.tap",
+    "receipt": "core-baseline.json"
+  },
+  "independent_oracle": {
+    "status": "PASSED",
+    "batches": 129,
+    "counts": {
+      "checked_cases": 1419,
+      "step_cases": 1032,
+      "generated_cases": 1408,
+      "matching_keys": 1419,
+      "mutated_wrong_keys_rejected": 1419,
+      "product_cases": 387,
+      "checked-in-manifest_cases": 11
+    },
+    "receipt": "independent-oracle.json",
+    "commands": "oracle-commands.json"
+  },
+  "provider_tests": {
+    "status": "BLOCKED_BEFORE_TEST_EXECUTION",
+    "reason": "Required @earendil-works/pi-ai package absent; application npm ci dependencies are not installed. No stubs or replacement providers were introduced.",
+    "test_files": 5,
+    "process_exit_code": 1,
+    "receipt": "provider-baseline-dependencies.json",
+    "log": "provider-baseline-dependencies.tap",
+    "earlier_attempt": "provider-baseline-blocked.json"
+  },
+  "foundation": {
+    "status": "SKIPPED",
+    "reason": "SCHOOL_FOUNDATION_V020 external Foundation v0.2 runtime not supplied",
+    "evidence": "core-baseline.tap"
+  },
+  "restored_file_count": 17,
+  "verified_test_source_count": 19,
+  "boundaries": [
+    "These checks establish deterministic harness and checker behavior, not model learning.",
+    "No model generation, model download, training, adapter load, neural adoption or GPU job was performed.",
+    "Provider integration and full episode runner suites did not execute because their package dependency is missing.",
+    "Node 24.22.3 differs from the repository CI Node 26; this is not CI parity.",
+    "A partial snapshot with reused tsx dependencies is not a clean npm ci installation.",
+    "No full-app typecheck, lint, build or release qualification was performed."
+  ]
+}

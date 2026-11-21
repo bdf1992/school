@@ -1,0 +1,31 @@
+{
+  "status": "PASSED",
+  "counts": {
+    "checked_cases": 1419,
+    "step_cases": 1032,
+    "generated_cases": 1408,
+    "matching_keys": 1419,
+    "mutated_wrong_keys_rejected": 1419,
+    "product_cases": 387,
+    "checked-in-manifest_cases": 11
+  },
+  "known_counterexample": [
+    {
+      "a": "2",
+      "b": "3",
+      "current_coefficient": "6",
+      "next_coefficient": "9/25",
+      "expected": "9/25",
+      "passed": true
+    },
+    {
+      "a": "6",
+      "b": "1",
+      "current_coefficient": "6",
+      "next_coefficient": "-351/25",
+      "expected": "-351/25",
+      "passed": true
+    }
+  ],
+  "summary": "/workspace/scratch/cc7bb19a3711/readiness-checks/independent-oracle.json"
+}

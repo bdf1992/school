@@ -1,0 +1,29 @@
+{
+  "name": "provider-baseline-after-direct-source-restoration",
+  "at": "2026-11-21T20:42:31.115059+00:00",
+  "cwd": "/workspace/scratch/cc7bb19a3711/school-learning-methods",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=2s",
+    "55s",
+    "node",
+    "--import",
+    "/workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/loader.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "tests/school-participants.test.ts",
+    "tests/school-episode.test.ts",
+    "tests/school-experiment-runner.test.ts",
+    "tests/school-gradebook.test.ts",
+    "tests/school-space-learning.test.ts"
+  ],
+  "env": {
+    "NODE_ENV": "test",
+    "SCHOOL_FOUNDATION_V020": "unset"
+  },
+  "exit_code": 1,
+  "elapsed_seconds": 0.62,
+  "log": "provider-baseline-dependencies.tap",
+  "classification": "BLOCKED_BEFORE_TEST_EXECUTION"
+}

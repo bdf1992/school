@@ -1,0 +1,186 @@
+TAP version 13
+# node:internal/modules/package_json_reader:331
+#   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+#         ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@earendil-works/pi-ai' imported from /workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-episode.test.ts
+#     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:331:9)
+#     at packageResolve (node:internal/modules/esm/resolve:784:25)
+#     at moduleResolve (node:internal/modules/esm/resolve:873:18)
+#     at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+#     at \#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+#     at nextStep (node:internal/modules/customization_hooks:189:26)
+#     at resolveBaseSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+#     at resolveDirectorySync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+#     at resolveTsPathsSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445) {
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v24.22.3
+# Subtest: tests/school-episode.test.ts
+not ok 1 - tests/school-episode.test.ts
+  ---
+  duration_ms: 431.068923
+  type: 'test'
+  location: '/workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-episode.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# node:internal/modules/esm/resolve:272
+#     throw new ERR_MODULE_NOT_FOUND(
+#           ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/workspace/scratch/cc7bb19a3711/school-learning-methods/examples/school/scripted-factorized.ts' imported from /workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-experiment-runner.test.ts
+#     at finalizeResolution (node:internal/modules/esm/resolve:272:11)
+#     at moduleResolve (node:internal/modules/esm/resolve:879:10)
+#     at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+#     at \#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+#     at nextStep (node:internal/modules/customization_hooks:189:26)
+#     at resolveBaseSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+#     at resolveDirectorySync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+#     at resolveTsPathsSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+#     at resolve (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+#   code: 'ERR_MODULE_NOT_FOUND',
+#   url: 'file:///workspace/scratch/cc7bb19a3711/school-learning-methods/examples/school/scripted-factorized.ts'
+# }
+# Node.js v24.22.3
+# Subtest: tests/school-experiment-runner.test.ts
+not ok 2 - tests/school-experiment-runner.test.ts
+  ---
+  duration_ms: 533.058724
+  type: 'test'
+  location: '/workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-experiment-runner.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# node:internal/modules/package_json_reader:331
+#   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+#         ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@earendil-works/pi-ai' imported from /workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-gradebook.test.ts
+#     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:331:9)
+#     at packageResolve (node:internal/modules/esm/resolve:784:25)
+#     at moduleResolve (node:internal/modules/esm/resolve:873:18)
+#     at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+#     at \#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+#     at nextStep (node:internal/modules/customization_hooks:189:26)
+#     at resolveBaseSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+#     at resolveDirectorySync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+#     at resolveTsPathsSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445) {
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v24.22.3
+# Subtest: tests/school-gradebook.test.ts
+not ok 3 - tests/school-gradebook.test.ts
+  ---
+  duration_ms: 478.630455
+  type: 'test'
+  location: '/workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-gradebook.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# node:internal/modules/package_json_reader:331
+#   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+#         ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@earendil-works/pi-ai' imported from /workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-participants.test.ts
+#     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:331:9)
+#     at packageResolve (node:internal/modules/esm/resolve:784:25)
+#     at moduleResolve (node:internal/modules/esm/resolve:873:18)
+#     at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+#     at \#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+#     at nextStep (node:internal/modules/customization_hooks:189:26)
+#     at resolveBaseSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+#     at resolveDirectorySync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+#     at resolveTsPathsSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445) {
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v24.22.3
+# Subtest: tests/school-participants.test.ts
+not ok 4 - tests/school-participants.test.ts
+  ---
+  duration_ms: 468.573169
+  type: 'test'
+  location: '/workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-participants.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# node:internal/modules/esm/resolve:272
+#     throw new ERR_MODULE_NOT_FOUND(
+#           ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/workspace/scratch/cc7bb19a3711/school-learning-methods/src/server/school-participants.ts' imported from /workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-preflight.test.ts
+#     at finalizeResolution (node:internal/modules/esm/resolve:272:11)
+#     at moduleResolve (node:internal/modules/esm/resolve:879:10)
+#     at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+#     at \#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+#     at nextStep (node:internal/modules/customization_hooks:189:26)
+#     at resolveBaseSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+#     at resolveDirectorySync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+#     at resolveTsPathsSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+#     at resolve (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991) {
+#   code: 'ERR_MODULE_NOT_FOUND',
+#   url: 'file:///workspace/scratch/cc7bb19a3711/school-learning-methods/src/server/school-participants.ts'
+# }
+# Node.js v24.22.3
+# Subtest: tests/school-preflight.test.ts
+not ok 5 - tests/school-preflight.test.ts
+  ---
+  duration_ms: 468.748782
+  type: 'test'
+  location: '/workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-preflight.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# node:internal/modules/package_json_reader:331
+#   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+#         ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@earendil-works/pi-ai' imported from /workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-space-learning.test.ts
+#     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:331:9)
+#     at packageResolve (node:internal/modules/esm/resolve:784:25)
+#     at moduleResolve (node:internal/modules/esm/resolve:873:18)
+#     at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:705:20)
+#     at \#resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:725:38)
+#     at nextStep (node:internal/modules/customization_hooks:189:26)
+#     at resolveBaseSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+#     at resolveDirectorySync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+#     at resolveTsPathsSync (file:///workspace/scratch/d1a4f0a9ee31/prize-test-tools/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445) {
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v24.22.3
+# Subtest: tests/school-space-learning.test.ts
+not ok 6 - tests/school-space-learning.test.ts
+  ---
+  duration_ms: 465.295696
+  type: 'test'
+  location: '/workspace/scratch/cc7bb19a3711/school-learning-methods/tests/school-space-learning.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 0
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 548.922474

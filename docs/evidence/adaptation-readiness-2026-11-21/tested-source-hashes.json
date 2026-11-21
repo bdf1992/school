@@ -1,0 +1,119 @@
+{
+  "ref": "a64ab5c277f98b0408f5e1ab69f71e3fda91deaa",
+  "files": [
+    {
+      "path": "tests/school-classes.test.ts",
+      "expected_git_blob_sha": "363400cb8d8622a26c6f67b57dde31ca550ec468",
+      "actual_git_blob_sha": "363400cb8d8622a26c6f67b57dde31ca550ec468",
+      "matches": true
+    },
+    {
+      "path": "tests/school-experiment.test.ts",
+      "expected_git_blob_sha": "9360f734d0f18f22a2257001bf56c04d9067eac3",
+      "actual_git_blob_sha": "9360f734d0f18f22a2257001bf56c04d9067eac3",
+      "matches": true
+    },
+    {
+      "path": "tests/school-parity.test.ts",
+      "expected_git_blob_sha": "757c27c3b93eba5fa1b9b9daf5fe901353631ac5",
+      "actual_git_blob_sha": "757c27c3b93eba5fa1b9b9daf5fe901353631ac5",
+      "matches": true
+    },
+    {
+      "path": "tests/school-learner-view.test.ts",
+      "expected_git_blob_sha": "b2e44c5d6e8ef6b58d96da3956f302850fa1ff8f",
+      "actual_git_blob_sha": "b2e44c5d6e8ef6b58d96da3956f302850fa1ff8f",
+      "matches": true
+    },
+    {
+      "path": "tests/school-state-space.test.ts",
+      "expected_git_blob_sha": "2e4d6dabde637acfd28f4f94753a6a443e92554c",
+      "actual_git_blob_sha": "2e4d6dabde637acfd28f4f94753a6a443e92554c",
+      "matches": true
+    },
+    {
+      "path": "src/core/school-class.ts",
+      "expected_git_blob_sha": "9d881272694549fb5a1b9f292ee3f2ca00ac2db3",
+      "actual_git_blob_sha": "9d881272694549fb5a1b9f292ee3f2ca00ac2db3",
+      "matches": true
+    },
+    {
+      "path": "src/core/school-episode.ts",
+      "expected_git_blob_sha": "69a7b7c1a89afdd3c7a4addf3a174e8a0550a33b",
+      "actual_git_blob_sha": "69a7b7c1a89afdd3c7a4addf3a174e8a0550a33b",
+      "matches": true
+    },
+    {
+      "path": "src/core/school-participants.ts",
+      "expected_git_blob_sha": "c737a65b3762a424cd9d38d071dbf0fde39c07ab",
+      "actual_git_blob_sha": "c737a65b3762a424cd9d38d071dbf0fde39c07ab",
+      "matches": true
+    },
+    {
+      "path": "src/core/school-experiment.ts",
+      "expected_git_blob_sha": "ac28e1b39b7976b9d3d3a532d8f23dd7e9156df5",
+      "actual_git_blob_sha": "ac28e1b39b7976b9d3d3a532d8f23dd7e9156df5",
+      "matches": true
+    },
+    {
+      "path": "src/core/school-parity.ts",
+      "expected_git_blob_sha": "d37c60f8f54d473befe809ce5a520f76da73775b",
+      "actual_git_blob_sha": "d37c60f8f54d473befe809ce5a520f76da73775b",
+      "matches": true
+    },
+    {
+      "path": "src/core/learner-view.ts",
+      "expected_git_blob_sha": "a3aab9ffc3e7965eee4586b28bba96fbc45c1aa4",
+      "actual_git_blob_sha": "a3aab9ffc3e7965eee4586b28bba96fbc45c1aa4",
+      "matches": true
+    },
+    {
+      "path": "src/store/school-classes.ts",
+      "expected_git_blob_sha": "761806d339c99d47f85e9518a3c74866458fcae7",
+      "actual_git_blob_sha": "761806d339c99d47f85e9518a3c74866458fcae7",
+      "matches": true
+    },
+    {
+      "path": "scripts/school-parity.ts",
+      "expected_git_blob_sha": "fc390106f2be2d152fdf694ee48867ced594d9f5",
+      "actual_git_blob_sha": "fc390106f2be2d152fdf694ee48867ced594d9f5",
+      "matches": true
+    },
+    {
+      "path": "scripts/school-learner-view.ts",
+      "expected_git_blob_sha": "7c41e67352076ea8189ef4d455d87cf4977049c6",
+      "actual_git_blob_sha": "7c41e67352076ea8189ef4d455d87cf4977049c6",
+      "matches": true
+    },
+    {
+      "path": "docs/evidence/school-oracle-input.mjs",
+      "expected_git_blob_sha": "0150bd94f84fcdade0be625c82bbf57df3c4f79f",
+      "actual_git_blob_sha": "0150bd94f84fcdade0be625c82bbf57df3c4f79f",
+      "matches": true
+    },
+    {
+      "path": "docs/evidence/school-oracle-check.py",
+      "expected_git_blob_sha": "b5804890e2393e99a74d1353a5c937d3e5119a5d",
+      "actual_git_blob_sha": "b5804890e2393e99a74d1353a5c937d3e5119a5d",
+      "matches": true
+    },
+    {
+      "path": "examples/school/parity-machine.json",
+      "expected_git_blob_sha": "9da2a167d6ed9bd1598dcf80f8d71f73c874f4dc",
+      "actual_git_blob_sha": "9da2a167d6ed9bd1598dcf80f8d71f73c874f4dc",
+      "matches": true
+    },
+    {
+      "path": "examples/school/parity-machine-mutated.json",
+      "expected_git_blob_sha": "85d11710e3a696100f343c0fda81b72016babd82",
+      "actual_git_blob_sha": "85d11710e3a696100f343c0fda81b72016babd82",
+      "matches": true
+    },
+    {
+      "path": "examples/school/factorized-step.json",
+      "expected_git_blob_sha": "8fee5be433761a20dafb2d00650c0e42d44b0843",
+      "actual_git_blob_sha": "8fee5be433761a20dafb2d00650c0e42d44b0843",
+      "matches": true
+    }
+  ]
+}
