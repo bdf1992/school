@@ -12,6 +12,7 @@
 - [Participants and connections](school-participants.md) — continuing identities, immutable state, explicit memory and independent local endpoints.
 - [Local connection preflight](school-preflight.md) — check the exact registered model advertisement before inference, with a retained receipt.
 - [Parity-machine artifacts](school-parity.md) — validate a finite-state machine and independently evaluate every byte, retaining counterexamples.
+- [Image representation artifacts](school-image-study.md) — independently check pixel/byte/bit addresses, region membership and conversion metrics from retained AUM packets.
 - [Controlled experiments](school-experiments.md) — generated factorized tasks, independent key checking and separate assistance conditions.
 - [Queued execution](school-runs.md) — due times, bounded workers, cancellation, recovery and unresolved completion.
 - [Workbench verification](evidence/school-workbench-2026-11-09.json) — test totals, controlled outcomes, production HTTP checks, independent arithmetic verification and qualification limits.

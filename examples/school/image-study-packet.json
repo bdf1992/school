@@ -1,0 +1,130 @@
+{
+  "schema": "aum.image-study-evaluation/1",
+  "specimen_id": "authored-rgb8-control",
+  "raster": {
+    "width": 3,
+    "height": 2,
+    "layout": "RGB8-row-major",
+    "data_base64": "AID/AQIDBAUGBwgJCgsMDQ4P",
+    "sha256": "4846c51f90d5047433c30c44694e62f002d396830dc70cce8c5f1b722204c1a0"
+  },
+  "regions": [
+    {
+      "id": "rectangle",
+      "label": "authored rectangle",
+      "kind": "box",
+      "box": [
+        0,
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "id": "mask",
+      "label": "authored mask",
+      "kind": "mask",
+      "data_base64": "AAABAAEA",
+      "sha256": "2f7124cc50e450d0fc84f9abef409cc57960e51e5e2fa9ac67dd80b26442e181"
+    },
+    {
+      "id": "point",
+      "label": "authored point",
+      "kind": "point",
+      "x": 2,
+      "y": 1
+    }
+  ],
+  "conversions": [
+    {
+      "id": "same",
+      "raster": {
+        "width": 3,
+        "height": 2,
+        "layout": "RGB8-row-major",
+        "data_base64": "AID/AQIDBAUGBwgJCgsMDQ4P",
+        "sha256": "4846c51f90d5047433c30c44694e62f002d396830dc70cce8c5f1b722204c1a0"
+      }
+    },
+    {
+      "id": "changed",
+      "raster": {
+        "width": 3,
+        "height": 2,
+        "layout": "RGB8-row-major",
+        "data_base64": "AH8AAQIDBAUGBwgJCgsMDQ4P",
+        "sha256": "c02541d5d9845078c2f00e4a1734811f1e0d91a84ab44e667e4f78c06a33e722"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "first-bit",
+      "kind": "pixel-bit",
+      "x": 0,
+      "y": 0,
+      "channel": 1,
+      "bit": 7
+    },
+    {
+      "id": "last-bit",
+      "kind": "pixel-bit",
+      "x": 2,
+      "y": 1,
+      "channel": 2,
+      "bit": 3
+    },
+    {
+      "id": "box-yes",
+      "kind": "region-membership",
+      "region_id": "rectangle",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "id": "box-boundary",
+      "kind": "region-membership",
+      "region_id": "rectangle",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "id": "mask-yes",
+      "kind": "region-membership",
+      "region_id": "mask",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "id": "mask-no",
+      "kind": "region-membership",
+      "region_id": "mask",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "id": "point-yes",
+      "kind": "region-membership",
+      "region_id": "point",
+      "x": 2,
+      "y": 1
+    },
+    {
+      "id": "point-no",
+      "kind": "region-membership",
+      "region_id": "point",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "id": "same",
+      "kind": "conversion-metrics",
+      "conversion_id": "same"
+    },
+    {
+      "id": "changed",
+      "kind": "conversion-metrics",
+      "conversion_id": "changed"
+    }
+  ]
+}

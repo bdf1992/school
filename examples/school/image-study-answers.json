@@ -1,0 +1,86 @@
+{
+  "schema": "school.image-study-answers/1",
+  "specimen_id": "authored-rgb8-control",
+  "answers": [
+    {
+      "task_id": "first-bit",
+      "value": {
+        "byte_offset": 1,
+        "byte_value": 128,
+        "bit_value": 1,
+        "word64_index": 0,
+        "byte_in_word": 1
+      }
+    },
+    {
+      "task_id": "last-bit",
+      "value": {
+        "byte_offset": 17,
+        "byte_value": 15,
+        "bit_value": 1,
+        "word64_index": 2,
+        "byte_in_word": 1
+      }
+    },
+    {
+      "task_id": "box-yes",
+      "value": {
+        "selected": true,
+        "meaning": "inside_box"
+      }
+    },
+    {
+      "task_id": "box-boundary",
+      "value": {
+        "selected": false,
+        "meaning": "inside_box"
+      }
+    },
+    {
+      "task_id": "mask-yes",
+      "value": {
+        "selected": true,
+        "meaning": "inside_mask"
+      }
+    },
+    {
+      "task_id": "mask-no",
+      "value": {
+        "selected": false,
+        "meaning": "inside_mask"
+      }
+    },
+    {
+      "task_id": "point-yes",
+      "value": {
+        "selected": true,
+        "meaning": "annotated_point"
+      }
+    },
+    {
+      "task_id": "point-no",
+      "value": {
+        "selected": false,
+        "meaning": "annotated_point"
+      }
+    },
+    {
+      "task_id": "same",
+      "value": {
+        "exact": true,
+        "changed_channels": 0,
+        "max_abs_error": 0,
+        "sum_abs_error": 0
+      }
+    },
+    {
+      "task_id": "changed",
+      "value": {
+        "exact": false,
+        "changed_channels": 2,
+        "max_abs_error": 255,
+        "sum_abs_error": 256
+      }
+    }
+  ]
+}

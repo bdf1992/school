@@ -61,6 +61,19 @@ npm run school:parity -- check examples/school/parity-machine-mutated.json --out
 
 The second command deliberately exits unsuccessfully and retains the failing inputs. Both examples are authored controls. A model's saved artifact can be checked through the same command; a passing byte score does not prove correctness for every possible string. This is a standalone artifact evaluation, separate from class grades and world-action admission.
 
+The [image representation checker](docs/school-image-study.md) independently checks
+saved answers against AUM's retained RGB8 arrays and region annotations. It checks
+pixel-to-byte/bit addresses, box/mask/point membership and numerical changes between
+same-size representations, with no model calls:
+
+```sh
+npm run school:image-study -- check examples/school/image-study-packet.json examples/school/image-study-answers.json
+```
+
+The supplied example is an authored control. The checker can also consume AUM's
+exported study packets; it does not establish annotation truth, semantic similarity,
+held-out learning or model training.
+
 ## Run a class with two learners
 
 Use Node 26, matching CI, and the checked-in lockfile:
