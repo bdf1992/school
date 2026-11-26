@@ -145,8 +145,11 @@ fixtures `tests/fixtures/builder/*.json`). Nothing in v0 is changed; these are t
   ("shade"|"unshade" | {turn, op})[]}`. A plain string op means turn 0. Ops are applied before their turn's reading, in
   list order, and are normalized by a stable sort on turn; an op turn outside the signal list is refused.
 - **Identity.** SHA-256 hex of the canonical JSON (sorted keys, no whitespace, UTF-8) of
-  `{"condition_ops":[{"op":..,"turn":..}..],"law_version":"builder-v0","receiver":..,"signals":[..null..]}`;
-  e.g. `{"condition_ops":[],"law_version":"builder-v0","receiver":"A","signals":[220,null]}` for M1.
+  `{"conditions":[c0, c1, ..],"law_version":"builder-v0","receiver":..,"signals":[..null..]}`, where `conditions[t]` is
+  the receiver condition the resident is shown at turn t (v0.2: derived from the operations, so `shade`+`unshade`, a lone
+  `unshade` at c=0 and no operation are one case, as are four and three `shade`s); e.g.
+  `{"conditions":[0,0],"law_version":"builder-v0","receiver":"A","signals":[220,null]}` for M1. This replaces the v0.1 hash
+  of the raw operation list, which let resident-equivalent cases cross splits.
 - **Splits.** `SplitRegistry` refuses a case whose identity is in another split; re-adding within one split is idempotent.
   `checkDisjoint` lists collisions by identity.
 - **Views.** Sealed cases are omitted entirely (not just their expectations) from builder and teacher views; budgets are

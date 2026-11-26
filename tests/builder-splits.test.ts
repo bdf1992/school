@@ -18,9 +18,23 @@ describe("builder identity and splits", () => {
 	it("identity: canonical encoding is exact and receiver matters", () => {
 		assert.equal(
 			canonicalCaseEncoding(parseCase(m1Word)),
-			'{"condition_ops":[],"law_version":"builder-v0","receiver":"A","signals":[220,null]}',
+			'{"conditions":[0,0],"law_version":"builder-v0","receiver":"A","signals":[220,null]}',
 		);
 		assert.notEqual(identityOf({ ...m1, receiver: "B" }), identityOf(m1));
+	});
+	it("identity: cases the resident cannot tell apart share one identity and cannot cross splits", () => {
+		const bare = { receiver: "A", signals: [220], conditionOps: [] };
+		for (const ops of [["shade", "unshade"], ["unshade"]]) {
+			const twin = { ...bare, conditionOps: ops };
+			assert.equal(identityOf(twin), identityOf(bare));
+			const reg = new SplitRegistry();
+			reg.add("sealed", bare);
+			assert.throws(() => reg.add("training", twin));
+		}
+		const four = { receiver: "A", signals: [220], conditionOps: ["shade", "shade", "shade", "shade"] };
+		const three = { ...four, conditionOps: ["shade", "shade", "shade"] };
+		assert.equal(identityOf(four), identityOf(three));
+		assert.notEqual(identityOf(bare), identityOf(c1));
 	});
 	it("parseCase refuses bad encodings", () => {
 		assert.throws(() => parseCase({ receiver: "C", signals: [1] }));

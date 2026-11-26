@@ -5,7 +5,7 @@
  * canonical encoding). Depends only on law.ts and canonical.ts.
  */
 import { canonicalJson, sha256Hex } from "./canonical.ts";
-import { LAW_VERSION, type BuilderCase, type CaseOp, type ConditionOp, type Receiver, type Signal } from "./law.ts";
+import { LAW_VERSION, applyOp, type BuilderCase, type CaseOp, type ConditionOp, type Receiver, type Signal } from "./law.ts";
 
 export interface NamedCase {
 	name: string;
@@ -102,8 +102,15 @@ export function parseCase(raw: unknown): BuilderCase {
 
 /** The exact encoding hashed for identity. */
 export function canonicalCaseEncoding(c: BuilderCase): string {
+	// What the resident view receives: the condition at each turn, not the operations that produced it.
+	const conditions: number[] = [];
+	let condition = 0;
+	for (let turn = 0; turn < c.signals.length; turn++) {
+		for (const o of c.conditionOps) if (o.turn === turn) condition = applyOp(condition, o.op);
+		conditions.push(condition);
+	}
 	return canonicalJson({
-		condition_ops: c.conditionOps.map((o) => ({ op: o.op, turn: o.turn })),
+		conditions,
 		law_version: LAW_VERSION,
 		receiver: c.receiver,
 		signals: c.signals,
