@@ -135,3 +135,27 @@ the task. Evaluator: everything, including sealed expectations, which no other v
 
 G0 needs SCH 01 (the v0 task record and views above) and SCH 03 (the checker and the four controls' intended
 verdicts). School is G0's task/checker acceptance owner. SCH 02 waits for DS 02; SCH 04 for G3.
+
+## G0 implementation notes
+
+**v0.1** (School, G0 build; code under `src/core/builder/`, CLI `npm run school:builder-check -- <run.json>`,
+fixtures `tests/fixtures/builder/*.json`). Nothing in v0 is changed; these are the internal choices the spec left open.
+
+- **Case encoding accepted.** `{receiver: "A"|"B", signals: (0-255 | null | "missing")[], conditionOps | condition_ops:
+  ("shade"|"unshade" | {turn, op})[]}`. A plain string op means turn 0. Ops are applied before their turn's reading, in
+  list order, and are normalized by a stable sort on turn; an op turn outside the signal list is refused.
+- **Identity.** SHA-256 hex of the canonical JSON (sorted keys, no whitespace, UTF-8) of
+  `{"condition_ops":[{"op":..,"turn":..}..],"law_version":"builder-v0","receiver":..,"signals":[..null..]}`;
+  e.g. `{"condition_ops":[],"law_version":"builder-v0","receiver":"A","signals":[220,null]}` for M1.
+- **Splits.** `SplitRegistry` refuses a case whose identity is in another split; re-adding within one split is idempotent.
+  `checkDisjoint` lists collisions by identity.
+- **Views.** Sealed cases are omitted entirely (not just their expectations) from builder and teacher views; budgets are
+  supplied by the task, never defaulted. Resident view keys: signal, receiver, condition, turn, memory, subject.
+- **Run record `school.builder-run/0`** (School owns it):
+  `{format, law_version: "builder-v0", candidate, runs: [{case, outcome: completed|refused|limit_exhausted|unresolved,
+  turns: [{turn, action: {type: "signal", lamp: 0|1, byte}, admitted, recorded_lamp}], subject_after_hex}]}`.
+- **Grade `school.builder-grade/0`.** Per run: `{case_id, name?, pass, reasons, failing_turns}`; summary `failing_cases`
+  (names, else ids) and `reason_kinds`, sorted; `coverage {ran, missing}` over H1..R1. Reasons: a lamp not recorded as
+  proposed counts as `action_not_admitted`; a non-completed outcome is `not_completed`; unreadable turns, cases or fields
+  are `malformed`. `qualified` requires no record error, all six fixtures run, and no failing run of any case (an extra
+  failing run also disqualifies). Duplicated fixture runs are each graded.
