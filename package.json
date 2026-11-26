@@ -27,6 +27,7 @@
 		"school:parity": "node --import tsx scripts/school-parity.ts",
 		"school:state-space": "node --import tsx scripts/school-state-space.ts",
     "school:builder-check": "node --import tsx scripts/school-builder-check.ts",
+		"school:builder-brief": "node --import tsx scripts/school-builder-brief.ts",
     "school:dataspace": "node --import tsx scripts/school-dataspace.ts",
 		"school:experiment": "node --import tsx scripts/school-experiment.ts",
 		"school:worker": "node --import tsx scripts/school-worker.ts",
