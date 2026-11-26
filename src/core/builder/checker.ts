@@ -69,8 +69,8 @@ function gradeRun(run: unknown): CaseVerdict {
 			if (!isObj(t) || t.turn !== i || action === null || action.type !== "signal" || !isBit(action.lamp) || !isByte(action.byte) || typeof t.admitted !== "boolean" || !isBit(t.recorded_lamp)) {
 				tr.push("malformed");
 			} else {
-				if (action.lamp !== expected[i].lamp) tr.push("lamp_mismatch");
-				if (action.byte !== expected[i].byte) tr.push("byte_mismatch");
+				if (action.lamp !== expected[i]!.lamp) tr.push("lamp_mismatch");
+				if (action.byte !== expected[i]!.byte) tr.push("byte_mismatch");
 				// A lamp the world did not record as proposed is an action the world did not admit as proposed.
 				if (t.admitted !== true || t.recorded_lamp !== action.lamp) tr.push("action_not_admitted");
 			}

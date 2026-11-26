@@ -15,19 +15,19 @@ const latch = (m: number, r: number | null) => (r === null ? m : r >= 192 ? 1 : 
 const brains: Record<string, Brain> = {
 	correct: (s, t, m) => {
 		m.latch = latch(m.latch, read(s.receiver, s.signal, s.c));
-		return { lamp: m.latch, byte: SUBJ[t % 8] };
+		return { lamp: m.latch, byte: SUBJ[t % 8]! };
 	},
 	"byte-corrupting": (s, t, m) => {
 		m.latch = latch(m.latch, read(s.receiver, s.signal, s.c));
-		return { lamp: m.latch, byte: (SUBJ[t % 8] >> 4) * 16 };
+		return { lamp: m.latch, byte: (SUBJ[t % 8]! >> 4) * 16 };
 	},
 	"observer-confusing": (s, t, m) => {
 		m.latch = latch(m.latch, read("A", s.signal, 0));
-		return { lamp: m.latch, byte: SUBJ[t % 8] };
+		return { lamp: m.latch, byte: SUBJ[t % 8]! };
 	},
 	"history-forgetting": (s, t) => {
 		const r = read(s.receiver, s.signal, s.c);
-		return { lamp: r !== null && r >= 128 ? 1 : 0, byte: SUBJ[t % 8] };
+		return { lamp: r !== null && r >= 128 ? 1 : 0, byte: SUBJ[t % 8]! };
 	},
 };
 
@@ -39,7 +39,7 @@ export function runControl(name: string, outcome = "completed") {
 		const mem = { latch: 0 };
 		const turns = c.signals.map((signal, turn) => {
 			for (const o of c.conditionOps) if (o.turn === turn) cond = Math.min(3, Math.max(0, cond + (o.op === "shade" ? 1 : -1)));
-			const action = brains[name]({ signal, c: cond, receiver: c.receiver }, turn, mem);
+			const action = brains[name]!({ signal, c: cond, receiver: c.receiver }, turn, mem);
 			return { turn, action: { type: "signal", lamp: action.lamp, byte: action.byte }, admitted: true, recorded_lamp: action.lamp };
 		});
 		return {

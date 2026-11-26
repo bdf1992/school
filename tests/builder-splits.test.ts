@@ -12,7 +12,7 @@ describe("builder identity and splits", () => {
 	it("identity: encodings share one identity", () => {
 		assert.equal(identityOf(c1), identityOf(c1Strings));
 		assert.equal(identityOf(m1), identityOf(m1Word));
-		assert.equal(identityOf(c1), identityOf(G0_FIXTURES[2].case));
+		assert.equal(identityOf(c1), identityOf(G0_FIXTURES[2]!.case));
 		assert.notEqual(identityOf(c1), identityOf(m1));
 	});
 	it("identity: canonical encoding is exact and receiver matters", () => {

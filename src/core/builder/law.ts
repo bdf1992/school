@@ -69,6 +69,6 @@ export function expectedTurns(c: BuilderCase): ExpectedTurn[] {
 	return c.signals.map((signal, turn) => {
 		for (const o of c.conditionOps) if (o.turn === turn) condition = applyOp(condition, o.op);
 		latch = latchStep(latch, reading(c.receiver, signal, condition));
-		return { turn, lamp: latch, byte: SUBJECT[turn % 8] };
+		return { turn, lamp: latch, byte: SUBJECT[turn % 8]! };
 	});
 }

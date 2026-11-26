@@ -56,10 +56,10 @@ describe("builder checker: receipts are not enough", () => {
 	});
 	it("a differing subject_after_hex fails with subject_changed", () => {
 		const rec = runControl("correct");
-		rec.runs[0].subject_after_hex = "41554d007f80feff".replace("41", "42");
+		rec.runs[0]!.subject_after_hex = "41554d007f80feff".replace("41", "42");
 		const g = gradeRunRecord(rec);
 		assert.equal(g.verdict, "not_qualified");
-		assert.deepEqual(g.cases[0].reasons, ["subject_changed"]);
+		assert.deepEqual(g.cases[0]!.reasons, ["subject_changed"]);
 	});
 	it("a missing run for a fixture is not_qualified with coverage listed", () => {
 		const rec = runControl("correct");
@@ -71,10 +71,10 @@ describe("builder checker: receipts are not enough", () => {
 	});
 	it("non-completed outcomes, turn counts, admission and malformed runs get their reasons", () => {
 		const rec = runControl("correct");
-		rec.runs[0].outcome = "limit_exhausted";
-		rec.runs[1].turns.pop();
-		(rec.runs[2].turns[0] as { admitted: boolean }).admitted = false;
-		(rec.runs[3] as { turns: unknown }).turns = "x";
+		rec.runs[0]!.outcome = "limit_exhausted";
+		rec.runs[1]!.turns.pop();
+		(rec.runs[2]!.turns[0] as { admitted: boolean }).admitted = false;
+		(rec.runs[3]! as { turns: unknown }).turns = "x";
 		const g = gradeRunRecord(rec);
 		assert.deepEqual(g.cases.slice(0, 4).map((c) => c.reasons), [["not_completed"], ["turn_count_mismatch"], ["action_not_admitted"], ["malformed"]]);
 	});
