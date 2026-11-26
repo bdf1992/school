@@ -1,7 +1,7 @@
 # Builder curriculum: constructing resident agents
 
-**Standing: adopted plan, 2026-11-26; nothing here is implemented yet.** These are School's work packets
-SCH 01-04 in Bdo's builder-agent allocation of November 25, 2026, plus the first specimen's task material.
+**Standing: programme plan, not implemented.** These are School's work packets SCH 01-04 from the builder-agent allocation
+([source text](https://github.com/bdf1992/Worldspine/blob/dev/spec/builds/dataspaces-builder-source.md)): the allocation Bdo uploaded on 2026-11-26 (written November 25, 2026, as a proposal), taken up as the working programme plan, plus the first specimen's task material.
 Integration entry (ownership, loops, shared exchanges, gates G0-G4):
 [Worldspine `spec/builds/dataspaces-builder.md`](https://github.com/bdf1992/Worldspine/blob/dev/spec/builds/dataspaces-builder.md).
 
@@ -43,6 +43,11 @@ intended distinct results. Expectations are computed independently of the candid
 implementation. A runtime's receipt alone never establishes task success. Transfer coverage and regressions stay
 explicit.
 
+**Predictions.** A one-step prediction is graded against the observed transition only if it was committed before
+the chosen action. Unchosen alternatives are assessed only when the task supplies separately executed reference
+branches. An imagined future is retained as a hypothesis with its action and starting frontier, never as a future
+fact.
+
 **Rule:** the checker computes expectations from the public law in School's own code, importing nothing from
 `packages/dataspace` or from any candidate. It can be packaged for another repository; its semantic owner stays
 School, and its independence comes from the computation and evidence, not the repository.
@@ -58,8 +63,8 @@ stay distinct conditions. Cases used to choose a candidate are separate from the
 Failed attempts are kept as evidence and their training use is decided explicitly. A reopened resident memory is
 not evidence that builder weights learned.
 
-**Known case:** Dyno E9 writes its whole score, including sealed-derived `outcome` and `max_error`, to
-`replies.jsonl`. Its export to training goes through this whitelist; the whole record never does.
+**Known case:** Dyno E9's reply log holds sealed-derived fields ([dyno `docs/BUILDER-MEASUREMENT.md`, DYN 02](https://github.com/bdf1992/dyno/blob/main/docs/BUILDER-MEASUREMENT.md#dyn-02-bounded-campaigns-and-faithful-evidence-export));
+its export to training goes through this whitelist.
 
 ## The first specimen (v0)
 
@@ -90,7 +95,9 @@ otherwise unchanged. A missing reading leaves it unchanged.
 latch after this turn's reading. `byte` is the subject byte at index (turn mod 8), read through an exact view. The
 world admits the action and records the lamp; the subject stays unchanged.
 
-**Cases (qualification split, receiver A unless stated, c = 0):**
+**Public G0 fixtures (receiver A unless stated, c = 0).** These are published to qualify the checker and the
+execution path; they are not a sealed split, and teaching and sealed cases are generated later under SCH 01.
+
 
 | Case | Signals | Condition ops | Expected lamps |
 |---|---|---|---|
@@ -111,15 +118,19 @@ turn it runs (R1 covers all eight indices) and that the subject is byte-identica
 | correct | none | nothing |
 | byte-corrupting | reports `byte` from `high_nibbles` (value x 16) | every turn whose byte has a non-zero low nibble (indices 0, 1, 2, 4, 6, 7) |
 | observer-confusing | applies calibration A whatever receiver it is bound to, ignores `c` | B1, C1 |
-| history-forgetting | lamp = reading >= 128, no memory | H2, C1, M1, B1, R1: every turn whose reading falls between the thresholds or is missing; it passes H1, so only the pair exposes it |
+| history-forgetting | lamp = reading >= 128 each turn, off when missing, no memory | H2, C1, M1, B1, R1 (each alone); it passes H1 |
 
-Case identity is a hash of the law version, receiver, signals and condition ops, not of an ID, so a renamed copy
-cannot cross splits.
+Case identity is the SHA-256 of a canonical encoding (law version, receiver, the signal list with `missing` as
+`null`, the condition ops in order; canonical JSON with sorted keys), not of an ID, so a renamed copy cannot cross
+splits. Two cases are equivalent when they give the same reading sequence for the resident, so a case re-encoded
+with another receiver or condition but identical readings is the same case for split purposes.
 
-**Views.** Builder (learner): public law, interface, budgets, teaching-split cases with their expected lamps.
-Teacher: the learner view plus the learner's attempts and diagnostics. Resident: per turn, only its reading (or
-`missing`), the turn number and its own memory. Evaluator: everything, including qualification-split expectations,
-which no other view receives.
+**Views.** Builder (learner): public law, interface, budgets, teaching cases with their expected lamps.
+Teacher: the learner view plus the learner's attempts and diagnostics. Resident, per turn: the raw signal `s` (or
+`missing`), the id of its bound receiver, the current condition `c`, the turn number, its own memory, and read-only
+access to the subject through the exact `bytes` and `bits` views and the lossy `high_nibbles` and `popcount`
+readings. The resident applies the public calibration law itself; choosing the right receiver and view is part of
+the task. Evaluator: everything, including sealed expectations, which no other view receives.
 
 ## Where School sits in G0
 
