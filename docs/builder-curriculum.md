@@ -98,7 +98,6 @@ world admits the action and records the lamp; the subject stays unchanged.
 **Public G0 fixtures (receiver A unless stated, c = 0).** These are published to qualify the checker and the
 execution path; they are not a sealed split, and teaching and sealed cases are generated later under SCH 01.
 
-
 | Case | Signals | Condition ops | Expected lamps |
 |---|---|---|---|
 | H1 hysteresis high | 220, 128 | none | on, on |
@@ -122,8 +121,8 @@ turn it runs (R1 covers all eight indices) and that the subject is byte-identica
 
 Case identity is the SHA-256 of a canonical encoding (law version, receiver, the signal list with `missing` as
 `null`, the condition ops in order; canonical JSON with sorted keys), not of an ID, so a renamed copy cannot cross
-splits. Two cases are equivalent when they give the same reading sequence for the resident, so a case re-encoded
-with another receiver or condition but identical readings is the same case for split purposes.
+splits. Two cases are equivalent when the resident view receives the same thing in both (the same signals, receiver and
+condition sequence under the same law version), however the case is named or serialized.
 
 **Views.** Builder (learner): public law, interface, budgets, teaching cases with their expected lamps.
 Teacher: the learner view plus the learner's attempts and diagnostics. Resident, per turn: the raw signal `s` (or
