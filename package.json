@@ -28,6 +28,7 @@
 		"school:state-space": "node --import tsx scripts/school-state-space.ts",
 		"school:experiment": "node --import tsx scripts/school-experiment.ts",
 		"school:worker": "node --import tsx scripts/school-worker.ts",
+		"school:worldspine-seat": "node --import tsx scripts/school-worldspine-seat.ts",
 		"desktop:dev": "concurrently -k \"next dev\" \"LH_DEV_URL=http://localhost:3000 electron .\"",
 		"dev:fresh": "bash scripts/dev-fresh.sh",
 		"desktop:dist": "rm -rf dist .next/standalone && next build && node scripts/smoke-provider-runtime.mjs && node scripts/build-server.mjs && node scripts/smoke-server.mjs && electron-builder --mac --arm64 --publish never"
